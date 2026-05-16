@@ -1,100 +1,202 @@
 /**
  * Liste des marques/domaines et logique de correspondance pour la détection d'usurpation.
  * Inclut les marques internationales, françaises et européennes.
+ *
+ * Sources de référence pour la priorisation :
+ *   - APWG eCrime Reports (https://apwg.org/resources/apwg-reports/)
+ *   - Vade Secure Phishers' Favorites (top 25 mensuel)
+ *   - Proofpoint State of the Phish Report
+ *
+ * Dernière mise à jour : mai 2025
  */
 
 const DOMAINES_MARQUES = [
-    // Géants de la technologie
+
+    // ── Géants de la technologie ──────────────────────────────────────────
     'google.com', 'apple.com', 'microsoft.com', 'amazon.com', 'meta.com',
-    'facebook.com', 'instagram.com', 'whatsapp.com',
+    'facebook.com', 'instagram.com', 'whatsapp.com', 'tiktok.com',
 
-    // IA
-    'openai.com', 'chatgpt.com',
+    // ── Intelligence artificielle ─────────────────────────────────────────
+    'openai.com', 'chatgpt.com', 'anthropic.com', 'mistral.ai', 'gemini.google.com',
 
-    // Cloud / SaaS
+    // ── Cloud & infrastructure ────────────────────────────────────────────
+    'cloudflare.com', 'github.com', 'gitlab.com',
+    'ovh.com', 'ovhcloud.com', 'scaleway.com', 'ionos.fr',
+    'digitalocean.com', 'netlify.com', 'vercel.com', 'heroku.com',
+    'aws.amazon.com',
+
+    // ── SaaS / productivité ───────────────────────────────────────────────
     'wix.com', 'squarespace.com', 'shopify.com', 'godaddy.com',
     'dropbox.com', 'zoom.us', 'slack.com', 'notion.so',
     'salesforce.com', 'hubspot.com', 'mailchimp.com',
+    'docusign.com', 'adobe.com', 'canva.com', 'figma.com',
+    'atlassian.com', 'trello.com', 'asana.com',
 
-    // Email / communications
-    'outlook.com', 'yahoo.com', 'protonmail.com',
+    // ── Messagerie / communications ───────────────────────────────────────
+    'outlook.com', 'yahoo.com', 'protonmail.com', 'icloud.com',
 
-    // Paiements
+    // ── Paiements & fintech internationaux ───────────────────────────────
+    // Priorité maximale — vecteur d'arnaque principal
     'paypal.com', 'stripe.com', 'wise.com', 'revolut.com', 'venmo.com',
-    'square.com',
+    'square.com', 'cash.app', 'zelle.com', 'klarna.com',
 
-    // Streaming / médias
-    'netflix.com', 'spotify.com', 'youtube.com', 'twitch.tv',
-    'linkedin.com', 'twitter.com', 'x.com',
+    // ── Cryptomonnaies ────────────────────────────────────────────────────
+    // Très ciblées, arnaques en forte hausse depuis 2023
+    'coinbase.com', 'binance.com', 'ledger.com', 'kraken.com',
+    'metamask.io', 'blockchain.com', 'crypto.com',
 
-    // Expédition internationale
+    // ── Streaming / médias / réseaux sociaux ─────────────────────────────
+    'netflix.com', 'spotify.com', 'youtube.com', 'twitch.tv', 'disneyplus.com',
+    'linkedin.com', 'twitter.com', 'x.com', 'snapchat.com', 'pinterest.com',
+
+    // ── E-commerce international ──────────────────────────────────────────
+    'ebay.com', 'aliexpress.com', 'etsy.com',
+
+    // ── Expédition internationale ─────────────────────────────────────────
     'fedex.com', 'ups.com', 'dhl.com', 'usps.com',
+    'royalmail.com', 'poste.it', 'correos.es', 'bpost.be',
 
-    // Banques américaines
+    // ── Banques américaines ───────────────────────────────────────────────
     'chase.com', 'bankofamerica.com', 'wellsfargo.com', 'citibank.com',
     'capitalone.com',
 
-    // Banques israéliennes
+    // ── Banques israéliennes ──────────────────────────────────────────────
     'leumi.co.il', 'poalim.co.il', 'discount.co.il', 'mizrahi-tefahot.co.il',
     'fibi.co.il',
 
-    // Services israéliens
+    // ── Services israéliens ───────────────────────────────────────────────
     'walla.co.il', 'ynet.co.il', 'gett.com',
 
-    // Sécurité / infrastructure
-    'cloudflare.com', 'github.com', 'gitlab.com',
+    // ══ FRANCE ════════════════════════════════════════════════════════════
 
-    // E-commerce international
-    'ebay.com', 'aliexpress.com', 'etsy.com',
-
-    // ── Banques françaises ──
+    // ── Banques françaises classiques ─────────────────────────────────────
     'creditagricole.fr', 'bnpparibas.com', 'societegenerale.fr',
     'labanquepostale.fr', 'lcl.fr', 'caisse-epargne.fr',
     'boursorama.com', 'creditlyonnais.fr', 'creditmutuel.fr',
     'banquepopulaire.fr', 'hsbc.fr', 'ing.fr',
 
-    // ── Services publics français ──
+    // ── Banques et néobanques françaises — nouvelles ──────────────────────
+    'fortuneo.fr', 'monabanq.com', 'hellobank.fr',
+    'bforbank.com', 'nickel.eu', 'floa.fr',
+    'sumeria.fr',                                   // ex-Lydia, très ciblée en 2024-25
+
+    // ── Services publics français ─────────────────────────────────────────
+    // Vecteur d'arnaque majeur — usurpations fréquentes et crédibles
     'impots.gouv.fr', 'ameli.fr', 'caf.fr', 'pole-emploi.fr',
-    'service-public.fr', 'cpam.fr',
+    'service-public.fr', 'cpam.fr', 'urssaf.fr',
+    'tresor.gouv.fr', 'securite-sociale.fr',
+    'antai.fr',                                     // Amendes routières — très usurpé
+    'ants.gouv.fr',                                 // Permis de conduire / passeports
+    'france-connect.fr',
 
-    // ── Télécoms / FAI français ──
-    'orange.fr', 'sfr.fr', 'free.fr', 'bouyguestelecom.fr',
-    'sosh.fr',
+    // ── Télécoms / FAI français ───────────────────────────────────────────
+    'orange.fr', 'sfr.fr', 'free.fr', 'bouyguestelecom.fr', 'sosh.fr',
+    'numericable.fr', 'coriolis.fr',
 
-    // ── E-commerce français / européen ──
+    // ── Énergie française ─────────────────────────────────────────────────
+    // Arnaques en forte hausse depuis 2022 (crise énergétique)
+    'edf.fr', 'engie.fr', 'totalenergies.fr',
+    'ekwateur.fr', 'octopusenergy.fr',
+
+    // ── Assurance & mutuelle française ───────────────────────────────────
+    'axa.fr', 'maif.fr', 'macif.fr', 'maaf.fr', 'groupama.fr',
+    'harmonie-mutuelle.fr', 'mgen.fr', 'malakoffhumanis.com',
+    'april.fr', 'matmut.fr', 'covea.fr',
+
+    // ── E-commerce français / européen ───────────────────────────────────
     'leboncoin.fr', 'cdiscount.com', 'fnac.com', 'vinted.fr',
-    'veepee.fr',
+    'veepee.fr', 'boulanger.fr', 'darty.com', 'ldlc.com',
 
-    // ── Expédition française / européenne ──
+    // ── Expédition française / européenne ────────────────────────────────
     'laposte.fr', 'colissimo.fr', 'chronopost.fr', 'mondialrelay.fr',
-    'dpd.fr',
+    'dpd.fr', 'gls-france.fr',
+
 ];
 
 /**
  * Groupes de domaines liés appartenant à la même entreprise.
- * Si un nom d'affichage correspond à la marque X et que l'expéditeur provient d'un domaine lié, c'est légitime.
+ * Si un nom d'affichage correspond à la marque X et que l'expéditeur provient
+ * d'un domaine lié, l'email est considéré comme légitime.
  */
 const GROUPES_MARQUES = [
-    ['google.com', 'youtube.com', 'googlemail.com'],
-    ['microsoft.com', 'outlook.com', 'live.com', 'hotmail.com', 'office.com', 'office365.com'],
+    // Technologie internationale
+    ['google.com', 'youtube.com', 'googlemail.com', 'gemini.google.com'],
+    ['microsoft.com', 'outlook.com', 'live.com', 'hotmail.com', 'office.com',
+        'office365.com', 'microsoftonline.com', 'sharepoint.com'],
     ['apple.com', 'icloud.com', 'me.com', 'mac.com'],
     ['meta.com', 'facebook.com', 'instagram.com', 'whatsapp.com'],
     ['amazon.com', 'amazonaws.com'],
     ['openai.com', 'chatgpt.com'],
-    // Groupes français
-    ['bnpparibas.com', 'mabanque.bnpparibas.fr'],
+    ['atlassian.com', 'trello.com', 'jira.com', 'confluence.com'],
+
+    // Paiements
+    ['paypal.com', 'paypal.me'],
+    ['square.com', 'cash.app', 'squareup.com'],
+
+    // Cryptomonnaies
+    ['coinbase.com', 'coinbase.pro'],
+
+    // Cloud FR
+    ['ovh.com', 'ovhcloud.com'],
+
+    // ── Groupes français ──
+    ['bnpparibas.com', 'mabanque.bnpparibas.fr', 'hellobank.fr'],
     ['orange.fr', 'sosh.fr'],
     ['laposte.fr', 'colissimo.fr'],
-    ['creditagricole.fr', 'ca-paris.fr', 'ca-centrest.fr'],
+    ['creditagricole.fr', 'ca-paris.fr', 'ca-centrest.fr', 'ca-normandie.fr',
+        'ca-briepicardie.fr', 'ca-alsace-vosges.fr'],
     ['societegenerale.fr', 'boursorama.com'],
-    ['free.fr', 'iliad.fr'],
+    ['free.fr', 'iliad.fr', 'freebox.fr'],
+    ['edf.fr', 'edf-particuliers.fr'],
+    ['axa.fr', 'axa-banque.fr', 'axa-assurance.fr'],
+    ['maif.fr', 'maif-vie.fr'],
+    ['macif.fr', 'macif-mutualite.fr'],
+    ['groupama.fr', 'gan.fr'],
+    ['malakoffhumanis.com', 'malakoffmederic.com', 'humanis.com'],
+    ['fnac.com', 'darty.com'],                      // Groupe Fnac-Darty
+    ['totalenergies.fr', 'total.fr'],
 ];
+
+/**
+ * Marques financières — déclenchent un niveau de sévérité CRITIQUE
+ * lorsqu'elles sont usurpées avec des homoglyphes ou un échec d'auth.
+ *
+ * Règle d'inclusion : toute marque dont l'usurpation peut entraîner
+ * une perte financière directe pour l'utilisateur.
+ */
+const MARQUES_FINANCIERES = new Set([
+    // Paiements internationaux
+    'paypal', 'stripe', 'wise', 'revolut', 'venmo', 'square',
+    'cash', 'zelle', 'klarna',
+
+    // Cryptomonnaies
+    'coinbase', 'binance', 'ledger', 'kraken', 'metamask', 'blockchain', 'crypto',
+
+    // Banques américaines
+    'chase', 'bankofamerica', 'wellsfargo', 'citibank', 'capitalone',
+
+    // Banques israéliennes
+    'leumi', 'poalim', 'discount', 'mizrahi-tefahot', 'fibi',
+
+    // Banques françaises classiques
+    'creditagricole', 'bnpparibas', 'societegenerale', 'labanquepostale',
+    'lcl', 'caisse-epargne', 'boursorama', 'creditmutuel', 'banquepopulaire',
+    'creditlyonnais', 'hsbc', 'ing',
+
+    // Néobanques françaises
+    'fortuneo', 'monabanq', 'hellobank', 'bforbank', 'nickel', 'floa', 'sumeria',
+
+    // Services publics financiers (remboursements frauduleux très fréquents)
+    'impots', 'tresor', 'urssaf', 'caf', 'ameli', 'cpam', 'antai',
+]);
+
+// ─── Logique de correspondance (inchangée) ─────────────────────────────────
 
 let _indexMarques = null;
 
 /**
  * Construit un index des marques pour une recherche plus rapide (O(1) pour les noms).
- * Évite la double boucle O(n²) (Point 7).
+ * Évite la double boucle O(n²).
  * @returns {{parDomaine: string[], parNom: Map<string, string>}}
  */
 function getIndexMarques_() {
@@ -103,26 +205,12 @@ function getIndexMarques_() {
     for (const domaine of DOMAINES_MARQUES) {
         _indexMarques.parDomaine.push(domaine);
         const nom = extraireNomMarque(domaine);
-        // Ne stocker que les noms de marques uniques et de longueur >= 3
         if (nom.length >= 3 && !_indexMarques.parNom.has(nom)) {
             _indexMarques.parNom.set(nom, domaine);
         }
     }
     return _indexMarques;
 }
-
-/**
- * Marques financières — utilisées pour attribuer un niveau de sévérité critique
- * lorsqu'elles sont usurpées avec des homoglyphes.
- */
-const MARQUES_FINANCIERES = new Set([
-    'paypal', 'stripe', 'wise', 'revolut', 'venmo', 'square',
-    'chase', 'bankofamerica', 'wellsfargo', 'citibank', 'capitalone',
-    'leumi', 'poalim', 'discount', 'mizrahi-tefahot', 'fibi',
-    'creditagricole', 'bnpparibas', 'societegenerale', 'labanquepostale',
-    'lcl', 'caisse-epargne', 'boursorama', 'creditmutuel', 'banquepopulaire',
-    'creditlyonnais', 'hsbc', 'ing',
-]);
 
 let _cacheDomaineLie = null;
 
@@ -173,8 +261,7 @@ function trouverMarqueUsurpee(nomAffichageNormalise) {
         }
     }
 
-    // Deuxième passage : noms de marques seuls via l'index Map (Point 7)
-    // On itère sur les marques indexées pour vérifier si elles sont présentes en tant que mot autonome
+    // Deuxième passage : noms de marques seuls (mot délimité)
     for (const [nom, domaine] of index.parNom.entries()) {
         const pos = nomAffichageNormalise.indexOf(nom);
         if (pos !== -1) {
@@ -191,11 +278,11 @@ function trouverMarqueUsurpee(nomAffichageNormalise) {
     return null;
 }
 
-// ─── Détection de typosquatting (distance de Levenshtein) ──────────────
+// ─── Détection de typosquatting (distance de Levenshtein) ──────────────────
 
 /**
  * Calcule la distance de Levenshtein entre deux chaînes.
- * Optimisé pour utiliser O(n) mémoire au lieu de O(n*m) (Point 2).
+ * Optimisé O(n) en mémoire (deux lignes glissantes).
  * @param {string} a
  * @param {string} b
  * @returns {number}
@@ -232,21 +319,20 @@ function verifierTyposquatting(racineExpediteur) {
     const index = getIndexMarques_();
 
     for (const [nomMarque, domaine] of index.parNom.entries()) {
-        // Trop courts -> trop de faux positifs entre petites marques légitimes (Point 10)
+        // Ignorer les noms trop courts — trop de faux positifs entre marques légitimes
         if (nomMarque.length < 4) continue;
 
-        // Ne pas vérifier si les noms sont identiques
+        // Ne pas vérifier si les noms sont identiques (domaine légitime)
         if (nomExpediteur === nomMarque) continue;
 
-        // Seuil adaptatif (Point 3)
+        // Seuil adaptatif : distance max 1 pour noms courts, 2 pour noms longs
         const seuilMax = nomMarque.length >= 6 ? 2 : 1;
 
-        // Garde sur la différence de longueur pour éviter les comparaisons inutiles (Point 3)
+        // Garde rapide sur la différence de longueur
         const diffLongueur = Math.abs(nomExpediteur.length - nomMarque.length);
         if (diffLongueur > seuilMax) continue;
 
         const distance = distanceLevenshtein(nomExpediteur, nomMarque);
-
         if (distance > 0 && distance <= seuilMax) {
             return { domaine: domaine, nomMarque: nomMarque };
         }

@@ -232,6 +232,9 @@ function verifierTyposquatting(racineExpediteur) {
     const index = getIndexMarques_();
 
     for (const [nomMarque, domaine] of index.parNom.entries()) {
+        // Trop courts -> trop de faux positifs entre petites marques légitimes (Point 10)
+        if (nomMarque.length < 4) continue;
+
         // Ne pas vérifier si les noms sont identiques
         if (nomExpediteur === nomMarque) continue;
 

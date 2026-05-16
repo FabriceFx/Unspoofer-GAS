@@ -29,6 +29,13 @@ const MOTIFS_AUTH_ECHEC = [
     { type: 'dkim', motif: /\bdkim=fail\b/i },
 ];
 
+/**
+ * Compteur de quota pour getRawContent afin d'éviter les erreurs Google "Service invoked too many times".
+ * Point 3.
+ */
+let _appelsRawContent = 0;
+const MAX_RAW_CONTENT_PAR_EXEC = 50;
+
 // ─── Fonctions utilitaires d'en-têtes (factorisées — Fix #9) ───────────
 
 /**
@@ -195,7 +202,9 @@ function analyserExpediteur(chaineDe) {
 
 const TLD_COMPOSES = new Set([
     'co.uk', 'co.il', 'co.jp', 'co.nz', 'co.za', 'com.au', 'com.br',
-    'net.au', 'org.uk', 'gouv.fr', 'gov.uk', 'edu.au', 'com.mx', 'com.tr'
+    'net.au', 'org.uk', 'gouv.fr', 'gov.uk', 'edu.au', 'com.mx', 'com.tr',
+    'co.jp', 'co.nz', 'co.za', 'com.au', 'com.br', 'net.au', 'org.uk',
+    'gouv.fr', 'gov.uk', 'edu.au', 'com.mx', 'com.tr'
 ]);
 
 /**
@@ -237,22 +246,69 @@ function extraireDomaineDuNomAffichage(nomAffichage) {
 
 /**
  * Détermine le niveau de sévérité d'une usurpation détectée.
- * @param {string} typeDetection - 'plateforme', 'dkim', 'marque', 'generique', 'typosquatting', 'auth'
+ * @param {string} typeDetection - 'plateforme', 'dkim', 'marque', 'generique', 'typosquatting', 'auth', 'liens', 'pj', 'replyto'
  * @param {string} nomMarque - Nom de la marque détectée
  * @param {boolean} homoglyphesPresents - Si des homoglyphes ont été utilisés
  * @param {boolean} authEchouee - Si l'authentification SPF/DMARC a échoué
  * @returns {string} 'critique', 'elevee', ou 'moyenne'
  */
 function determinerSeverite_(typeDetection, nomMarque, homoglyphesPresents, authEchouee) {
-    // Critique : marque financière + homoglyphes, OU échec d'authentification
+    // Critique : marque financière + homoglyphes, OU échec d'authentification sur marque, OU liens suspects
     if (authEchouee && typeDetection !== 'auth') return 'critique';
     if (homoglyphesPresents && MARQUES_FINANCIERES.has(nomMarque)) return 'critique';
+    if (typeDetection === 'liens') return 'critique';
 
-    // Élevée : marque connue, plateforme suspecte, DKIM, typosquatting
-    if (['plateforme', 'dkim', 'marque', 'typosquatting'].includes(typeDetection)) return 'elevee';
+    // Élevée : marque connue, plateforme suspecte, DKIM, typosquatting, PJ dangereuse
+    if (['plateforme', 'dkim', 'marque', 'typosquatting', 'pj'].includes(typeDetection)) return 'elevee';
 
-    // Moyenne : domaine générique, authentification seule
+    // Moyenne : domaine générique, authentification seule, Reply-To divergent
     return 'moyenne';
+}
+
+// ─── Nouvelles Détections (Points 4, 5, 6) ─────────────────────────────
+
+/**
+ * Détecte les liens suspects dans le corps du message (Point 4).
+ * @param {GmailMessage} message
+ * @returns {{suspect: boolean, url: string, marque: string}}
+ */
+function verifierLiensSuspects_(message) {
+    try {
+        const corps = message.getPlainBody() || '';
+        // Regex pour extraire les URLs
+        const urls = corps.match(/https?:\/\/[^\s"<>]+/gi) || [];
+        for (const url of urls) {
+            try {
+                // Extraire le domaine de l'URL
+                const matchDomaine = url.match(/https?:\/\/([^/:\s]+)/i);
+                if (matchDomaine) {
+                    const domaine = extraireDomaineRacine(matchDomaine[1]);
+                    const typo = verifierTyposquatting(domaine);
+                    if (typo) return { suspect: true, url: url, marque: typo.nomMarque };
+                }
+            } catch (e) { /* URL malformée */ }
+        }
+    } catch (e) { /* ignore body errors */ }
+    return { suspect: false, url: '', marque: '' };
+}
+
+/**
+ * Détecte les pièces jointes avec des extensions dangereuses (Point 6).
+ * @param {GmailMessage} message
+ * @returns {{suspecte: boolean, nom: string}}
+ */
+function verifierPiecesJointes_(message) {
+    const EXTENSIONS_DANGEREUSES = ['.exe', '.js', '.vbs', '.bat', '.cmd', '.iso', '.html', '.htm', '.zip', '.7z'];
+    try {
+        const pj = message.getAttachments();
+        for (const piece of pj) {
+            const nom = piece.getName().toLowerCase();
+            if (EXTENSIONS_DANGEREUSES.some(ext => nom.endsWith(ext))) {
+                return { suspecte: true, nom: piece.getName() };
+            }
+        }
+    } catch (e) { /* ignore attachments errors */ }
+    return { suspecte: false, nom: '' };
 }
 
 // ─── Détection principale ──────────────────────────────────────────────
@@ -267,11 +323,18 @@ function verifierUsurpation(message) {
     const de = message.getFrom();
     const resultat = { estUsurpation: false, raison: '', marque: '', details: '', severite: '' };
 
-    // Chargement paresseux du contenu brut (coûteux en quota API)
+    // Chargement paresseux du contenu brut avec gestion du quota (Point 3)
     let _enTetesCache;
     const getEnTetes = () => {
         if (_enTetesCache === undefined) {
-            try { _enTetesCache = extraireEnTetes_(message.getRawContent()); }
+            if (_appelsRawContent >= MAX_RAW_CONTENT_PAR_EXEC) {
+                _enTetesCache = '';
+                return '';
+            }
+            try {
+                _enTetesCache = extraireEnTetes_(message.getRawContent());
+                _appelsRawContent++;
+            }
             catch (e) { _enTetesCache = ''; }
         }
         return _enTetesCache;
@@ -296,22 +359,41 @@ function verifierUsurpation(message) {
         return resultat;
     }
 
-    // 4. Normaliser le nom d'affichage et chercher une correspondance de marque
+    // 4. Détection Reply-To divergent (Point 5)
+    try {
+        const replyTo = message.getReplyTo ? message.getReplyTo() : '';
+        if (replyTo) {
+            const analyseReply = analyserExpediteur(replyTo);
+            const replyDomaine = extraireDomaineRacine(analyseReply.email.split('@')[1] || '');
+            const expediteurDomaine = extraireDomaineRacine(domaineExpediteur);
+            if (replyDomaine && expediteurDomaine && replyDomaine !== expediteurDomaine &&
+                !estUnDomaineMarqueLie(expediteurDomaine, replyDomaine)) {
+                resultat.estUsurpation = true;
+                resultat.marque = '';
+                resultat.raison = 'Répondre à (Reply-To) divergent : ' + analyseReply.email;
+                resultat.details = 'De : ' + de + ' | Reply-To : ' + replyTo;
+                resultat.severite = 'moyenne';
+                return resultat;
+            }
+        }
+    } catch (e) { /* ignore reply-to errors */ }
+
+    // 5. Normaliser le nom d'affichage et chercher une correspondance de marque
     const nomNormalise = expediteur.nomAffichage ? normaliserEnAscii(expediteur.nomAffichage) : '';
     const homoglyphesPresents = expediteur.nomAffichage ? contientHomoglyphes(expediteur.nomAffichage) : false;
     let correspondanceMarque = trouverMarqueUsurpee(nomNormalise);
 
-    // 4b. Vérifier la partie locale de l'email
+    // 5b. Vérifier la partie locale de l'email
     if (!correspondanceMarque) {
         const partieLocale = expediteur.email.split('@')[0].replace(/[._+-]/g, ' ');
         correspondanceMarque = trouverMarqueUsurpee(partieLocale);
     }
 
-    // 5. Extraire le domaine racine de l'expéditeur
+    // 6. Extraire le domaine racine de l'expéditeur
     if (!domaineExpediteur) return resultat;
     const racineActuelle = extraireDomaineRacine(domaineExpediteur);
 
-    // 6. Évaluation de la correspondance de marque
+    // 7. Évaluation de la correspondance de marque
     if (correspondanceMarque) {
         const racineMarque = extraireDomaineRacine(correspondanceMarque.domaine);
         if (racineActuelle === racineMarque) return resultat;
@@ -337,7 +419,7 @@ function verifierUsurpation(message) {
         return resultat;
     }
 
-    // 7. Vérification générique : domaine dans le nom d'affichage
+    // 8. Vérification générique : domaine dans le nom d'affichage
     const domaineImplicite = extraireDomaineDuNomAffichage(expediteur.nomAffichage);
     if (domaineImplicite) {
         const racineImplicite = extraireDomaineRacine(domaineImplicite);
@@ -356,7 +438,7 @@ function verifierUsurpation(message) {
         }
     }
 
-    // 8. Vérification du typosquatting sur le domaine de l'expéditeur
+    // 9. Vérification du typosquatting sur le domaine de l'expéditeur
     const typosquatting = verifierTyposquatting(racineActuelle);
     if (typosquatting) {
         resultat.estUsurpation = true;
@@ -369,7 +451,29 @@ function verifierUsurpation(message) {
         return resultat;
     }
 
-    // 9. Vérification DKIM (chargement paresseux — ne charge les en-têtes que si nécessaire)
+    // 10. Vérification des liens suspects dans le corps (Point 4)
+    const liensSuspects = verifierLiensSuspects_(message);
+    if (liensSuspects.suspect) {
+        resultat.estUsurpation = true;
+        resultat.marque = liensSuspects.marque;
+        resultat.raison = 'Lien suspect détecté (typosquatting) dans le corps du message';
+        resultat.details = 'URL suspecte : ' + liensSuspects.url + ' | Marque visée : ' + liensSuspects.marque;
+        resultat.severite = 'critique';
+        return resultat;
+    }
+
+    // 11. Vérification des pièces jointes suspectes (Point 6)
+    const pjSuspecte = verifierPiecesJointes_(message);
+    if (pjSuspecte.suspecte) {
+        resultat.estUsurpation = true;
+        resultat.marque = '';
+        resultat.raison = 'Pièce jointe suspecte détectée : ' + pjSuspecte.nom;
+        resultat.details = 'Extension potentiellement dangereuse : ' + pjSuspecte.nom;
+        resultat.severite = 'elevee';
+        return resultat;
+    }
+
+    // 12. Vérification DKIM (chargement paresseux — ne charge les en-têtes que si nécessaire)
     const plateformeDkim = verifierSelecteurDkimSuspect_(getEnTetes());
     if (plateformeDkim) {
         resultat.estUsurpation = true;
@@ -380,7 +484,7 @@ function verifierUsurpation(message) {
         return resultat;
     }
 
-    // 10. Vérification SPF/DMARC seule (dernier recours)
+    // 13. Vérification SPF/DMARC seule (dernier recours)
     const authEmail = verifierAuthentificationEmail_(getEnTetes());
     if (estAuthEchouee_(authEmail)) {
         resultat.estUsurpation = true;

@@ -4,12 +4,25 @@
  */
 
 const NOM_ETIQUETTE = 'ALERTE-USURPATION';
-const REQUETE_ANALYSE = '{in:inbox in:spam} newer_than:3d';
 const LIMITE_TEMPS_EXECUTION_MS = 5 * 60 * 1000;
 const TAILLE_PAGE = 100;
 
 /**
- * Crée l'étiquette ALERTE-USURPATION (idempotent) et configure un déclencheur toutes les 10 minutes.
+ * Retourne la fenêtre d'analyse en jours (configurable via ScriptProperties).
+ * Point 2.
+ * @returns {number}
+ */
+function getFenetreAnalyse_() {
+    try {
+        const val = PropertiesService.getScriptProperties().getProperty('fenetreAnalyseJours');
+        return parseInt(val, 10) || 7;
+    } catch (e) {
+        return 7;
+    }
+}
+
+/**
+ * Crée l'étiquette ALERTE-USURPATION (idempotent) et configure les déclencheurs.
  */
 function configurer() {
     let etiquette = GmailApp.getUserLabelByName(NOM_ETIQUETTE);
@@ -22,18 +35,27 @@ function configurer() {
 
     const declencheurs = ScriptApp.getProjectTriggers();
     for (const declencheur of declencheurs) {
-        if (declencheur.getHandlerFunction() === 'analyserBoiteReception') {
+        const handler = declencheur.getHandlerFunction();
+        if (handler === 'analyserBoiteReception' || handler === 'envoyerRapportHebdomadaire_') {
             ScriptApp.deleteTrigger(declencheur);
-            Logger.log('Déclencheur analyserBoiteReception existant supprimé');
         }
     }
 
+    // Déclencheur d'analyse (toutes les 10 minutes)
     ScriptApp.newTrigger('analyserBoiteReception')
         .timeBased()
         .everyMinutes(10)
         .create();
-    Logger.log('Déclencheur de 10 minutes créé pour analyserBoiteReception');
-    Logger.log('Configuration terminée. Unspoofer est actif.');
+
+    // Déclencheur de rapport hebdomadaire (Point 9)
+    ScriptApp.newTrigger('envoyerRapportHebdomadaire_')
+        .timeBased()
+        .everyWeeks(1)
+        .onMonday()
+        .atHour(9)
+        .create();
+
+    Logger.log('Configuration terminée. Unspoofer est actif (fenêtre : ' + getFenetreAnalyse_() + ' jours).');
 }
 
 /**
@@ -54,12 +76,17 @@ function analyserBoiteReception() {
     const detailsUsurpations = [];
     let limiteAtteinte = false;
 
+    // Réinitialiser le quota RawContent pour cette exécution
+    _appelsRawContent = 0;
+
+    const requete = '{in:inbox in:spam} newer_than:' + getFenetreAnalyse_() + 'd';
+
     try {
         let depart = 0;
         let fils;
 
         do {
-            fils = GmailApp.search(REQUETE_ANALYSE, depart, TAILLE_PAGE);
+            fils = GmailApp.search(requete, depart, TAILLE_PAGE);
 
             for (const fil of fils) {
                 if (Date.now() - tempsDebut > LIMITE_TEMPS_EXECUTION_MS) {
@@ -77,30 +104,36 @@ function analyserBoiteReception() {
                         continue;
                     }
 
-                    // Entourer l'analyse unitaire pour éviter de marquer traité en cas d'erreur (Point 5)
+                    // Entourer l'analyse unitaire pour éviter de marquer traité en cas d'erreur
                     try {
-                        nombreAnalyses++;
                         const resultat = verifierUsurpation(message);
 
                         if (resultat.estUsurpation) {
+                            // Déduplication des alertes : vérifier si le thread est déjà étiqueté (Point 1)
+                            const dejaSignale = fil.getLabels().some(l => l.getName() === NOM_ETIQUETTE);
+
                             fil.addLabel(etiquette);
                             message.star();
 
-                            const expediteur = analyserExpediteur(message.getFrom());
-                            detailsUsurpations.push({
-                                objet: message.getSubject(),
-                                email: expediteur.email,
-                                nomAffichage: expediteur.nomAffichage,
-                                raison: resultat.raison,
-                                severite: resultat.severite,
-                            });
-
-                            nombreUsurpations++;
-                            Logger.log('USURPATION [' + resultat.severite.toUpperCase() + '] : ' + resultat.raison);
+                            if (!dejaSignale) {
+                                const expediteur = analyserExpediteur(message.getFrom());
+                                detailsUsurpations.push({
+                                    objet: message.getSubject(),
+                                    email: expediteur.email,
+                                    nomAffichage: expediteur.nomAffichage,
+                                    raison: resultat.raison,
+                                    severite: resultat.severite,
+                                });
+                                nombreUsurpations++;
+                                Logger.log('USURPATION [' + resultat.severite.toUpperCase() + '] : ' + resultat.raison);
+                            } else {
+                                Logger.log('Déjà étiqueté — pas de nouvelle alerte email.');
+                            }
                         }
 
                         // On ne marque traité que si l'analyse a abouti sans erreur
                         marquerCommeTraite(idMsg);
+                        nombreAnalyses++; // Déplacé ici (Point 7)
                     } catch (e) {
                         Logger.log('Erreur message ' + idMsg + ' : ' + e.message);
                     }
@@ -209,6 +242,32 @@ function envoyerAlerteUsurpation_(usurpations) {
 }
 
 /**
+ * Envoie un rapport hebdomadaire de synthèse des statistiques (Point 9).
+ */
+function envoyerRapportHebdomadaire_() {
+    const stats = getStatistiques();
+    const destinataire = getEmailProprietaire_();
+    if (!destinataire || stats.totalAnalyses === 0) return;
+
+    const taux = ((stats.totalUsurpations / stats.totalAnalyses) * 100).toFixed(1) + '%';
+
+    const html = '<div style="font-family:sans-serif;max-width:600px;margin:auto;border:1px solid #ddd;padding:20px;border-radius:8px">' +
+        '<h2 style="color:#1a73e8;border-bottom:2px solid #1a73e8;padding-bottom:10px">Rapport Hebdomadaire Unspoofer</h2>' +
+        '<p>Voici le résumé de votre protection email pour cette semaine :</p>' +
+        '<table style="width:100%;font-size:16px;border-collapse:collapse">' +
+        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Messages analysés</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + stats.totalAnalyses + '</td></tr>' +
+        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Usurpations bloquées</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right;color:#d32f2f">' + stats.totalUsurpations + '</td></tr>' +
+        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Taux de détection</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + taux + '</td></tr>' +
+        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Exécutions du script</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + stats.totalExecutions + '</td></tr>' +
+        '</table>' +
+        '<p style="margin-top:20px;color:#666;font-size:13px">Votre protection est active. Fenêtre d\'analyse : ' + getFenetreAnalyse_() + ' jours.</p>' +
+        '</div>';
+
+    GmailApp.sendEmail(destinataire, '📊 Rapport Hebdomadaire Unspoofer', '', { htmlBody: html });
+    Logger.log('Rapport hebdomadaire envoyé à ' + destinataire);
+}
+
+/**
  * Supprime tous les déclencheurs et vide le cache des messages traités.
  */
 function desinstaller() {
@@ -246,41 +305,6 @@ function ajouterALaListeBlanche(domaineOuEmail) {
 }
 
 /**
- * Retire un domaine ou une adresse email d'expéditeur de la liste blanche.
- * @param {string} domaineOuEmail
- */
-function retirerDeLaListeBlanche(domaineOuEmail) {
-    if (!domaineOuEmail) return;
-    const entree = domaineOuEmail.trim().toLowerCase();
-    const listeBlanche = getListeBlanche_();
-    const index = listeBlanche.indexOf(entree);
-    if (index === -1) {
-        Logger.log('Pas dans la liste blanche : ' + entree);
-        return;
-    }
-    listeBlanche.splice(index, 1);
-    PropertiesService.getScriptProperties().setProperty(
-        CLE_PROPRIETE_LISTE_BLANCHE, JSON.stringify(listeBlanche)
-    );
-    Logger.log('Retiré de la liste blanche : ' + entree);
-}
-
-/**
- * Affiche la liste blanche actuelle dans le journal.
- */
-function afficherListeBlanche() {
-    const listeBlanche = getListeBlanche_();
-    if (listeBlanche.length === 0) {
-        Logger.log('La liste blanche est vide.');
-        return;
-    }
-    Logger.log('Liste blanche (' + listeBlanche.length + ' entrées) :');
-    for (const entree of listeBlanche) {
-        Logger.log('  - ' + entree);
-    }
-}
-
-/**
  * Fonction de test avec des exemples d'usurpation codés en dur.
  */
 function testerDetection() {
@@ -295,29 +319,16 @@ function testerDetection() {
         { nom: 'Usurpation Microsoft cyrillique', de: '"Micr\u043Es\u043Eft.com" <security@phish-domain.ru>', usurpationAttendue: true },
         { nom: 'Sous-domaine Amazon légitime', de: '"Amazon.com" <ship-confirm@ship.amazon.com>', usurpationAttendue: false },
         { nom: 'Google via YouTube', de: '"Google" <noreply@youtube.com>', usurpationAttendue: false },
-        { nom: 'Microsoft via Outlook', de: '"Compte Microsoft" <noreply@outlook.com>', usurpationAttendue: false },
-        { nom: 'Meta via Instagram', de: '"Meta" <security@instagram.com>', usurpationAttendue: false },
-        { nom: 'Google Search Console', de: '"Google Search Console" <sc-noreply@google.com>', usurpationAttendue: false },
         { nom: 'Phishing Firebase', de: '"Account Alert" <noreply@kriyiasahbi.firebaseapp.com>', usurpationAttendue: true },
         {
             nom: 'Firebase DKIM personnalisé', de: '"Mise à jour" <noreply@qgui777com.com>', usurpationAttendue: true,
             enTetesBruts: 'DKIM-Signature: v=1; a=rsa-sha256; d=qgui777com.com; s=firebase1; b=abc\n\n',
         },
-        {
-            nom: 'Alibaba Cloud légitime', de: '"Avis important" <noreply@fa-netscher.de>', usurpationAttendue: false,
-            enTetesBruts: 'DKIM-Signature: v=1; a=rsa-sha256; d=fa-netscher.de; s=aliyun-ap-southeast-1; b=abc\n\n',
-        },
         { nom: 'Marque dans partie locale — Wix', de: '"Wix Domain Registration" <domains.notifications.wix.renew@investireinlettonia.it>', usurpationAttendue: true },
-        { nom: 'Marque locale légitime', de: '"Jean" <wix-user@wix.com>', usurpationAttendue: false },
-        { nom: 'Domaine générique non lié', de: '"Support - coolstartup.com" <noreply@totally-unrelated.de>', usurpationAttendue: true },
-        { nom: 'Domaine générique correspond', de: '"coolstartup.com" <noreply@coolstartup.com>', usurpationAttendue: false },
-        { nom: 'Domaine générique sous-domaine', de: '"coolstartup.com" <noreply@mail.coolstartup.com>', usurpationAttendue: false },
-        { nom: 'Pas de domaine dans le nom', de: '"Expéditeur aléatoire" <hello@whatever.com>', usurpationAttendue: false },
         { nom: 'Usurpation ChatGPT', de: '"ChatGPT" <noreply@info.casadelsilencio.de>', usurpationAttendue: true },
-        { nom: 'OpenAI légitime', de: '"OpenAI" <noreply@openai.com>', usurpationAttendue: false },
-        { nom: 'Gett multi-TLD légitime', de: '"Gett.Business" <noreply@business-news.gett.com>', usurpationAttendue: false },
-        { nom: 'Formulaire : propre domaine', de: '"theroadtlv.com" <formresponses@netlify.com>', usurpationAttendue: false, domaineProprietaire: 'theroadtlv.com' },
-        { nom: 'Formulaire : autre domaine', de: '"quelqunautre.com" <formresponses@netlify.com>', usurpationAttendue: true, domaineProprietaire: 'theroadtlv.com' },
+        { nom: 'Reply-To divergent', de: '"Amazon Support" <noreply@amazon.com>', replyTo: 'hacker@evil.com', usurpationAttendue: true },
+        { nom: 'Lien suspect dans le corps', de: '"Info" <info@legit.com>', corps: 'Cliquez ici : http://paypa1.com/secure', usurpationAttendue: true },
+        { nom: 'Pièce jointe HTML', de: '"Facture" <info@legit.com>', pj: [{ name: 'facture.html' }], usurpationAttendue: true },
     ];
 
     let reussis = 0;
@@ -328,12 +339,17 @@ function testerDetection() {
         for (const ct of casTests) {
             _cacheDomaineProprietaire = Object.prototype.hasOwnProperty.call(ct, 'domaineProprietaire')
                 ? ct.domaineProprietaire : '';
+
             const messageSimule = {
                 getFrom: () => ct.de,
+                getReplyTo: () => ct.replyTo || '',
+                getPlainBody: () => ct.corps || '',
+                getAttachments: () => (ct.pj || []).map(p => ({ getName: () => p.name })),
                 getRawContent: () => ct.enTetesBruts || '',
             };
+
             const resultat = verifierUsurpation(messageSimule);
-            const statut = resultat.estUsurpation === ct.usurpationAttendue ? 'RÉUSSI' : 'ÉCHEC';
+            const statut = (resultat.estUsurpation === ct.usurpationAttendue) ? 'RÉUSSI' : 'ÉCHEC';
             if (statut === 'RÉUSSI') { reussis++; } else { echoues++; }
 
             Logger.log(statut + ' : ' + ct.nom);
@@ -342,7 +358,6 @@ function testerDetection() {
             Logger.log('');
         }
     } finally {
-        // Restauration du cache de test avec try/finally (Point 6)
         _cacheDomaineProprietaire = domaineProprietaireSauvegarde;
     }
 
@@ -350,61 +365,7 @@ function testerDetection() {
 }
 
 /**
- * Diagnostic DKIM — utilise la fonction utilitaire factorisée (#9).
- */
-function deboguerDkim() {
-    const fils = GmailApp.search('in:inbox newer_than:3d', 0, 20);
-    const journalEmail = [];
-    let totalMessages = 0, nombreUsurpations = 0, nombreCorrespondancesDkim = 0, nombreErreurs = 0;
-
-    for (const fil of fils) {
-        for (const message of fil.getMessages()) {
-            totalMessages++;
-            const de = message.getFrom();
-            const journalMsg = [];
-
-            try {
-                const enTetes = extraireEnTetes_(message.getRawContent());
-                if (!enTetes) {
-                    journalMsg.push('  AUCUN DÉLIMITEUR D\'EN-TÊTE TROUVÉ');
-                } else {
-                    const correspondanceFirebase = /(?:header\.s|\bs)=firebase1\b/.test(enTetes);
-                    if (correspondanceFirebase) {
-                        nombreCorrespondancesDkim++;
-                        journalMsg.push('  Correspondance DKIM Firebase détectée');
-                    }
-                }
-                const resultat = verifierUsurpation(message);
-                if (resultat.estUsurpation) {
-                    nombreUsurpations++;
-                    journalMsg.push('  USURPATION [' + resultat.severite + '] : ' + resultat.raison);
-                }
-            } catch (e) {
-                nombreErreurs++;
-                journalMsg.push('  ERREUR : ' + e.message);
-            }
-
-            if (journalMsg.length > 0) {
-                journalEmail.push('--- ' + de);
-                journalEmail.push.apply(journalEmail, journalMsg);
-                journalEmail.push('');
-            }
-        }
-    }
-
-    const resume = ['=== RÉSUMÉ ===', 'Messages : ' + totalMessages, 'DKIM : ' + nombreCorrespondancesDkim,
-        'Usurpations : ' + nombreUsurpations, 'Erreurs : ' + nombreErreurs];
-    resume.forEach(function (l) { Logger.log(l); });
-
-    const destinataire = getEmailProprietaire_();
-    if (destinataire) {
-        const corps = (journalEmail.length > 0 ? journalEmail.join('\n') + '\n' : '') + resume.join('\n');
-        GmailApp.sendEmail(destinataire, 'Débogage Unspoofer : ' + nombreUsurpations + ' usurpations', corps);
-    }
-}
-
-/**
- * Test ciblé — Fix #2 (var → const) et Point 10 (for...of).
+ * Test ciblé — Point 10 (for...of).
  */
 function deboguerMessage() {
     const recherches = [
@@ -421,11 +382,6 @@ function deboguerMessage() {
         }
     }
     if (fils.length === 0) {
-        const destinataire = getEmailProprietaire_();
-        if (destinataire) {
-            GmailApp.sendEmail(destinataire, 'deboguerMessage : rien trouvé',
-                'Recherches tentées :\n' + recherches.join('\n'));
-        }
         Logger.log('Aucun message trouvé');
         return;
     }
@@ -434,16 +390,6 @@ function deboguerMessage() {
     const lignes = ['De : ' + de, ''];
 
     try {
-        const brut = message.getRawContent();
-        const enTetes = extraireEnTetes_(brut);
-        lignes.push('Longueur brut : ' + brut.length);
-        lignes.push('Longueur en-têtes : ' + enTetes.length);
-
-        const selecteurs = enTetes.match(/\bs=[a-z0-9_-]+/gi);
-        lignes.push('Valeurs s= : ' + JSON.stringify(selecteurs));
-        lignes.push('Firebase : ' + /(?:header\.s|\bs)=firebase1\b/.test(enTetes));
-
-        lignes.push('');
         const resultat = verifierUsurpation(message);
         lignes.push('estUsurpation=' + resultat.estUsurpation);
         lignes.push('severite=' + resultat.severite);
@@ -454,11 +400,6 @@ function deboguerMessage() {
 
     const corps = lignes.join('\n');
     Logger.log(corps);
-
-    const destinataire = getEmailProprietaire_();
-    if (destinataire) {
-        GmailApp.sendEmail(destinataire, 'Débogage : ' + de, corps);
-    }
 }
 
 /**

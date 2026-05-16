@@ -188,9 +188,9 @@ function couleurSeverite_(severite) {
  * @returns {string}
  */
 function libelleSeverite_(severite) {
-    if (severite === 'critique') return '🔴 Critique';
-    if (severite === 'elevee') return '🟠 Élevée';
-    return '🟡 Moyenne';
+    if (severite === 'critique') return 'CRITIQUE';
+    if (severite === 'elevee') return 'ELEVEE';
+    return 'MOYENNE';
 }
 
 /**
@@ -221,9 +221,10 @@ function envoyerAlerteUsurpation_(usurpations) {
 
     const nbCritiques = usurpations.filter(u => u.severite === 'critique').length;
 
-    const html = '<h2>Alerte Usurpation : ' + usurpations.length + ' message' +
+    const html = '<meta charset="UTF-8">' +
+        '<h2>Alerte Usurpation : ' + usurpations.length + ' message' +
         (usurpations.length > 1 ? 's suspects détectés' : ' suspect détecté') + '</h2>' +
-        (nbCritiques > 0 ? '<p style="color:#d32f2f;font-weight:bold">⚠️ ' + nbCritiques + ' menace(s) critique(s) !</p>' : '') +
+        (nbCritiques > 0 ? '<p style="color:#d32f2f;font-weight:bold">!!! ' + nbCritiques + ' menace(s) critique(s) !!!</p>' : '') +
         '<table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:14px">' +
         '<tr style="background:#424242;color:white">' +
         '<th style="padding:8px;border:1px solid #ddd;text-align:left">Sévérité</th>' +
@@ -234,7 +235,7 @@ function envoyerAlerteUsurpation_(usurpations) {
         '</tr>' + lignes + '</table>' +
         '<p style="color:#666;font-size:12px">Envoyé par Unspoofer. Ces messages ont été étiquetés ALERTE-USURPATION.</p>';
 
-    const sujetEmail = (nbCritiques > 0 ? '🔴 ' : '⚠️ ') +
+    const sujetEmail = (nbCritiques > 0 ? '[CRITIQUE] ' : '[ALERTE] ') +
         'Alerte Usurpation : ' + usurpations.length + ' message' +
         (usurpations.length > 1 ? 's' : '');
 

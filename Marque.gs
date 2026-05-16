@@ -120,7 +120,7 @@ const DOMAINES_MARQUES = [
  */
 const GROUPES_MARQUES = [
     // Technologie internationale
-    ['google.com', 'youtube.com', 'googlemail.com', 'gemini.google.com'],
+    ['google.com', 'youtube.com', 'googlemail.com', 'gemini.google.com', 'googlegroups.com'],
     ['microsoft.com', 'outlook.com', 'live.com', 'hotmail.com', 'office.com',
         'office365.com', 'microsoftonline.com', 'sharepoint.com'],
     ['apple.com', 'icloud.com', 'me.com', 'mac.com'],

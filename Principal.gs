@@ -76,8 +76,9 @@ function analyserBoiteReception() {
     const detailsUsurpations = [];
     let limiteAtteinte = false;
 
-    // Réinitialiser le quota RawContent pour cette exécution
+    // Réinitialiser les quotas pour cette exécution (Point 3)
     _appelsRawContent = 0;
+    _appelsPlainBody = 0;
 
     const requete = '{in:inbox in:spam} newer_than:' + getFenetreAnalyse_() + 'd';
 
@@ -243,28 +244,39 @@ function envoyerAlerteUsurpation_(usurpations) {
 
 /**
  * Envoie un rapport hebdomadaire de synthèse des statistiques (Point 9).
+ * Utilise les deltas par rapport au dernier snapshot (Point 8).
  */
 function envoyerRapportHebdomadaire_() {
     const stats = getStatistiques();
     const destinataire = getEmailProprietaire_();
     if (!destinataire || stats.totalAnalyses === 0) return;
 
-    const taux = ((stats.totalUsurpations / stats.totalAnalyses) * 100).toFixed(1) + '%';
+    // Calcul des deltas hebdomadaires (Option B - Point 8)
+    const deltaAnalyses = stats.totalAnalyses - (stats.snapshotHebdo?.analyses || 0);
+    const deltaUsurpations = stats.totalUsurpations - (stats.snapshotHebdo?.usurpations || 0);
+
+    const tauxHebdo = deltaAnalyses > 0
+        ? ((deltaUsurpations / deltaAnalyses) * 100).toFixed(1) + '%'
+        : '0%';
 
     const html = '<div style="font-family:sans-serif;max-width:600px;margin:auto;border:1px solid #ddd;padding:20px;border-radius:8px">' +
         '<h2 style="color:#1a73e8;border-bottom:2px solid #1a73e8;padding-bottom:10px">Rapport Hebdomadaire Unspoofer</h2>' +
         '<p>Voici le résumé de votre protection email pour cette semaine :</p>' +
         '<table style="width:100%;font-size:16px;border-collapse:collapse">' +
-        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Messages analysés</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + stats.totalAnalyses + '</td></tr>' +
-        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Usurpations bloquées</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right;color:#d32f2f">' + stats.totalUsurpations + '</td></tr>' +
-        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Taux de détection</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + taux + '</td></tr>' +
-        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Exécutions du script</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + stats.totalExecutions + '</td></tr>' +
+        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Messages analysés</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + deltaAnalyses + '</td></tr>' +
+        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Usurpations bloquées</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right;color:#d32f2f">' + deltaUsurpations + '</td></tr>' +
+        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Taux de détection</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + tauxHebdo + '</td></tr>' +
         '</table>' +
+        '<p style="margin-top:20px;font-size:14px;color:#333"><b>Total cumulé depuis l\'installation :</b><br>' +
+        'Analyses : ' + stats.totalAnalyses + ' | Usurpations : ' + stats.totalUsurpations + ' | Exécutions : ' + stats.totalExecutions + '</p>' +
         '<p style="margin-top:20px;color:#666;font-size:13px">Votre protection est active. Fenêtre d\'analyse : ' + getFenetreAnalyse_() + ' jours.</p>' +
         '</div>';
 
     GmailApp.sendEmail(destinataire, '📊 Rapport Hebdomadaire Unspoofer', '', { htmlBody: html });
     Logger.log('Rapport hebdomadaire envoyé à ' + destinataire);
+
+    // Sauvegarder le snapshot pour la semaine prochaine
+    sauvegarderSnapshotHebdo_();
 }
 
 /**

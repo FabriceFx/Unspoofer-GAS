@@ -30,11 +30,13 @@ const MOTIFS_AUTH_ECHEC = [
 ];
 
 /**
- * Compteur de quota pour getRawContent afin d'éviter les erreurs Google "Service invoked too many times".
+ * Compteur de quota pour getRawContent et getPlainBody afin d'éviter les erreurs Google "Service invoked too many times".
  * Point 3.
  */
 let _appelsRawContent = 0;
 const MAX_RAW_CONTENT_PAR_EXEC = 50;
+let _appelsPlainBody = 0;
+const MAX_PLAIN_BODY_PAR_EXEC = 30;
 
 // ─── Fonctions utilitaires d'en-têtes (factorisées — Fix #9) ───────────
 
@@ -201,10 +203,9 @@ function analyserExpediteur(chaineDe) {
 }
 
 const TLD_COMPOSES = new Set([
-    'co.uk', 'co.il', 'co.jp', 'co.nz', 'co.za', 'com.au', 'com.br',
-    'net.au', 'org.uk', 'gouv.fr', 'gov.uk', 'edu.au', 'com.mx', 'com.tr',
-    'co.jp', 'co.nz', 'co.za', 'com.au', 'com.br', 'net.au', 'org.uk',
-    'gouv.fr', 'gov.uk', 'edu.au', 'com.mx', 'com.tr'
+    'co.uk', 'co.il', 'co.jp', 'co.nz', 'co.za',
+    'com.au', 'com.br', 'com.mx', 'com.tr',
+    'net.au', 'org.uk', 'gouv.fr', 'gov.uk', 'edu.au'
 ]);
 
 /**
@@ -268,13 +269,16 @@ function determinerSeverite_(typeDetection, nomMarque, homoglyphesPresents, auth
 // ─── Nouvelles Détections (Points 4, 5, 6) ─────────────────────────────
 
 /**
- * Détecte les liens suspects dans le corps du message (Point 4).
+ * Détecteur de liens suspects dans le corps du message (Point 4).
+ * Limité par quota pour éviter les erreurs Apps Script (Point 3).
  * @param {GmailMessage} message
  * @returns {{suspect: boolean, url: string, marque: string}}
  */
 function verifierLiensSuspects_(message) {
+    if (_appelsPlainBody >= MAX_PLAIN_BODY_PAR_EXEC) return { suspect: false, url: '', marque: '' };
     try {
         const corps = message.getPlainBody() || '';
+        _appelsPlainBody++;
         // Regex pour extraire les URLs
         const urls = corps.match(/https?:\/\/[^\s"<>]+/gi) || [];
         for (const url of urls) {

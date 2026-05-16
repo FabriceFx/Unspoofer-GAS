@@ -112,14 +112,43 @@ function incrementerStatistiques_(analyses, usurpations) {
 
 /**
  * Retourne les statistiques cumulées d'Unspoofer.
- * @returns {{totalAnalyses: number, totalUsurpations: number, totalExecutions: number, derniereAnalyse: string}}
+ * Point 8 : Ajout du snapshot hebdomadaire.
+ * @returns {{totalAnalyses: number, totalUsurpations: number, totalExecutions: number, derniereAnalyse: string, snapshotHebdo: {analyses: number, usurpations: number, date: string}}}
  */
 function getStatistiques() {
+    let stats = {
+        totalAnalyses: 0,
+        totalUsurpations: 0,
+        totalExecutions: 0,
+        derniereAnalyse: '',
+        snapshotHebdo: { analyses: 0, usurpations: 0, date: '' }
+    };
     try {
         const brut = PropertiesService.getScriptProperties().getProperty(CLE_STATS);
-        if (brut) return JSON.parse(brut);
+        if (brut) {
+            const charge = JSON.parse(brut);
+            // Fusionner avec les valeurs par défaut pour les nouveaux champs
+            stats = Object.assign(stats, charge);
+        }
     } catch (e) { /* ignore */ }
-    return { totalAnalyses: 0, totalUsurpations: 0, totalExecutions: 0, derniereAnalyse: '' };
+    return stats;
+}
+
+/**
+ * Sauvegarde l'état actuel des statistiques pour le calcul des deltas hebdomadaires.
+ */
+function sauvegarderSnapshotHebdo_() {
+    try {
+        const stats = getStatistiques();
+        stats.snapshotHebdo = {
+            analyses: stats.totalAnalyses,
+            usurpations: stats.totalUsurpations,
+            date: new Date().toISOString()
+        };
+        PropertiesService.getScriptProperties().setProperty(CLE_STATS, JSON.stringify(stats));
+    } catch (e) {
+        Logger.log('Erreur sauvegarde snapshot hebdo : ' + e.message);
+    }
 }
 
 /**

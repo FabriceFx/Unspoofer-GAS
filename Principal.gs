@@ -415,7 +415,7 @@ function deboguerMessage() {
 }
 
 /**
- * Ré-analyse la boîte de réception — Fix #4 (plus de double analyse).
+ * Ré-analyse la boîte de réception.
  */
 function reanalyserBoiteReception() {
     Logger.log('Vidage du cache des messages traités...');
@@ -423,4 +423,72 @@ function reanalyserBoiteReception() {
     Logger.log('Cache vidé. Démarrage d\'une nouvelle analyse...');
     analyserBoiteReception();
     Logger.log('Ré-analyse terminée.');
+}
+
+/**
+ * Analyse les messages déjà étiquetés ALERTE-USURPATION pour identifier des domaines fréquents.
+ * Utile pour découvrir de nouvelles marques à surveiller ou des faux positifs à whitelister.
+ */
+function analyserMarquesNonDetectees() {
+    Logger.log('Analyse des 50 dernières alertes (30 derniers jours)...');
+    const fils = GmailApp.search('label:' + NOM_ETIQUETTE + ' newer_than:30d', 0, 50);
+    const frequences = {};
+    const domainesParEmail = {};
+
+    for (const fil of fils) {
+        const messages = fil.getMessages();
+        const dernierMsg = messages[messages.length - 1]; // On prend le dernier du fil
+        const exp = analyserExpediteur(dernierMsg.getFrom());
+        const domaineAffiche = extraireDomaineDuNomAffichage(exp.nomAffichage);
+
+        if (domaineAffiche) {
+            frequences[domaineAffiche] = (frequences[domaineAffiche] || 0) + 1;
+            if (!domainesParEmail[domaineAffiche]) domainesParEmail[domaineAffiche] = new Set();
+            domainesParEmail[domaineAffiche].add(exp.email);
+        }
+    }
+
+    const resultats = Object.entries(frequences)
+        .filter(([, n]) => n >= 2)
+        .sort(([, a], [, b]) => b - a);
+
+    if (resultats.length === 0) {
+        Logger.log('Aucun domaine récurrent trouvé dans les alertes récentes.');
+        return;
+    }
+
+    Logger.log('=== Domaines récurrents dans les alertes ===');
+    resultats.forEach(([domaine, n]) => {
+        Logger.log('Domaine : ' + domaine + ' (' + n + ' apparitions)');
+        const emails = Array.from(domainesParEmail[domaine]);
+        Logger.log('  Exemples d\'emails : ' + emails.slice(0, 3).join(', '));
+        Logger.log('  Pour whitelister : ajouterALaListeBlanche("' + domaine + '")');
+        Logger.log('-------------------------------------------');
+    });
+}
+
+/**
+ * Analyse un message spécifique par son ID (trouvable dans l'URL Gmail ou via log).
+ * @param {string} idMessage
+ */
+function deboguerMessageById(idMessage) {
+    if (!idMessage) {
+        Logger.log('Veuillez fournir un ID de message.');
+        return;
+    }
+    try {
+        const message = GmailApp.getMessageById(idMessage);
+        const resultat = verifierUsurpation(message);
+        Logger.log('--- Diagnostic Message ---');
+        Logger.log('De : ' + message.getFrom());
+        Logger.log('Sujet : ' + message.getSubject());
+        Logger.log('Détection : ' + (resultat.estUsurpation ? 'OUI' : 'NON'));
+        if (resultat.estUsurpation) {
+            Logger.log('Sévérité : ' + resultat.severite);
+            Logger.log('Raison : ' + resultat.raison);
+            Logger.log('Détails : ' + resultat.details);
+        }
+    } catch (e) {
+        Logger.log('Erreur : ' + e.message);
+    }
 }

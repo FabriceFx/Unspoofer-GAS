@@ -33,6 +33,8 @@
 | `analyserBoiteReception()` | Manual scan (paginated, time-limited) |
 | `reanalyserBoiteReception()` | Clear cache and rescan (deduplicated alerts) |
 | `testerDetection()` | Run 30+ built-in test cases |
+| `analyserMarquesNonDetectees()` | Find frequent domains in alerts for maintenance |
+| `deboguerMessageById('id')` | Detailed diagnostic for a specific message |
 | `ajouterALaListeBlanche('domain')` | Whitelist a sender or domain |
 | `afficherStatistiques()` | View cumulative and weekly stats |
 
@@ -67,6 +69,8 @@
 | `analyserBoiteReception()` | Analyse manuelle (paginée, limitée en temps) |
 | `reanalyserBoiteReception()` | Vide le cache et réanalyse (alertes dédupliquées) |
 | `testerDetection()` | Exécute 30+ cas de test intégrés |
+| `analyserMarquesNonDetectees()` | Trouve les domaines fréquents dans les alertes |
+| `deboguerMessageById('id')` | Diagnostic détaillé pour un message précis |
 | `ajouterALaListeBlanche('domaine')` | Ajouter à la liste blanche |
 | `afficherStatistiques()` | Voir les stats cumulées et hebdomadaires |
 

@@ -51,7 +51,7 @@ function configurer() {
     ScriptApp.newTrigger('envoyerRapportHebdomadaire_')
         .timeBased()
         .everyWeeks(1)
-        .onMonday()
+        .onWeekDay(ScriptApp.WeekDay.MONDAY)
         .atHour(9)
         .create();
 

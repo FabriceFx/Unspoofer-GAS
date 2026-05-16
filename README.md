@@ -38,6 +38,17 @@
 | `ajouterALaListeBlanche('domain')` | Whitelist a sender or domain |
 | `afficherStatistiques()` | View cumulative and weekly stats |
 
+### ⚪ Whitelisting
+To whitelist a domain or email address (to stop receiving alerts for a specific sender):
+1. In the Apps Script editor, create a temporary function:
+   ```javascript
+   function myWhitelist() {
+     ajouterALaListeBlanche('example.com');
+   }
+   ```
+2. Select `myWhitelist` in the toolbar and click **Run**.
+3. You can also run `analyserMarquesNonDetectees()` to see suggestions for frequent domains to whitelist.
+
 ---
 
 <a name="français"></a>
@@ -73,6 +84,17 @@
 | `deboguerMessageById('id')` | Diagnostic détaillé pour un message précis |
 | `ajouterALaListeBlanche('domaine')` | Ajouter à la liste blanche |
 | `afficherStatistiques()` | Voir les stats cumulées et hebdomadaires |
+
+### ⚪ Liste Blanche
+Pour mettre un domaine ou une adresse email en liste blanche (et ne plus recevoir d'alertes pour cet expéditeur) :
+1. Dans l'éditeur Apps Script, créez une fonction temporaire :
+   ```javascript
+   function maListeBlanche() {
+     ajouterALaListeBlanche('exemple.com');
+   }
+   ```
+2. Sélectionnez `maListeBlanche` dans la barre d'outils et cliquez sur **Exécuter**.
+3. Vous pouvez aussi lancer `analyserMarquesNonDetectees()` pour voir des suggestions de domaines fréquents à whitelister.
 
 ---
 

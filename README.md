@@ -7,68 +7,68 @@
 <a name="english"></a>
 ## 🇺🇸 English
 
-**Unspoofer** is a Google Apps Script tool that protects your Gmail inbox from **display-name spoofing**, **homoglyph attacks**, and **typosquatting**, common techniques in advanced phishing.
+**Unspoofer** is a Google Apps Script tool that protects your Gmail inbox from **display-name spoofing**, **homoglyph attacks**, **typosquatting**, and **malicious content**.
 
 ### 🚀 Features
-- **Brand Impersonation Detection**: 80+ monitored brands (tech, banks, French public services, telecoms…)
-- **Homoglyph Normalization**: Detects Cyrillic, Greek, and fullwidth lookalike characters
-- **Typosquatting Detection**: Catches domains suspiciously close to known brands (e.g. `paypa1.com`)
-- **SPF / DKIM / DMARC Verification**: Analyzes raw authentication headers for failures
-- **Suspicious Platform Analysis**: Flags emails from Firebase, AppSpot, etc.
-- **Severity Levels**: 🔴 Critical, 🟠 High, 🟡 Medium — prioritize what matters
-- **Automation**: Label, star, and email summary every 10 minutes
-- **Whitelist**: Exclude trusted senders to avoid false positives
-- **Persistent Statistics**: Track total scans, detections, and executions over time
+- **Brand Impersonation Detection**: 80+ monitored brands (tech, banks, French public services, telecoms…).
+- **Advanced Body Analysis**: Scans URLs in the email body for typosquatting (e.g. `paypa1.com`).
+- **Reply-To Validation**: Detects when the reply address diverges from the sender's domain.
+- **Attachment Shield**: Flags dangerous file extensions (`.html`, `.exe`, `.js`, `.iso`, etc.).
+- **SPF / DKIM / DMARC Verification**: Analyzes raw authentication headers for failures.
+- **Homoglyph Normalization**: Detects Cyrillic, Greek, and lookalike characters.
+- **Severity Levels**: 🔴 Critical, 🟠 High, 🟡 Medium — prioritize what matters.
+- **Reporting**: Automated alerts every 10 mins and a **Weekly Summary Report** every Monday.
+- **Quota Optimized**: Smart API management (Lazy-loading & Batching) to avoid Google rate limits.
+- **Configurable**: Adjustable scan window (default: 7 days) and easy whitelist management.
 
 ### 🛠 Setup
-1. Copy all `.gs` files into a Google Apps Script project
-2. Run `configurer()` to create the label and set up the trigger
-3. Authorize required permissions
+1. Copy all `.gs` files into a Google Apps Script project.
+2. Run `configurer()` to create the label and set up the triggers.
+3. Authorize required permissions.
 
 ### 📖 Functions
 | Function | Description |
 |---|---|
-| `configurer()` | Initialize label + 10-min trigger |
+| `configurer()` | Initialize label + 10-min analysis + Weekly report |
 | `analyserBoiteReception()` | Manual scan (paginated, time-limited) |
-| `reanalyserBoiteReception()` | Clear cache and rescan |
-| `testerDetection()` | Run 27 built-in test cases |
-| `ajouterALaListeBlanche('domain')` | Whitelist a sender |
-| `afficherStatistiques()` | View cumulative stats |
-| `desinstaller()` | Remove triggers and clear cache |
+| `reanalyserBoiteReception()` | Clear cache and rescan (deduplicated alerts) |
+| `testerDetection()` | Run 30+ built-in test cases |
+| `ajouterALaListeBlanche('domain')` | Whitelist a sender or domain |
+| `afficherStatistiques()` | View cumulative and weekly stats |
 
 ---
 
 <a name="français"></a>
 ## 🇫🇷 Français
 
-**Unspoofer** est un outil Google Apps Script qui protège votre boîte Gmail contre l'**usurpation de nom d'affichage**, les **attaques par homoglyphes** et le **typosquatting**.
+**Unspoofer** est un outil Google Apps Script qui protège votre boîte Gmail contre l'**usurpation de nom d'affichage**, les **attaques par homoglyphes**, le **typosquatting** et les **contenus malveillants**.
 
 ### 🚀 Fonctionnalités
-- **Détection d'usurpation de marque** : 80+ marques surveillées (tech, banques françaises, services publics, télécoms…)
-- **Normalisation des homoglyphes** : Détecte les caractères cyrilliques, grecs et pleine largeur
-- **Détection du typosquatting** : Repère les domaines suspects (ex : `paypa1.com` ≈ `paypal.com`)
-- **Vérification SPF / DKIM / DMARC** : Analyse les en-têtes d'authentification
-- **Analyse des plateformes suspectes** : Signale Firebase, AppSpot, etc.
-- **Niveaux de sévérité** : 🔴 Critique, 🟠 Élevée, 🟡 Moyenne
-- **Automatisation** : Étiquette, étoile et résumé par email toutes les 10 minutes
-- **Liste blanche** : Exclure les expéditeurs de confiance
-- **Statistiques persistantes** : Suivi cumulé des analyses et détections
+- **Détection d'usurpation de marque** : 80+ marques surveillées (tech, banques, services publics, télécoms…).
+- **Analyse avancée du corps** : Scanne les URLs pour détecter le typosquatting (ex : un lien `paypa1.com` dans le texte).
+- **Validation du Reply-To** : Repère les adresses de réponse divergentes du domaine de l'expéditeur.
+- **Protection des pièces jointes** : Signale les extensions dangereuses (`.html`, `.exe`, `.js`, `.iso`, etc.).
+- **Vérification SPF / DKIM / DMARC** : Analyse les en-têtes d'authentification.
+- **Normalisation des homoglyphes** : Détecte les caractères cyrilliques, grecs et pleine largeur.
+- **Niveaux de sévérité** : 🔴 Critique, 🟠 Élevée, 🟡 Moyenne.
+- **Rapports** : Alertes toutes les 10 minutes et **Rapport de Synthèse Hebdomadaire** chaque lundi.
+- **Optimisation Quota** : Gestion intelligente des appels API (Lazy-loading) pour éviter les limites Google.
+- **Configurable** : Fenêtre d'analyse ajustable (défaut : 7 jours) et gestion simple de la liste blanche.
 
 ### 🛠 Installation
-1. Copiez tous les fichiers `.gs` dans un projet Google Apps Script
-2. Exécutez `configurer()` pour créer l'étiquette et le déclencheur
-3. Autorisez les permissions requises
+1. Copiez tous les fichiers `.gs` dans un projet Google Apps Script.
+2. Exécutez `configurer()` pour créer l'étiquette et les déclencheurs.
+3. Autorisez les permissions requises.
 
 ### 📖 Fonctions
 | Fonction | Description |
 |---|---|
-| `configurer()` | Initialise l'étiquette + déclencheur 10 min |
+| `configurer()` | Initialise l'étiquette + analyses + Rapport hebdo |
 | `analyserBoiteReception()` | Analyse manuelle (paginée, limitée en temps) |
-| `reanalyserBoiteReception()` | Vide le cache et réanalyse |
-| `testerDetection()` | Exécute 27 cas de test intégrés |
+| `reanalyserBoiteReception()` | Vide le cache et réanalyse (alertes dédupliquées) |
+| `testerDetection()` | Exécute 30+ cas de test intégrés |
 | `ajouterALaListeBlanche('domaine')` | Ajouter à la liste blanche |
-| `afficherStatistiques()` | Voir les stats cumulées |
-| `desinstaller()` | Supprime les déclencheurs et vide le cache |
+| `afficherStatistiques()` | Voir les stats cumulées et hebdomadaires |
 
 ---
 
@@ -76,11 +76,11 @@
 
 | File | Role |
 |---|---|
-| `Principal.gs` | Orchestration, triggers, alerts, tests |
-| `DetecteurUsurpation.gs` | Detection engine, SPF/DMARC, severity |
-| `Marque.gs` | Brand database, related domains, typosquatting |
+| `Principal.gs` | Orchestration, triggers, alerts, weekly report, tests |
+| `DetecteurUsurpation.gs` | Detection engine, SPF/DMARC, body analysis, attachments |
+| `Marque.gs` | Brand database, groups, typosquatting logic |
 | `Homoglyphes.gs` | Unicode homoglyph mapping |
-| `Cache.gs` | Processed message cache, statistics |
+| `Cache.gs` | Processed message cache, statistics & snapshots |
 
 ## ⚖️ License
 

@@ -12,7 +12,7 @@ const CARTE_HOMOGLYPHES = {
     '\u0440': 'p', // р
     '\u0445': 'x', // х
     '\u0443': 'y', // у
-    '\u0456': 'i', // і
+    '\u0456': 'i', // і (i ukrainien)
     '\u0455': 's', // ѕ
     '\u0458': 'j', // ј
     '\u043A': 'k', // к (assez proche dans certaines polices)
@@ -21,7 +21,6 @@ const CARTE_HOMOGLYPHES = {
     '\u0432': 'b', // в (ressemble à b dans certaines polices)
     '\u0433': 'r', // г (ressemble à r dans certaines polices)
     '\u0437': '3', // з (ressemble à 3)
-    '\u0456': 'i', // і (i ukrainien)
     '\u0491': 'r', // ґ
 
     // Cyrillique majuscule
@@ -79,12 +78,9 @@ const CARTE_HOMOGLYPHES = {
 // Ajouter les lettres latines pleine largeur (majuscules U+FF21-FF3A, minuscules U+FF41-FF5A)
 (function () {
     for (let i = 0; i < 26; i++) {
-        // Lettres majuscules pleine largeur A-Z → minuscules a-z
         CARTE_HOMOGLYPHES[String.fromCharCode(0xFF21 + i)] = String.fromCharCode(0x61 + i);
-        // Lettres minuscules pleine largeur a-z → minuscules a-z
         CARTE_HOMOGLYPHES[String.fromCharCode(0xFF41 + i)] = String.fromCharCode(0x61 + i);
     }
-    // Chiffres pleine largeur 0-9
     for (let i = 0; i < 10; i++) {
         CARTE_HOMOGLYPHES[String.fromCharCode(0xFF10 + i)] = String.fromCharCode(0x30 + i);
     }
@@ -103,4 +99,18 @@ function normaliserEnAscii(str) {
         resultat += CARTE_HOMOGLYPHES[caractere] || caractere;
     }
     return resultat.toLowerCase();
+}
+
+/**
+ * Vérifie si une chaîne contient des caractères homoglyphes (cyrilliques, grecs, pleine largeur).
+ * Utile pour déterminer la sévérité d'une usurpation.
+ * @param {string} chaine
+ * @returns {boolean}
+ */
+function contientHomoglyphes(chaine) {
+    if (!chaine) return false;
+    for (let i = 0; i < chaine.length; i++) {
+        if (CARTE_HOMOGLYPHES[chaine[i]]) return true;
+    }
+    return false;
 }

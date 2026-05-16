@@ -1,87 +1,93 @@
 # 🛡️ Unspoofer — Gmail Phishing & Spoofing Detector
 
-[**English Version**](#english) | [**Version Française**](#français)
+[**English**](#english) | [**Français**](#français)
 
 ---
 
 <a name="english"></a>
-## 🇺🇸 English Version
+## 🇺🇸 English
 
-**Unspoofer** is a Google Apps Script tool designed to protect your Gmail inbox from **display-name spoofing** and **homoglyph attacks**, common techniques used in advanced phishing.
+**Unspoofer** is a Google Apps Script tool that protects your Gmail inbox from **display-name spoofing**, **homoglyph attacks**, and **typosquatting**, common techniques in advanced phishing.
 
-### 🚀 Key Features
-- **Intelligent Detection**: Identifies emails impersonating major brands (Google, PayPal, Microsoft, etc.) while originating from unrelated addresses.
-- **Homoglyph Normalization**: Detects lookalike characters (e.g., Cyrillic 'о' vs Latin 'o') used to deceive the human eye.
-- **Suspicious Platform Analysis**: Monitors emails from frequently abused services like Firebase or AppSpot.
-- **DKIM Verification**: Scans raw headers for suspicious signatures even on custom domains.
-- **Automation**: 
-    - Automatically applies the `SPOOF-ALERT` label.
-    - Stars suspicious messages.
-    - Sends an email summary if threats are detected.
-- **Whitelist**: Easily exclude trusted domains or emails to avoid false positives.
+### 🚀 Features
+- **Brand Impersonation Detection**: 80+ monitored brands (tech, banks, French public services, telecoms…)
+- **Homoglyph Normalization**: Detects Cyrillic, Greek, and fullwidth lookalike characters
+- **Typosquatting Detection**: Catches domains suspiciously close to known brands (e.g. `paypa1.com`)
+- **SPF / DKIM / DMARC Verification**: Analyzes raw authentication headers for failures
+- **Suspicious Platform Analysis**: Flags emails from Firebase, AppSpot, etc.
+- **Severity Levels**: 🔴 Critical, 🟠 High, 🟡 Medium — prioritize what matters
+- **Automation**: Label, star, and email summary every 10 minutes
+- **Whitelist**: Exclude trusted senders to avoid false positives
+- **Persistent Statistics**: Track total scans, detections, and executions over time
 
 ### 🛠 Setup
-1. **Copy Files**: Copy all `.gs` files into your Google Apps Script project.
-2. **Configure**: Select the `configurer` function and click **Run**.
-3. **Permissions**: Authorize the required permissions (Gmail access, background execution).
-4. **Active Protection**: The script will create the necessary label and set up a 10-minute trigger automatically.
+1. Copy all `.gs` files into a Google Apps Script project
+2. Run `configurer()` to create the label and set up the trigger
+3. Authorize required permissions
 
-### 📖 Usage
-- **`configurer()`**: Initializes the environment (label and trigger).
-- **`analyserBoiteReception()`**: Manually scan messages from the last 3 days.
-- **`reanalyserBoiteReception()`**: Clear the cache and run a fresh scan of recent emails.
-- **`testerDetection()`**: Run built-in tests to verify the detection logic.
+### 📖 Functions
+| Function | Description |
+|---|---|
+| `configurer()` | Initialize label + 10-min trigger |
+| `analyserBoiteReception()` | Manual scan (paginated, time-limited) |
+| `reanalyserBoiteReception()` | Clear cache and rescan |
+| `testerDetection()` | Run 27 built-in test cases |
+| `ajouterALaListeBlanche('domain')` | Whitelist a sender |
+| `afficherStatistiques()` | View cumulative stats |
+| `desinstaller()` | Remove triggers and clear cache |
 
 ---
 
 <a name="français"></a>
-## 🇫🇷 Version Française
+## 🇫🇷 Français
 
-**Unspoofer** est un outil Google Apps Script conçu pour protéger votre boîte Gmail contre l'**usurpation de nom d'affichage** et les **attaques par homoglyphes**, techniques courantes utilisées dans le phishing avancé.
+**Unspoofer** est un outil Google Apps Script qui protège votre boîte Gmail contre l'**usurpation de nom d'affichage**, les **attaques par homoglyphes** et le **typosquatting**.
 
-### 🚀 Fonctionnalités Clés
-- **Détection Intelligente** : Identifie les emails usurpant l'identité de grandes marques (Google, PayPal, Microsoft, etc.) alors qu'ils proviennent d'adresses non liées.
-- **Normalisation des Homoglyphes** : Détecte les caractères visuellement similaires (ex : 'о' cyrillique vs 'o' latin) utilisés pour tromper l'œil humain.
-- **Analyse des Plateformes Suspectes** : Surveille les emails provenant de services souvent détournés comme Firebase ou AppSpot.
-- **Vérification DKIM** : Analyse les en-têtes bruts pour repérer les signatures suspectes, même sur des domaines personnalisés.
-- **Automatisation** : 
-    - Applique automatiquement l'étiquette `ALERTE-USURPATION`.
-    - Ajoute une étoile aux messages suspects.
-    - Envoie un récapitulatif par email si des menaces sont détectées.
-- **Liste Blanche** : Possibilité d'exclure facilement des domaines ou emails de confiance.
+### 🚀 Fonctionnalités
+- **Détection d'usurpation de marque** : 80+ marques surveillées (tech, banques françaises, services publics, télécoms…)
+- **Normalisation des homoglyphes** : Détecte les caractères cyrilliques, grecs et pleine largeur
+- **Détection du typosquatting** : Repère les domaines suspects (ex : `paypa1.com` ≈ `paypal.com`)
+- **Vérification SPF / DKIM / DMARC** : Analyse les en-têtes d'authentification
+- **Analyse des plateformes suspectes** : Signale Firebase, AppSpot, etc.
+- **Niveaux de sévérité** : 🔴 Critique, 🟠 Élevée, 🟡 Moyenne
+- **Automatisation** : Étiquette, étoile et résumé par email toutes les 10 minutes
+- **Liste blanche** : Exclure les expéditeurs de confiance
+- **Statistiques persistantes** : Suivi cumulé des analyses et détections
 
 ### 🛠 Installation
-1. **Copier les fichiers** : Copiez tous les fichiers `.gs` dans votre projet Google Apps Script.
-2. **Configurer** : Sélectionnez la fonction `configurer` et cliquez sur **Exécuter**.
-3. **Permissions** : Autorisez les permissions requises (accès Gmail, exécution en arrière-plan).
-4. **Protection Active** : Le script créera l'étiquette nécessaire et configurera un déclencheur automatique toutes les 10 minutes.
+1. Copiez tous les fichiers `.gs` dans un projet Google Apps Script
+2. Exécutez `configurer()` pour créer l'étiquette et le déclencheur
+3. Autorisez les permissions requises
 
-### 📖 Utilisation
-- **`configurer()`** : Initialise l'environnement (étiquette et déclencheur).
-- **`analyserBoiteReception()`** : Analyse manuellement les messages des 3 derniers jours.
-- **`reanalyserBoiteReception()`** : Vide le cache et lance une nouvelle analyse des emails récents.
-- **`testerDetection()`** : Exécute les tests intégrés pour vérifier la logique de détection.
-
----
-
-## 📂 Project Structure / Structure du Projet
-
-- **`Principal.gs`** : Main orchestration, triggers, and email alerts. / *Orchestration principale, déclencheurs et alertes email.*
-- **`DetecteurUsurpation.gs`** : Core detection logic and header analysis. / *Logique de détection et analyse des en-têtes.*
-- **`Marque.gs`** : Database of monitored brands and related domains. / *Base de données des marques et domaines liés.*
-- **`Homoglyphes.gs`** : Mapping table for Unicode homoglyph normalization. / *Table de correspondance pour les homoglyphes.*
-- **`Cache.gs`** : Caching system to prevent redundant scans. / *Système de cache pour éviter les analyses redondantes.*
+### 📖 Fonctions
+| Fonction | Description |
+|---|---|
+| `configurer()` | Initialise l'étiquette + déclencheur 10 min |
+| `analyserBoiteReception()` | Analyse manuelle (paginée, limitée en temps) |
+| `reanalyserBoiteReception()` | Vide le cache et réanalyse |
+| `testerDetection()` | Exécute 27 cas de test intégrés |
+| `ajouterALaListeBlanche('domaine')` | Ajouter à la liste blanche |
+| `afficherStatistiques()` | Voir les stats cumulées |
+| `desinstaller()` | Supprime les déclencheurs et vide le cache |
 
 ---
+
+## 📂 Structure
+
+| File | Role |
+|---|---|
+| `Principal.gs` | Orchestration, triggers, alerts, tests |
+| `DetecteurUsurpation.gs` | Detection engine, SPF/DMARC, severity |
+| `Marque.gs` | Brand database, related domains, typosquatting |
+| `Homoglyphes.gs` | Unicode homoglyph mapping |
+| `Cache.gs` | Processed message cache, statistics |
 
 ## ⚖️ License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+[MIT](LICENSE)
 
----
+## ⚠️ Disclaimer
 
-## ⚠️ Disclaimer / Avertissement
+No detection system is perfect. Use as an additional security layer.
 
-While powerful, no detection system is perfect. Use this tool as an additional layer of security and always remain vigilant.
-
-*Bien que puissant, aucun système de détection n'est infaillible. Utilisez cet outil comme une couche de sécurité supplémentaire.*
+*Aucun système de détection n'est infaillible. Utilisez cet outil comme couche de sécurité supplémentaire.*

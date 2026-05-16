@@ -4,7 +4,10 @@
  */
 
 const CLE_CACHE = 'processedMessageIds';
-const MAX_IDS_CACHES = 10000;
+const CLE_STATS = 'unspooferStats';
+// Limite réduite à 400 pour respecter la taille max de 9 KB par propriété ScriptProperties.
+// Un ID Gmail ≈ 16 chars → 400 × ~20 octets (guillemets + virgules) ≈ 8 KB.
+const MAX_IDS_CACHES = 400;
 
 /** @type {Set<string>|null} */
 let _ensembleTraite = null;
@@ -17,8 +20,12 @@ let _cacheModifie = false;
  */
 function chargerCache_() {
     if (_ensembleTraite !== null) return;
-    const brut = PropertiesService.getScriptProperties().getProperty(CLE_CACHE);
-    _listeTraite = brut ? JSON.parse(brut) : [];
+    try {
+        const brut = PropertiesService.getScriptProperties().getProperty(CLE_CACHE);
+        _listeTraite = brut ? JSON.parse(brut) : [];
+    } catch (e) {
+        _listeTraite = [];
+    }
     _ensembleTraite = new Set(_listeTraite);
 }
 
@@ -33,7 +40,7 @@ function estTraite(id) {
 }
 
 /**
- * Marque un ID de message comme traité (par lots — appeler viderCache() à la fin de l'exécution).
+ * Marque un ID de message comme traité (par lots — appeler persisterCache() à la fin de l'exécution).
  * @param {string} id
  */
 function marquerCommeTraite(id) {
@@ -48,7 +55,7 @@ function marquerCommeTraite(id) {
 /**
  * Écrit le cache dans les propriétés du script. Appeler une fois à la fin de l'analyse.
  */
-function viderCache() {
+function persisterCache() {
     if (!_cacheModifie || !_listeTraite) return;
 
     // Élaguer si la limite est dépassée — conserver les ID les plus récents
@@ -69,4 +76,56 @@ function effacerCacheTraite() {
     _ensembleTraite = null;
     _listeTraite = null;
     _cacheModifie = false;
+}
+
+// ─── Statistiques persistantes ─────────────────────────────────────────
+
+/**
+ * Incrémente les statistiques cumulées après chaque analyse.
+ * @param {number} analyses - Nombre de messages analysés cette exécution
+ * @param {number} usurpations - Nombre d'usurpations détectées cette exécution
+ */
+function incrementerStatistiques_(analyses, usurpations) {
+    try {
+        const stats = getStatistiques();
+        stats.totalAnalyses += analyses;
+        stats.totalUsurpations += usurpations;
+        stats.totalExecutions += 1;
+        stats.derniereAnalyse = new Date().toISOString();
+        PropertiesService.getScriptProperties().setProperty(CLE_STATS, JSON.stringify(stats));
+    } catch (e) {
+        Logger.log('Erreur lors de la mise à jour des statistiques : ' + e.message);
+    }
+}
+
+/**
+ * Retourne les statistiques cumulées d'Unspoofer.
+ * @returns {{totalAnalyses: number, totalUsurpations: number, totalExecutions: number, derniereAnalyse: string}}
+ */
+function getStatistiques() {
+    try {
+        const brut = PropertiesService.getScriptProperties().getProperty(CLE_STATS);
+        if (brut) return JSON.parse(brut);
+    } catch (e) { /* ignore */ }
+    return { totalAnalyses: 0, totalUsurpations: 0, totalExecutions: 0, derniereAnalyse: '' };
+}
+
+/**
+ * Affiche les statistiques cumulées dans le journal d'exécution.
+ */
+function afficherStatistiques() {
+    const stats = getStatistiques();
+    Logger.log('=== Statistiques Unspoofer ===');
+    Logger.log('Total messages analysés : ' + stats.totalAnalyses);
+    Logger.log('Total usurpations détectées : ' + stats.totalUsurpations);
+    Logger.log('Total exécutions : ' + stats.totalExecutions);
+    Logger.log('Dernière analyse : ' + (stats.derniereAnalyse || 'jamais'));
+}
+
+/**
+ * Réinitialise les statistiques cumulées.
+ */
+function reinitialiserStatistiques() {
+    PropertiesService.getScriptProperties().deleteProperty(CLE_STATS);
+    Logger.log('Statistiques réinitialisées.');
 }

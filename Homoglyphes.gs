@@ -75,7 +75,7 @@ const CARTE_HOMOGLYPHES = {
     '\u00B7': '.', // point médian (parfois utilisé comme point final)
 
     // Homoglyphes supplémentaires (Point 9)
-    '\u00D8': '0', // Ø
+    '\u00D8': 'o', // Ø
     '\u00F8': 'o', // ø
     '\u0131': 'i', // ı
     '\u017F': 's', // ſ

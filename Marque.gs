@@ -82,13 +82,34 @@ const GROUPES_MARQUES = [
     ['amazon.com', 'amazonaws.com'],
     ['openai.com', 'chatgpt.com'],
     // Groupes français
-    ['bnpparibas.com', 'mabanque.bnpparibas'],
+    ['bnpparibas.com', 'mabanque.bnpparibas.fr'],
     ['orange.fr', 'sosh.fr'],
     ['laposte.fr', 'colissimo.fr'],
     ['creditagricole.fr', 'ca-paris.fr', 'ca-centrest.fr'],
     ['societegenerale.fr', 'boursorama.com'],
     ['free.fr', 'iliad.fr'],
 ];
+
+let _indexMarques = null;
+
+/**
+ * Construit un index des marques pour une recherche plus rapide (O(1) pour les noms).
+ * Évite la double boucle O(n²) (Point 7).
+ * @returns {{parDomaine: string[], parNom: Map<string, string>}}
+ */
+function getIndexMarques_() {
+    if (_indexMarques) return _indexMarques;
+    _indexMarques = { parDomaine: [], parNom: new Map() };
+    for (const domaine of DOMAINES_MARQUES) {
+        _indexMarques.parDomaine.push(domaine);
+        const nom = extraireNomMarque(domaine);
+        // Ne stocker que les noms de marques uniques et de longueur >= 3
+        if (nom.length >= 3 && !_indexMarques.parNom.has(nom)) {
+            _indexMarques.parNom.set(nom, domaine);
+        }
+    }
+    return _indexMarques;
+}
 
 /**
  * Marques financières — utilisées pour attribuer un niveau de sévérité critique
@@ -143,25 +164,26 @@ function extraireNomMarque(domaine) {
 function trouverMarqueUsurpee(nomAffichageNormalise) {
     if (!nomAffichageNormalise) return null;
 
-    for (const domaine of DOMAINES_MARQUES) {
+    const index = getIndexMarques_();
+
+    // Premier passage : vérification du domaine complet
+    for (const domaine of index.parDomaine) {
         if (nomAffichageNormalise.includes(domaine)) {
             return { domaine: domaine, nomMarque: extraireNomMarque(domaine) };
         }
     }
 
-    // Deuxième passage : noms de marques seuls (ex : "paypal" sans .com)
-    for (const domaine of DOMAINES_MARQUES) {
-        const marque = extraireNomMarque(domaine);
-        if (marque.length < 3) continue; // Ignorer les noms courts pour éviter les faux positifs
-        const index = nomAffichageNormalise.indexOf(marque);
-        if (index !== -1) {
-            const avant = index > 0 ? nomAffichageNormalise[index - 1] : ' ';
-            const apres = index + marque.length < nomAffichageNormalise.length
-                ? nomAffichageNormalise[index + marque.length]
-                : ' ';
+    // Deuxième passage : noms de marques seuls via l'index Map (Point 7)
+    // On itère sur les marques indexées pour vérifier si elles sont présentes en tant que mot autonome
+    for (const [nom, domaine] of index.parNom.entries()) {
+        const pos = nomAffichageNormalise.indexOf(nom);
+        if (pos !== -1) {
+            const avant = pos > 0 ? nomAffichageNormalise[pos - 1] : ' ';
+            const apres = pos + nom.length < nomAffichageNormalise.length
+                ? nomAffichageNormalise[pos + nom.length] : ' ';
             const estDelimiteur = (ch) => /[^a-z0-9]/.test(ch);
             if (estDelimiteur(avant) && estDelimiteur(apres)) {
-                return { domaine: domaine, nomMarque: marque };
+                return { domaine: domaine, nomMarque: nom };
             }
         }
     }
@@ -173,6 +195,7 @@ function trouverMarqueUsurpee(nomAffichageNormalise) {
 
 /**
  * Calcule la distance de Levenshtein entre deux chaînes.
+ * Optimisé pour utiliser O(n) mémoire au lieu de O(n*m) (Point 2).
  * @param {string} a
  * @param {string} b
  * @returns {number}
@@ -182,21 +205,17 @@ function distanceLevenshtein(a, b) {
     if (!a) return b.length;
     if (!b) return a.length;
 
-    const matrice = [];
-    for (let i = 0; i <= b.length; i++) matrice[i] = [i];
-    for (let j = 0; j <= a.length; j++) matrice[0][j] = j;
-
+    let precedent = Array.from({ length: a.length + 1 }, (_, i) => i);
     for (let i = 1; i <= b.length; i++) {
+        const courant = [i];
         for (let j = 1; j <= a.length; j++) {
-            const cout = b[i - 1] === a[j - 1] ? 0 : 1;
-            matrice[i][j] = Math.min(
-                matrice[i - 1][j] + 1,
-                matrice[i][j - 1] + 1,
-                matrice[i - 1][j - 1] + cout
-            );
+            courant[j] = b[i - 1] === a[j - 1]
+                ? precedent[j - 1]
+                : 1 + Math.min(precedent[j], courant[j - 1], precedent[j - 1]);
         }
+        precedent = courant;
     }
-    return matrice[b.length][a.length];
+    return precedent[a.length];
 }
 
 /**
@@ -210,15 +229,19 @@ function verifierTyposquatting(racineExpediteur) {
     const nomExpediteur = racineExpediteur.split('.')[0];
     if (nomExpediteur.length < 3) return null;
 
-    for (const domaine of DOMAINES_MARQUES) {
-        const nomMarque = extraireNomMarque(domaine);
-        if (nomMarque.length < 3) continue;
+    const index = getIndexMarques_();
 
-        // Ne pas vérifier si les noms sont identiques (c'est légitime)
+    for (const [nomMarque, domaine] of index.parNom.entries()) {
+        // Ne pas vérifier si les noms sont identiques
         if (nomExpediteur === nomMarque) continue;
 
-        // Seuil adaptatif : distance max 1 pour les noms courts, 2 pour les longs
+        // Seuil adaptatif (Point 3)
         const seuilMax = nomMarque.length >= 6 ? 2 : 1;
+
+        // Garde sur la différence de longueur pour éviter les comparaisons inutiles (Point 3)
+        const diffLongueur = Math.abs(nomExpediteur.length - nomMarque.length);
+        if (diffLongueur > seuilMax) continue;
+
         const distance = distanceLevenshtein(nomExpediteur, nomMarque);
 
         if (distance > 0 && distance <= seuilMax) {

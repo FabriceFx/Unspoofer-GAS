@@ -73,6 +73,15 @@ const CARTE_HOMOGLYPHES = {
     '\u2024': '.', // point de conduite simple
     '\u2025': '..', // point de conduite double
     '\u00B7': '.', // point médian (parfois utilisé comme point final)
+
+    // Homoglyphes supplémentaires (Point 9)
+    '\u00D8': '0', // Ø
+    '\u00F8': 'o', // ø
+    '\u0131': 'i', // ı
+    '\u017F': 's', // ſ
+    '\u0261': 'g', // ɡ
+    '\u04BB': 'h', // һ
+    // Note : l vs 1 est géré par la logique de normalisation si on décide de traiter les chiffres confusables
 };
 
 // Ajouter les lettres latines pleine largeur (majuscules U+FF21-FF3A, minuscules U+FF41-FF5A)

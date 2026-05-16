@@ -58,14 +58,26 @@ function marquerCommeTraite(id) {
 function persisterCache() {
     if (!_cacheModifie || !_listeTraite) return;
 
-    // Élaguer si la limite est dépassée — conserver les ID les plus récents
     if (_listeTraite.length > MAX_IDS_CACHES) {
         _listeTraite = _listeTraite.slice(_listeTraite.length - MAX_IDS_CACHES);
         _ensembleTraite = new Set(_listeTraite);
     }
 
-    PropertiesService.getScriptProperties().setProperty(CLE_CACHE, JSON.stringify(_listeTraite));
-    _cacheModifie = false;
+    try {
+        PropertiesService.getScriptProperties().setProperty(CLE_CACHE, JSON.stringify(_listeTraite));
+        _cacheModifie = false;
+    } catch (e) {
+        Logger.log('ERREUR persisterCache : ' + e.message);
+        // Tentative de repli avec la moitié des IDs (Point 4)
+        _listeTraite = _listeTraite.slice(_listeTraite.length - Math.floor(MAX_IDS_CACHES / 2));
+        _ensembleTraite = new Set(_listeTraite);
+        try {
+            PropertiesService.getScriptProperties().setProperty(CLE_CACHE, JSON.stringify(_listeTraite));
+            _cacheModifie = false;
+        } catch (e2) {
+            Logger.log('ERREUR critique persisterCache (repli) : ' + e2.message);
+        }
+    }
 }
 
 /**

@@ -173,38 +173,49 @@ function estExpediteurEnListeBlanche(email) {
 
 /**
  * Analyse une chaîne d'en-tête "De" pour extraire le nom d'affichage et l'email.
+ * Plus robuste que la regex simple : gère les parenthèses, guillemets et formats variés (Point 1).
  * @param {string} chaineDe
  * @returns {{nomAffichage: string, email: string}}
  */
 function analyserExpediteur(chaineDe) {
     if (!chaineDe) return { nomAffichage: '', email: '' };
 
-    const correspondance = chaineDe.match(/^"?(.+?)"?\s*<([^>]+)>$/);
-    if (correspondance) {
-        return { nomAffichage: correspondance[1].trim(), email: correspondance[2].trim().toLowerCase() };
+    // Cherche d'abord <email> n'importe où
+    const matchAngle = chaineDe.match(/<([^>]+)>/);
+    if (matchAngle) {
+        const email = matchAngle[1].trim().toLowerCase();
+        // Le nom est tout ce qui précède le < (nettoyé des guillemets)
+        const nom = chaineDe.slice(0, chaineDe.lastIndexOf('<')).trim().replace(/^"|"$/g, '');
+        return { nomAffichage: nom, email: email };
     }
 
-    const emailSeul = chaineDe.trim().toLowerCase();
-    return { nomAffichage: '', email: emailSeul };
+    // Adresse email seule
+    return { nomAffichage: '', email: chaineDe.trim().toLowerCase() };
 }
+
+const TLD_COMPOSES = new Set([
+    'co.uk', 'co.il', 'co.jp', 'co.nz', 'co.za', 'com.au', 'com.br',
+    'net.au', 'org.uk', 'gouv.fr', 'gov.uk', 'edu.au', 'com.mx', 'com.tr'
+]);
 
 /**
  * Extrait le domaine racine d'une chaîne de domaine complète.
- * Gère les TLD composés comme .co.il, .co.uk, .com.au, .gouv.fr.
+ * Gère les TLD composés via une liste explicite (Point 8).
  * @param {string} domaine
  * @returns {string}
  */
 function extraireDomaineRacine(domaine) {
     if (!domaine) return '';
-    const parties = domaine.toLowerCase().split('.');
-    if (parties.length <= 2) return domaine.toLowerCase();
+    const d = domaine.toLowerCase();
+    const parties = d.split('.');
+    if (parties.length <= 2) return d;
 
-    const avantDernier = parties[parties.length - 2];
-    if (avantDernier.length <= 2 || avantDernier === 'gouv' || avantDernier === 'gov') {
+    const suffixe2 = parties.slice(-2).join('.');
+    if (TLD_COMPOSES.has(suffixe2) || parties[parties.length - 2] === 'gouv' || parties[parties.length - 2] === 'gov') {
         return parties.slice(-3).join('.');
     }
 
-    return parties.slice(-2).join('.');
+    return suffixe2;
 }
 
 /**

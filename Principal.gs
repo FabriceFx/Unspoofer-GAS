@@ -77,27 +77,33 @@ function analyserBoiteReception() {
                         continue;
                     }
 
-                    nombreAnalyses++;
-                    const resultat = verifierUsurpation(message);
+                    // Entourer l'analyse unitaire pour éviter de marquer traité en cas d'erreur (Point 5)
+                    try {
+                        nombreAnalyses++;
+                        const resultat = verifierUsurpation(message);
 
-                    if (resultat.estUsurpation) {
-                        fil.addLabel(etiquette);
-                        message.star();
+                        if (resultat.estUsurpation) {
+                            fil.addLabel(etiquette);
+                            message.star();
 
-                        const expediteur = analyserExpediteur(message.getFrom());
-                        detailsUsurpations.push({
-                            objet: message.getSubject(),
-                            email: expediteur.email,
-                            nomAffichage: expediteur.nomAffichage,
-                            raison: resultat.raison,
-                            severite: resultat.severite,
-                        });
+                            const expediteur = analyserExpediteur(message.getFrom());
+                            detailsUsurpations.push({
+                                objet: message.getSubject(),
+                                email: expediteur.email,
+                                nomAffichage: expediteur.nomAffichage,
+                                raison: resultat.raison,
+                                severite: resultat.severite,
+                            });
 
-                        nombreUsurpations++;
-                        Logger.log('USURPATION [' + resultat.severite.toUpperCase() + '] : ' + resultat.raison);
+                            nombreUsurpations++;
+                            Logger.log('USURPATION [' + resultat.severite.toUpperCase() + '] : ' + resultat.raison);
+                        }
+
+                        // On ne marque traité que si l'analyse a abouti sans erreur
+                        marquerCommeTraite(idMsg);
+                    } catch (e) {
+                        Logger.log('Erreur message ' + idMsg + ' : ' + e.message);
                     }
-
-                    marquerCommeTraite(idMsg);
                 }
                 if (limiteAtteinte) break;
             }
@@ -165,20 +171,21 @@ function envoyerAlerteUsurpation_(usurpations) {
     }
 
     const echap = function (str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+    const tronquer = (s, max) => s && s.length > max ? s.slice(0, max) + '…' : (s || '');
+
     const lignes = usurpations.map(function (u) {
         return '<tr>' +
             '<td style="padding:8px;border:1px solid #ddd">' +
             '<span style="background:' + couleurSeverite_(u.severite) + ';color:white;padding:2px 8px;border-radius:4px;font-size:12px">' +
             libelleSeverite_(u.severite) + '</span></td>' +
-            '<td style="padding:8px;border:1px solid #ddd">' + echap(u.objet) + '</td>' +
+            '<td style="padding:8px;border:1px solid #ddd">' + echap(tronquer(u.objet, 120)) + '</td>' +
             '<td style="padding:8px;border:1px solid #ddd">' + echap(u.email) + '</td>' +
-            '<td style="padding:8px;border:1px solid #ddd">' + echap(u.nomAffichage) + '</td>' +
-            '<td style="padding:8px;border:1px solid #ddd">' + echap(u.raison) + '</td>' +
+            '<td style="padding:8px;border:1px solid #ddd">' + echap(tronquer(u.nomAffichage, 100)) + '</td>' +
+            '<td style="padding:8px;border:1px solid #ddd">' + echap(tronquer(u.raison, 200)) + '</td>' +
             '</tr>';
     }).join('');
 
     const nbCritiques = usurpations.filter(u => u.severite === 'critique').length;
-    const nbElevees = usurpations.filter(u => u.severite === 'elevee').length;
 
     const html = '<h2>Alerte Usurpation : ' + usurpations.length + ' message' +
         (usurpations.length > 1 ? 's suspects détectés' : ' suspect détecté') + '</h2>' +
@@ -317,24 +324,28 @@ function testerDetection() {
     let echoues = 0;
     const domaineProprietaireSauvegarde = _cacheDomaineProprietaire;
 
-    for (const ct of casTests) {
-        _cacheDomaineProprietaire = Object.prototype.hasOwnProperty.call(ct, 'domaineProprietaire')
-            ? ct.domaineProprietaire : '';
-        const messageSimule = {
-            getFrom: () => ct.de,
-            getRawContent: () => ct.enTetesBruts || '',
-        };
-        const resultat = verifierUsurpation(messageSimule);
-        const statut = resultat.estUsurpation === ct.usurpationAttendue ? 'RÉUSSI' : 'ÉCHEC';
-        if (statut === 'RÉUSSI') { reussis++; } else { echoues++; }
+    try {
+        for (const ct of casTests) {
+            _cacheDomaineProprietaire = Object.prototype.hasOwnProperty.call(ct, 'domaineProprietaire')
+                ? ct.domaineProprietaire : '';
+            const messageSimule = {
+                getFrom: () => ct.de,
+                getRawContent: () => ct.enTetesBruts || '',
+            };
+            const resultat = verifierUsurpation(messageSimule);
+            const statut = resultat.estUsurpation === ct.usurpationAttendue ? 'RÉUSSI' : 'ÉCHEC';
+            if (statut === 'RÉUSSI') { reussis++; } else { echoues++; }
 
-        Logger.log(statut + ' : ' + ct.nom);
-        if (resultat.estUsurpation) Logger.log('  Sévérité : ' + resultat.severite + ' | Raison : ' + resultat.raison);
-        if (statut === 'ÉCHEC') Logger.log('  ⚠️ Détecté=' + resultat.estUsurpation + ' Attendu=' + ct.usurpationAttendue);
-        Logger.log('');
+            Logger.log(statut + ' : ' + ct.nom);
+            if (resultat.estUsurpation) Logger.log('  Sévérité : ' + resultat.severite + ' | Raison : ' + resultat.raison);
+            if (statut === 'ÉCHEC') Logger.log('  ⚠️ Détecté=' + resultat.estUsurpation + ' Attendu=' + ct.usurpationAttendue);
+            Logger.log('');
+        }
+    } finally {
+        // Restauration du cache de test avec try/finally (Point 6)
+        _cacheDomaineProprietaire = domaineProprietaireSauvegarde;
     }
 
-    _cacheDomaineProprietaire = domaineProprietaireSauvegarde;
     Logger.log('Résultats : ' + reussis + ' réussis, ' + echoues + ' échoués sur ' + casTests.length + ' tests');
 }
 
@@ -393,7 +404,7 @@ function deboguerDkim() {
 }
 
 /**
- * Test ciblé — Fix #2 (var → const).
+ * Test ciblé — Fix #2 (var → const) et Point 10 (for...of).
  */
 function deboguerMessage() {
     const recherches = [
@@ -402,10 +413,10 @@ function deboguerMessage() {
         'in:spam newer_than:7d',
     ];
     let fils = [];
-    for (let i = 0; i < recherches.length; i++) {
-        fils = GmailApp.search(recherches[i], 0, 5);
+    for (const requete of recherches) {
+        fils = GmailApp.search(requete, 0, 5);
         if (fils.length > 0) {
-            Logger.log('Trouvé avec la requête : ' + recherches[i]);
+            Logger.log('Trouvé avec la requête : ' + requete);
             break;
         }
     }

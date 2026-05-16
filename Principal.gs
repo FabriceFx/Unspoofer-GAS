@@ -80,7 +80,7 @@ function analyserBoiteReception() {
     _appelsRawContent = 0;
     _appelsPlainBody = 0;
 
-    const requete = '{in:inbox in:spam} newer_than:' + getFenetreAnalyse_() + 'd';
+    const requete = 'in:inbox newer_than:' + getFenetreAnalyse_() + 'd';
 
     try {
         let depart = 0;

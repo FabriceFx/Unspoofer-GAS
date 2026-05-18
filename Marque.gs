@@ -324,6 +324,18 @@ function distanceLevenshtein(a, b) {
  */
 function verifierTyposquatting(racineExpediteur) {
     if (!racineExpediteur) return null;
+
+    // Éviter les faux positifs sur les domaines gouvernementaux et académiques hautement restreints (ex: finances.gouv.fr)
+    const domaineMin = racineExpediteur.toLowerCase();
+    if (domaineMin.endsWith('.gouv.fr') || 
+        domaineMin.endsWith('.gov') || 
+        domaineMin.endsWith('.gov.uk') || 
+        domaineMin.endsWith('.gc.ca') || 
+        domaineMin.endsWith('.edu') || 
+        domaineMin.endsWith('.mil')) {
+        return null;
+    }
+
     const nomExpediteur = racineExpediteur.split('.')[0];
     if (nomExpediteur.length < 3) return null;
 

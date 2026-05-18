@@ -1,4 +1,15 @@
 /**
+ * ============================================================================
+ *  DÉTECTEUR PHISHING - Marque.gs
+ * ============================================================================
+ *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
+ *  Projet      : FF Labs - Détecteur Phishing
+ *  Rôle        : Contrôle de conformité de l'identité de marque et des signatures de confiance.
+ *  Version     : 2.1.0
+ * ============================================================================
+ */
+
+/**
  * Liste des marques/domaines et logique de correspondance pour la détection d'usurpation.
  * Inclut les marques internationales, françaises et européennes.
  *

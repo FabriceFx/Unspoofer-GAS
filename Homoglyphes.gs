@@ -1,4 +1,15 @@
 /**
+ * ============================================================================
+ *  DÉTECTEUR PHISHING - Homoglyphes.gs
+ * ============================================================================
+ *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
+ *  Projet      : FF Labs - Détecteur Phishing
+ *  Rôle        : Détection d'usurpation de domaines et d'homoglyphes dans les caractères unicode.
+ *  Version     : 2.1.0
+ * ============================================================================
+ */
+
+/**
  * Normalisation des homoglyphes — fait correspondre les caractères Unicode visuellement similaires à l'ASCII.
  */
 

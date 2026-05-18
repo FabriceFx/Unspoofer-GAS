@@ -1,4 +1,15 @@
 /**
+ * ============================================================================
+ *  DÉTECTEUR PHISHING - Cache.gs
+ * ============================================================================
+ *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
+ *  Projet      : FF Labs - Détecteur Phishing
+ *  Rôle        : Routines de stockage temporaire et gestion de cache de haute performance.
+ *  Version     : 2.1.0
+ * ============================================================================
+ */
+
+/**
  * Enveloppe PropertiesService pour le suivi des ID de messages traités.
  * Utilise un tableau JSON stocké dans les propriétés du script avec une fenêtre glissante.
  */

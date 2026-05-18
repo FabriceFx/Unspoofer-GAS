@@ -1,4 +1,15 @@
 /**
+ * ============================================================================
+ *  DÉTECTEUR PHISHING - Principal.gs
+ * ============================================================================
+ *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
+ *  Projet      : FF Labs - Détecteur Phishing
+ *  Rôle        : Contrôleur et orchestrateur d'exécution des tâches d'analyse en arrière-plan.
+ *  Version     : 2.1.0
+ * ============================================================================
+ */
+
+/**
  * Unspoofer — Détecteur d'usurpation de nom d'affichage Gmail.
  * Points d'entrée : configurer(), analyserBoiteReception(), desinstaller(), testerDetection()
  */
@@ -7,19 +18,7 @@ const NOM_ETIQUETTE = 'ALERTE-USURPATION';
 const LIMITE_TEMPS_EXECUTION_MS = 5 * 60 * 1000;
 const TAILLE_PAGE = 100;
 
-/**
- * Retourne la fenêtre d'analyse en jours (configurable via ScriptProperties).
- * Point 2.
- * @returns {number}
- */
-function getFenetreAnalyse_() {
-    try {
-        const val = PropertiesService.getScriptProperties().getProperty('fenetreAnalyseJours');
-        return parseInt(val, 10) || 7;
-    } catch (e) {
-        return 7;
-    }
-}
+// Les fonctions utilitaires de configuration, d'e-mail du propriétaire et de nettoyage HTML ont été déportées dans Utils.gs pour plus de clarté.
 
 /**
  * Crée l'étiquette ALERTE-USURPATION (idempotent) et configure les déclencheurs.
@@ -162,122 +161,213 @@ function analyserBoiteReception() {
 }
 
 /**
- * Récupère l'adresse email du propriétaire actuel de manière fiable.
- * @returns {string}
- */
-function getEmailProprietaire_() {
-    return Session.getEffectiveUser().getEmail() ||
-        Session.getActiveUser().getEmail() ||
-        '';
-}
-
-/**
- * Couleur de fond associée à un niveau de sévérité.
+ * Retourne la couleur associée à un niveau de sévérité.
  * @param {string} severite
- * @returns {string}
+ * @returns {string} Code couleur hexadécimal
  */
 function couleurSeverite_(severite) {
-    if (severite === 'critique') return '#d32f2f';
-    if (severite === 'elevee') return '#f57c00';
-    return '#fbc02d';
+  if (severite === 'critique') return CONFIG.COLORS.CRITICAL;
+  if (severite === 'elevee') return CONFIG.COLORS.HIGH;
+  return CONFIG.COLORS.MEDIUM;
 }
 
 /**
- * Libellé français d'un niveau de sévérité.
- * @param {string} severite
+ * Retourne le libellé traduit du niveau de sévérité.
+ * @param {string} severite - Niveau ('critique', 'elevee', etc.)
+ * @param {string} lang - Langue active ('fr', 'en')
  * @returns {string}
  */
-function libelleSeverite_(severite) {
-    if (severite === 'critique') return 'CRITIQUE';
-    if (severite === 'elevee') return 'ELEVEE';
-    return 'MOYENNE';
+function libelleSeverite_(severite, lang) {
+  const dict = EMAIL_TRANSLATIONS[lang] || EMAIL_TRANSLATIONS['en'];
+  if (severite === 'critique') return dict.severityCritique;
+  if (severite === 'elevee') return dict.severityElevee;
+  return dict.severityMoyenne;
 }
 
 /**
- * Envoie une alerte par email avec tableau HTML et niveaux de sévérité (#7).
+ * Envoie une alerte de sécurité par e-mail au style Workspace MD3.
+ * S'adapte à la langue de l'utilisateur final et respecte la casse Sentence case.
  * @param {Array<{objet: string, email: string, nomAffichage: string, raison: string, severite: string}>} usurpations
  */
 function envoyerAlerteUsurpation_(usurpations) {
-    const destinataire = getEmailProprietaire_();
-    if (!destinataire) {
-        Logger.log('Impossible de déterminer l\'email du propriétaire — alerte ignorée');
-        return;
-    }
+  const destinataire = getEmailProprietaire_();
+  if (!destinataire) {
+    Logger.log('Impossible de déterminer l\'email du propriétaire — alerte ignorée');
+    return;
+  }
 
-    const echap = function (str) { return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
-    const tronquer = (s, max) => s && s.length > max ? s.slice(0, max) + '…' : (s || '');
+  const lang = getLangueUtilisateur_();
+  const dict = EMAIL_TRANSLATIONS[lang] || EMAIL_TRANSLATIONS['en'];
 
-    const lignes = usurpations.map(function (u) {
-        return '<tr>' +
-            '<td style="padding:8px;border:1px solid #ddd">' +
-            '<span style="background:' + couleurSeverite_(u.severite) + ';color:white;padding:2px 8px;border-radius:4px;font-size:12px">' +
-            libelleSeverite_(u.severite) + '</span></td>' +
-            '<td style="padding:8px;border:1px solid #ddd">' + echap(tronquer(u.objet, 120)) + '</td>' +
-            '<td style="padding:8px;border:1px solid #ddd">' + echap(u.email) + '</td>' +
-            '<td style="padding:8px;border:1px solid #ddd">' + echap(tronquer(u.nomAffichage, 100)) + '</td>' +
-            '<td style="padding:8px;border:1px solid #ddd">' + echap(tronquer(u.raison, 200)) + '</td>' +
-            '</tr>';
-    }).join('');
+  // Détection de menaces critiques
+  const nbCritiques = usurpations.filter(u => u.severite === 'critique').length;
+  
+  // Sujet bilingue
+  const baseSujet = nbCritiques > 0 ? dict.alertSubjectCritique : dict.alertSubjectStandard;
+  const sujetEmail = baseSujet + usurpations.length + ' ' + 
+                     (usurpations.length > 1 ? dict.alertTitle.toLowerCase() : dict.alertTitle.toLowerCase().slice(0, -1));
 
-    const nbCritiques = usurpations.filter(u => u.severite === 'critique').length;
+  // Sous-titre bilingue
+  const sousTitre = usurpations.length > 1 
+    ? dict.alertSubtitlePlural.replace('{count}', usurpations.length) 
+    : dict.alertSubtitleSingle;
 
-    const html = '<meta charset="UTF-8">' +
-        '<h2>Alerte Usurpation : ' + usurpations.length + ' message' +
-        (usurpations.length > 1 ? 's suspects détectés' : ' suspect détecté') + '</h2>' +
-        (nbCritiques > 0 ? '<p style="color:#d32f2f;font-weight:bold">!!! ' + nbCritiques + ' menace(s) critique(s) !!!</p>' : '') +
-        '<table style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:14px">' +
-        '<tr style="background:#424242;color:white">' +
-        '<th style="padding:8px;border:1px solid #ddd;text-align:left">Sévérité</th>' +
-        '<th style="padding:8px;border:1px solid #ddd;text-align:left">Objet</th>' +
-        '<th style="padding:8px;border:1px solid #ddd;text-align:left">Email</th>' +
-        '<th style="padding:8px;border:1px solid #ddd;text-align:left">Nom Affiché</th>' +
-        '<th style="padding:8px;border:1px solid #ddd;text-align:left">Raison</th>' +
-        '</tr>' + lignes + '</table>' +
-        '<p style="color:#666;font-size:12px">Envoyé par Unspoofer. Ces messages ont été étiquetés ALERTE-USURPATION.</p>';
+  // Lignes du tableau
+  const lignes = usurpations.map(function (u) {
+    return '<tr style="border-bottom: 1px solid #f1f3f4;">' +
+      '<td style="padding: 12px 10px; white-space: nowrap;">' +
+        '<span style="background-color:' + couleurSeverite_(u.severite) + '; color: #ffffff; padding: 2px 10px; border-radius: 100px; font-size: 10px; font-weight: 600; display: inline-block;">' +
+          libelleSeverite_(u.severite, lang) + 
+        '</span>' +
+      '</td>' +
+      '<td style="padding: 12px 10px; color: #1f1f1f;">' + echapHtml_(tronquerChaine_(u.objet, 100)) + '</td>' +
+      '<td style="padding: 12px 10px; color: #444746;">' + echapHtml_(u.email) + '</td>' +
+      '<td style="padding: 12px 10px; color: #444746;">' + echapHtml_(tronquerChaine_(u.nomAffichage, 80)) + '</td>' +
+      '<td style="padding: 12px 10px; color: ' + CONFIG.COLORS.CRITICAL + '; font-weight: 500;">' + echapHtml_(tronquerChaine_(u.raison, 150)) + '</td>' +
+      '</tr>';
+  }).join('');
 
-    const sujetEmail = (nbCritiques > 0 ? '[CRITIQUE] ' : '[ALERTE] ') +
-        'Alerte Usurpation : ' + usurpations.length + ' message' +
-        (usurpations.length > 1 ? 's' : '');
+  // Bannière critique optionnelle
+  let banniereCritique = '';
+  if (nbCritiques > 0) {
+    banniereCritique = '<div style="background-color: #fce8e6; border-left: 4px solid ' + CONFIG.COLORS.CRITICAL + '; border-radius: 4px; padding: 12px; font-size: 12px; color: ' + CONFIG.COLORS.CRITICAL + '; font-weight: 600; margin-bottom: 20px;">' +
+      '⚠️ ' + dict.alertCriticalWarning +
+      '</div>';
+  }
 
-    GmailApp.sendEmail(destinataire, sujetEmail, '', { htmlBody: html });
-    Logger.log('Email d\'alerte envoyé à ' + destinataire);
+  // HTML complet au style officiel Google Workspace MD3 Flat
+  const html = '<meta charset="UTF-8">' +
+    '<div style="background-color: ' + CONFIG.COLORS.BACKGROUND + '; padding: 24px; font-family: \'Open Sans\', \'Inter\', system-ui, -apple-system, sans-serif; color: #1f1f1f; max-width: 650px; margin: 0 auto; border-radius: 16px;">' +
+      
+      // Branding Header - Utilisation d'entité HTML pour éviter tout bug d'encodage
+      '<div style="text-align: center; margin-bottom: 20px;">' +
+        '<span style="font-size: 18px; font-weight: 700; color: ' + CONFIG.COLORS.PRIMARY + '; letter-spacing: -0.3px;">&#128737; ' + CONFIG.PROJECT_NAME + '</span>' +
+      '</div>' +
+      
+      // Card Blanche
+      '<div style="background-color: #ffffff; border: 1px solid ' + CONFIG.COLORS.BORDER + '; border-radius: 16px; padding: 24px; box-shadow: none;">' +
+        '<h2 style="font-size: 16px; font-weight: 600; color: #1f1f1f; margin-top: 0; margin-bottom: 6px;">' + dict.alertTitle + '</h2>' +
+        '<p style="font-size: 13px; color: ' + CONFIG.COLORS.SECONDARY + '; margin-top: 0; margin-bottom: 20px;">' + sousTitre + '</p>' +
+        
+        banniereCritique +
+        
+        // Conteneur de tableau responsive
+        '<div style="overflow-x: auto; border: 1px solid ' + CONFIG.COLORS.BORDER + '; border-radius: 8px; margin-bottom: 8px;">' +
+          '<table style="border-collapse: collapse; width: 100%; font-size: 12px; text-align: left; background-color: #ffffff;">' +
+            '<thead>' +
+              '<tr style="background-color: #f8f9fa; border-bottom: 1px solid ' + CONFIG.COLORS.BORDER + '; color: #1f1f1f; font-weight: 600;">' +
+                '<th style="padding: 10px; min-width: 75px;">' + dict.colSeverity + '</th>' +
+                '<th style="padding: 10px;">' + dict.colSubject + '</th>' +
+                '<th style="padding: 10px;">' + dict.colEmail + '</th>' +
+                '<th style="padding: 10px;">' + dict.colDisplayName + '</th>' +
+                '<th style="padding: 10px;">' + dict.colReason + '</th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>' + lignes + '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>' +
+      
+      // Footer - Mise en page en ligne robuste sans flexbox pour compatibilité tous clients mail
+      '<div style="text-align: center; margin-top: 20px; font-size: 11px; color: ' + CONFIG.COLORS.SECONDARY + '; line-height: 1.4;">' +
+        '<p style="margin: 0 0 10px 0;">' + dict.footerTextAlert + '</p>' +
+        '<p style="margin: 14px 0 0; font-size: 10px; color: ' + CONFIG.COLORS.SECONDARY + ';">' +
+          '<span style="font-weight: bold; display: inline-block; vertical-align: middle;">⚡ FF Labs</span>' +
+          '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
+          '<a href="https://faucheux.bzh" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.authorSignature + '</a>' +
+          '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
+          '<a href="https://github.com/FabriceFx/Unspoofer-GAS" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.helpLinkText + '</a>' +
+        '</p>' +
+      '</div>' +
+      
+    '</div>';
+
+  GmailApp.sendEmail(destinataire, sujetEmail, '', { htmlBody: html });
+  Logger.log('Email d\'alerte envoyé à ' + destinataire + ' (' + lang.toUpperCase() + ')');
 }
 
 /**
- * Envoie un rapport hebdomadaire de synthèse des statistiques (Point 9).
- * Utilise les deltas par rapport au dernier snapshot (Point 8).
+ * Envoie le rapport hebdomadaire stylisé sous forme de carte Google Workspace MD3.
+ * S'adapte de façon asynchrone à la langue de l'utilisateur final.
  */
 function envoyerRapportHebdomadaire_() {
-    const stats = getStatistiques();
-    const destinataire = getEmailProprietaire_();
-    if (!destinataire || stats.totalAnalyses === 0) return;
+  const stats = getStatistiques();
+  const destinataire = getEmailProprietaire_();
+  if (!destinataire || stats.totalAnalyses === 0) return;
 
-    // Calcul des deltas hebdomadaires (Option B - Point 8)
-    const deltaAnalyses = stats.totalAnalyses - (stats.snapshotHebdo?.analyses || 0);
-    const deltaUsurpations = stats.totalUsurpations - (stats.snapshotHebdo?.usurpations || 0);
+  const lang = getLangueUtilisateur_();
+  const dict = EMAIL_TRANSLATIONS[lang] || EMAIL_TRANSLATIONS['en'];
 
-    const tauxHebdo = deltaAnalyses > 0
-        ? ((deltaUsurpations / deltaAnalyses) * 100).toFixed(1) + '%'
-        : '0%';
+  // Calcul des deltas hebdomadaires
+  const deltaAnalyses = stats.totalAnalyses - (stats.snapshotHebdo?.analyses || 0);
+  const deltaUsurpations = stats.totalUsurpations - (stats.snapshotHebdo?.usurpations || 0);
 
-    const html = '<div style="font-family:sans-serif;max-width:600px;margin:auto;border:1px solid #ddd;padding:20px;border-radius:8px">' +
-        '<h2 style="color:#1a73e8;border-bottom:2px solid #1a73e8;padding-bottom:10px">Rapport Hebdomadaire Unspoofer</h2>' +
-        '<p>Voici le résumé de votre protection email pour cette semaine :</p>' +
-        '<table style="width:100%;font-size:16px;border-collapse:collapse">' +
-        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Messages analysés</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + deltaAnalyses + '</td></tr>' +
-        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Usurpations bloquées</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right;color:#d32f2f">' + deltaUsurpations + '</td></tr>' +
-        '<tr><td style="padding:10px;border-bottom:1px solid #eee">Taux de détection</td><td style="padding:10px;border-bottom:1px solid #eee;font-weight:bold;text-align:right">' + tauxHebdo + '</td></tr>' +
+  const tauxHebdo = deltaAnalyses > 0
+    ? ((deltaUsurpations / deltaAnalyses) * 100).toFixed(1) + '%'
+    : '0%';
+
+  // Remplacement des variables dans la signature cumulée
+  const texteCumule = dict.statExecutions
+    .replace('{exec}', stats.totalExecutions)
+    .replace('{analyzed}', stats.totalAnalyses)
+    .replace('{blocked}', stats.totalUsurpations);
+
+  // Construction du corps HTML au style officiel de Google Workspace MD3 Flat
+  const html = '<meta charset="UTF-8">' +
+    '<div style="background-color: ' + CONFIG.COLORS.BACKGROUND + '; padding: 24px; font-family: \'Open Sans\', \'Inter\', system-ui, -apple-system, sans-serif; color: #1f1f1f; max-width: 550px; margin: 0 auto; border-radius: 16px;">' +
+      
+      // Header branding - Utilisation d'entité HTML pour éviter tout bug d'encodage
+      '<div style="text-align: center; margin-bottom: 20px;">' +
+        '<span style="font-size: 18px; font-weight: 700; color: ' + CONFIG.COLORS.PRIMARY + '; letter-spacing: -0.3px;">&#128737; ' + CONFIG.PROJECT_NAME + '</span>' +
+      '</div>' +
+      
+      // Card Blanche
+      '<div style="background-color: #ffffff; border: 1px solid ' + CONFIG.COLORS.BORDER + '; border-radius: 16px; padding: 24px; box-shadow: none;">' +
+        '<h2 style="font-size: 16px; font-weight: 600; color: #1f1f1f; margin-top: 0; margin-bottom: 6px;">' + dict.reportTitle + '</h2>' +
+        '<p style="font-size: 13px; color: ' + CONFIG.COLORS.SECONDARY + '; margin-top: 0; margin-bottom: 20px;">' + dict.reportSubtitle + '</p>' +
+        
+        // Table des KPIs hebdomadaires
+        '<table style="width: 100%; font-size: 13px; border-collapse: collapse; margin-bottom: 20px;">' +
+          '<tr style="border-bottom: 1px solid #f1f3f4;">' +
+            '<td style="padding: 12px 4px; color: ' + CONFIG.COLORS.SECONDARY + ';">' + dict.statAnalyzed + '</td>' +
+            '<td style="padding: 12px 4px; font-weight: 600; text-align: right; color: #1f1f1f;">' + deltaAnalyses + '</td>' +
+          '</tr>' +
+          '<tr style="border-bottom: 1px solid #f1f3f4;">' +
+            '<td style="padding: 12px 4px; color: ' + CONFIG.COLORS.SECONDARY + ';">' + dict.statBlocked + '</td>' +
+            '<td style="padding: 12px 4px; font-weight: 600; text-align: right; color: ' + CONFIG.COLORS.CRITICAL + ';">' + deltaUsurpations + '</td>' +
+          '</tr>' +
+          '<tr style="border-bottom: 1px solid #f1f3f4;">' +
+            '<td style="padding: 12px 4px; color: ' + CONFIG.COLORS.SECONDARY + ';">' + dict.statRate + '</td>' +
+            '<td style="padding: 12px 4px; font-weight: 600; text-align: right; color: ' + CONFIG.COLORS.PRIMARY + ';">' + tauxHebdo + '</td>' +
+          '</tr>' +
         '</table>' +
-        '<p style="margin-top:20px;font-size:14px;color:#333"><b>Total cumulé depuis l\'installation :</b><br>' +
-        'Analyses : ' + stats.totalAnalyses + ' | Usurpations : ' + stats.totalUsurpations + ' | Exécutions : ' + stats.totalExecutions + '</p>' +
-        '<p style="margin-top:20px;color:#666;font-size:13px">Votre protection est active. Fenêtre d\'analyse : ' + getFenetreAnalyse_() + ' jours.</p>' +
-        '</div>';
+        
+        // Boîte d'informations cumulées
+        '<div style="background-color: #f8f9fa; border: 1px solid ' + CONFIG.COLORS.BORDER + '; border-radius: 8px; padding: 12px; font-size: 11px; color: ' + CONFIG.COLORS.SECONDARY + ';">' +
+          '<div style="font-weight: 600; color: #1f1f1f; margin-bottom: 4px;">' + dict.statCumulative + '</div>' +
+          '<div>' + texteCumule + '</div>' +
+        '</div>' +
+      '</div>' +
+      
+      // Footer - Mise en page en ligne robuste sans flexbox pour compatibilité tous clients mail
+      '<div style="text-align: center; margin-top: 20px; font-size: 11px; color: ' + CONFIG.COLORS.SECONDARY + '; line-height: 1.4;">' +
+        '<p style="margin: 0 0 10px 0;">' + dict.footerTextReport + '</p>' +
+        '<p style="margin: 14px 0 0; font-size: 10px; color: ' + CONFIG.COLORS.SECONDARY + ';">' +
+          '<span style="font-weight: bold; display: inline-block; vertical-align: middle;">⚡ FF Labs</span>' +
+          '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
+          '<a href="https://faucheux.bzh" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.authorSignature + '</a>' +
+          '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
+          '<a href="https://github.com/FabriceFx/Unspoofer-GAS" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.helpLinkText + '</a>' +
+        '</p>' +
+      '</div>' +
+      
+    '</div>';
 
-    GmailApp.sendEmail(destinataire, '📊 Rapport Hebdomadaire Unspoofer', '', { htmlBody: html });
-    Logger.log('Rapport hebdomadaire envoyé à ' + destinataire);
+  GmailApp.sendEmail(destinataire, dict.reportSubject, '', { htmlBody: html });
+  Logger.log('Rapport hebdomadaire envoyé à ' + destinataire + ' (' + lang.toUpperCase() + ')');
 
-    // Sauvegarder le snapshot pour la semaine prochaine
-    sauvegarderSnapshotHebdo_();
+  // Sauvegarder le snapshot pour la semaine prochaine
+  sauvegarderSnapshotHebdo_();
 }
 
 /**

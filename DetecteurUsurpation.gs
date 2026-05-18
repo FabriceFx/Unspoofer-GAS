@@ -1,4 +1,15 @@
 /**
+ * ============================================================================
+ *  DÉTECTEUR PHISHING - DetecteurUsurpation.gs
+ * ============================================================================
+ *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
+ *  Projet      : FF Labs - Détecteur Phishing
+ *  Rôle        : Moteur principal d'analyse heuristique des e-mails suspects et de détection de phishing.
+ *  Version     : 2.1.0
+ * ============================================================================
+ */
+
+/**
  * Logique de détection d'usurpation : analyse de l'expéditeur, normalisation, comparaison de domaines.
  * Inclut la vérification SPF/DMARC, les niveaux de sévérité et le chargement paresseux des en-têtes.
  */
@@ -320,12 +331,17 @@ function verifierPiecesJointes_(message) {
 /**
  * Vérification principale d'usurpation pour un seul message Gmail.
  * Utilise le chargement paresseux pour getRawContent() (Fix #10).
+ * Gère le bilinguisme des raisons de détection.
  * @param {GmailMessage} message
  * @returns {{estUsurpation: boolean, raison: string, marque: string, details: string, severite: string}}
  */
 function verifierUsurpation(message) {
     const de = message.getFrom();
     const resultat = { estUsurpation: false, raison: '', marque: '', details: '', severite: '' };
+    
+    // Initialisation du dictionnaire bilingue
+    const lang = getLangueUtilisateur_();
+    const dict = EMAIL_TRANSLATIONS[lang] || EMAIL_TRANSLATIONS['en'];
 
     // Chargement paresseux du contenu brut avec gestion du quota (Point 3)
     let _enTetesCache;
@@ -348,6 +364,18 @@ function verifierUsurpation(message) {
     const expediteur = analyserExpediteur(de);
     if (!expediteur.email) return resultat;
 
+    // 1b. Ignorer les e-mails d'alerte et de rapports générés par Unspoofer lui-même pour éviter les faux positifs en boucle
+    const sujet = message.getSubject() || '';
+    const expediteurEmail = expediteur.email ? expediteur.email.toLowerCase() : '';
+    const proprietaireEmail = getEmailProprietaire_().toLowerCase();
+    if (expediteurEmail === proprietaireEmail && 
+        (sujet.includes(CONFIG.PROJECT_NAME) || 
+         sujet.includes("Alerte usurpation") || 
+         sujet.includes("Spoofing alert"))) {
+        Logger.log('E-mail d\'alerte/rapport auto-généré ignoré : ' + sujet);
+        return resultat;
+    }
+
     // 2. Vérifier la liste blanche
     if (estExpediteurEnListeBlanche(expediteur.email)) return resultat;
 
@@ -357,7 +385,7 @@ function verifierUsurpation(message) {
     if (plateformeSuspecte) {
         resultat.estUsurpation = true;
         resultat.marque = plateformeSuspecte;
-        resultat.raison = 'Envoyé depuis une plateforme suspecte : ' + plateformeSuspecte;
+        resultat.raison = dict.reasonPlatform.replace('{param}', plateformeSuspecte);
         resultat.details = 'De : ' + de + ' | Domaine plateforme : ' + domaineExpediteur;
         resultat.severite = 'elevee';
         return resultat;
@@ -374,7 +402,7 @@ function verifierUsurpation(message) {
                 !estUnDomaineMarqueLie(expediteurDomaine, replyDomaine)) {
                 resultat.estUsurpation = true;
                 resultat.marque = '';
-                resultat.raison = 'Répondre à (Reply-To) divergent : ' + analyseReply.email;
+                resultat.raison = dict.reasonReplyTo.replace('{param}', analyseReply.email);
                 resultat.details = 'De : ' + de + ' | Reply-To : ' + replyTo;
                 resultat.severite = 'moyenne';
                 return resultat;
@@ -413,8 +441,9 @@ function verifierUsurpation(message) {
         const authEmail = verifierAuthentificationEmail_(getEnTetes());
         resultat.estUsurpation = true;
         resultat.marque = correspondanceMarque.nomMarque;
-        resultat.raison = 'Le nom d\'affichage usurpe ' + correspondanceMarque.domaine +
-            ' mais l\'email provient de ' + racineActuelle;
+        resultat.raison = dict.reasonImpersonation
+            .replace('{param1}', correspondanceMarque.domaine)
+            .replace('{param2}', racineActuelle);
         resultat.details = 'De : ' + de + ' | Normalisé : ' + nomNormalise +
             ' | Domaine réel : ' + racineActuelle;
         if (authEmail.details) resultat.details += ' | Auth : ' + authEmail.details;
@@ -433,8 +462,9 @@ function verifierUsurpation(message) {
         } else if (racineImplicite !== racineActuelle && !estUnDomaineMarqueLie(racineImplicite, racineActuelle)) {
             resultat.estUsurpation = true;
             resultat.marque = racineImplicite.split('.')[0];
-            resultat.raison = 'Le nom d\'affichage contient le domaine ' + domaineImplicite +
-                ' mais l\'email provient de ' + racineActuelle;
+            resultat.raison = dict.reasonGenericDomain
+                .replace('{param1}', domaineImplicite)
+                .replace('{param2}', racineActuelle);
             resultat.details = 'De : ' + de + ' | Domaine affiché : ' + domaineImplicite +
                 ' | Domaine réel : ' + racineActuelle;
             resultat.severite = determinerSeverite_('generique', '', false, false);
@@ -447,8 +477,9 @@ function verifierUsurpation(message) {
     if (typosquatting) {
         resultat.estUsurpation = true;
         resultat.marque = typosquatting.nomMarque;
-        resultat.raison = 'Domaine suspect par typosquatting : ' + racineActuelle +
-            ' ressemble à ' + typosquatting.domaine;
+        resultat.raison = dict.reasonTyposquatting
+            .replace('{param1}', racineActuelle)
+            .replace('{param2}', typosquatting.domaine);
         resultat.details = 'De : ' + de + ' | Domaine expéditeur : ' + racineActuelle +
             ' | Marque visée : ' + typosquatting.domaine;
         resultat.severite = determinerSeverite_('typosquatting', typosquatting.nomMarque, false, false);
@@ -460,7 +491,7 @@ function verifierUsurpation(message) {
     if (liensSuspects.suspect) {
         resultat.estUsurpation = true;
         resultat.marque = liensSuspects.marque;
-        resultat.raison = 'Lien suspect détecté (typosquatting) dans le corps du message';
+        resultat.raison = dict.reasonBodyLink;
         resultat.details = 'URL suspecte : ' + liensSuspects.url + ' | Marque visée : ' + liensSuspects.marque;
         resultat.severite = 'critique';
         return resultat;
@@ -471,7 +502,7 @@ function verifierUsurpation(message) {
     if (pjSuspecte.suspecte) {
         resultat.estUsurpation = true;
         resultat.marque = '';
-        resultat.raison = 'Pièce jointe suspecte détectée : ' + pjSuspecte.nom;
+        resultat.raison = dict.reasonAttachment.replace('{param}', pjSuspecte.nom);
         resultat.details = 'Extension potentiellement dangereuse : ' + pjSuspecte.nom;
         resultat.severite = 'elevee';
         return resultat;
@@ -482,7 +513,7 @@ function verifierUsurpation(message) {
     if (plateformeDkim) {
         resultat.estUsurpation = true;
         resultat.marque = plateformeDkim;
-        resultat.raison = 'Envoyé via une plateforme suspecte : ' + plateformeDkim + ' (domaine personnalisé)';
+        resultat.raison = dict.reasonDkim.replace('{param}', plateformeDkim);
         resultat.details = 'De : ' + de + ' | Domaine expéditeur : ' + domaineExpediteur;
         resultat.severite = 'elevee';
         return resultat;
@@ -493,7 +524,7 @@ function verifierUsurpation(message) {
     if (estAuthEchouee_(authEmail)) {
         resultat.estUsurpation = true;
         resultat.marque = '';
-        resultat.raison = 'Échec d\'authentification email : ' + authEmail.details;
+        resultat.raison = dict.reasonAuthFail.replace('{param}', authEmail.details);
         resultat.details = 'De : ' + de + ' | Domaine expéditeur : ' + domaineExpediteur +
             ' | Auth : ' + authEmail.details;
         resultat.severite = 'moyenne';

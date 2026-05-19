@@ -52,13 +52,13 @@
 
 ### 🛠️ Architecture du code
 
-- **[Principal.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Principal.gs)** : Orchestrateur central d'analyse, d'alertes email et de rapports.
-- **[DetecteurUsurpation.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/DetecteurUsurpation.gs)** : Moteur d'analyse (SPF/DKIM, analyse de liens HTML trompeurs et pièces jointes).
-- **[Marque.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Marque.gs)** : Base des marques de confiance, d'exclusion et règles de typosquatting par mots-clés.
-- **[Serveur.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Serveur.gs)** : API de contrôle backend RPC gérant la liste blanche, les déclencheurs et les rapports de test.
-- **[Dashboard.html](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Dashboard.html)** : Vue client du tableau de bord d'administration de sécurité.
-- **[Homoglyphes.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Homoglyphes.gs)** : Traduction et normalisation des caractères unicode trompeurs.
-- **[Cache.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Cache.gs)** : Gestion de la double couche de cache et compactage de persistance.
+- **[Principal.gs](Principal.gs)** : Orchestrateur central d'analyse, d'alertes email et de rapports.
+- **[DetecteurUsurpation.gs](DetecteurUsurpation.gs)** : Moteur d'analyse (SPF/DKIM, analyse de liens HTML trompeurs et pièces jointes).
+- **[Marque.gs](Marque.gs)** : Base des marques de confiance, d'exclusion et règles de typosquatting par mots-clés.
+- **[Serveur.gs](Serveur.gs)** : API de contrôle backend RPC gérant la liste blanche, les déclencheurs et les rapports de test.
+- **[Dashboard.html](Dashboard.html)** : Vue client du tableau de bord d'administration de sécurité.
+- **[Homoglyphes.gs](Homoglyphes.gs)** : Traduction et normalisation des caractères unicode trompeurs.
+- **[Cache.gs](Cache.gs)** : Gestion de la double couche de cache et compactage de persistance.
 
 ---
 
@@ -121,13 +121,13 @@ Ce projet est disponible sous licence **MIT**. Pour plus d'informations, veuille
 
 ### 🛠️ Project Structure
 
-- **[Principal.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Principal.gs)**: Main logic handler (triggers orchestration, notifications, weekly reports, and testing unit).
-- **[DetecteurUsurpation.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/DetecteurUsurpation.gs)**: Core scanner engine (SPF/DMARC headers, typosquatting crawler, and attachment checking).
-- **[Marque.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Marque.gs)**: Regulated brands database and impersonation regex definitions.
-- **[Serveur.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Serveur.gs)**: Backend controller exposing RPC channels for Whitelist, Custom Brands, and Unit Tests.
-- **[Dashboard.html](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Dashboard.html)**: Front-end client Material Design 3 administrative view template.
-- **[Homoglyphes.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Homoglyphes.gs)**: Unicode lookalike table parser.
-- **[Cache.gs](file:///Users/fabrice/Documents/Mes%20développements/Détecteur Phishing/Cache.gs)**: Persistent storage management (analyzed emails history cache and weekly metrics tracking).
+- **[Principal.gs](Principal.gs)**: Main logic handler (triggers orchestration, notifications, weekly reports, and testing unit).
+- **[DetecteurUsurpation.gs](DetecteurUsurpation.gs)**: Core scanner engine (SPF/DMARC headers, typosquatting crawler, and attachment checking).
+- **[Marque.gs](Marque.gs)**: Regulated brands database and impersonation regex definitions.
+- **[Serveur.gs](Serveur.gs)**: Backend controller exposing RPC channels for Whitelist, Custom Brands, and Unit Tests.
+- **[Dashboard.html](Dashboard.html)**: Front-end client Material Design 3 administrative view template.
+- **[Homoglyphes.gs](Homoglyphes.gs)**: Unicode lookalike table parser.
+- **[Cache.gs](Cache.gs)**: Persistent storage management (analyzed emails history cache and weekly metrics tracking).
 
 ---
 

@@ -308,6 +308,61 @@ function verifierLiensSuspects_(message) {
 }
 
 /**
+ * Détecteur d'écarts texte/lien HTML (HTML Link Text Mismatch).
+ * Gère le cas classique où le texte d'un lien affiche un domaine de confiance (ex : paypal.com)
+ * mais pointe en réalité vers un domaine externe non lié.
+ * @param {GmailMessage} message
+ * @returns {{suspect: boolean, texteAffiche: string, urlReelle: string, domaineReel: string}}
+ */
+function verifierEcartsLiensHtml_(message) {
+    if (_appelsPlainBody >= MAX_PLAIN_BODY_PAR_EXEC) return { suspect: false, texteAffiche: '', urlReelle: '', domaineReel: '' };
+    try {
+        const html = message.getBody() || '';
+        _appelsPlainBody++;
+        
+        // Regex pour capturer les balises <a href="...">...</a>
+        const regexLien = /<a\s+(?:[^>]*?\s+)?href=["'](https?:\/\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+        let match;
+        
+        while ((match = regexLien.exec(html)) !== null) {
+            const urlReelle = match[1];
+            // Nettoyer le texte affiché d'éventuelles balises internes (ex: <b>paypal.com</b>)
+            const texteAffiche = match[2].replace(/<[^>]*>/g, '').trim();
+            
+            // Chercher si le texte affiché contient un domaine ou ressemble à un domaine
+            const domaineAffiche = extraireDomaineDuNomAffichage(texteAffiche);
+            if (domaineAffiche) {
+                const racineAffichee = extraireDomaineRacine(domaineAffiche);
+                
+                // Extraire le domaine de l'URL réelle du href
+                const matchUrlReelle = urlReelle.match(/https?:\/\/([^/:\s]+)/i);
+                if (matchUrlReelle) {
+                    const domaineReel = matchUrlReelle[1];
+                    const racineReelle = extraireDomaineRacine(domaineReel);
+                    
+                    // Si le domaine affiché correspond à une marque connue ET que l'URL réelle pointe ailleurs
+                    const marqueAffichee = trouverMarqueUsurpee(normaliserEnAscii(domaineAffiche));
+                    if (marqueAffichee) {
+                        const racineMarque = extraireDomaineRacine(marqueAffichee.domaine);
+                        if (racineReelle !== racineMarque && !estUnDomaineMarqueLie(racineMarque, racineReelle)) {
+                            return {
+                                suspect: true,
+                                texteAffiche: domaineAffiche,
+                                urlReelle: urlReelle,
+                                domaineReel: domaineReel
+                            };
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        Logger.log('Erreur verifierEcartsLiensHtml_ : ' + e.message);
+    }
+    return { suspect: false, texteAffiche: '', urlReelle: '', domaineReel: '' };
+}
+
+/**
  * Détecte les pièces jointes avec des extensions dangereuses (Point 6).
  * @param {GmailMessage} message
  * @returns {{suspecte: boolean, nom: string}}
@@ -493,6 +548,19 @@ function verifierUsurpation(message) {
         resultat.marque = liensSuspects.marque;
         resultat.raison = dict.reasonBodyLink;
         resultat.details = 'URL suspecte : ' + liensSuspects.url + ' | Marque visée : ' + liensSuspects.marque;
+        resultat.severite = 'critique';
+        return resultat;
+    }
+
+    // 10b. Vérification des écarts texte/lien HTML (HTML Link Text Mismatch)
+    const ecartLienHtml = verifierEcartsLiensHtml_(message);
+    if (ecartLienHtml.suspect) {
+        resultat.estUsurpation = true;
+        resultat.marque = '';
+        resultat.raison = dict.reasonHtmlLinkMismatch
+            .replace('{param1}', ecartLienHtml.texteAffiche)
+            .replace('{param2}', ecartLienHtml.domaineReel);
+        resultat.details = 'Texte affiché : ' + ecartLienHtml.texteAffiche + ' | Pointait vers : ' + ecartLienHtml.urlReelle;
         resultat.severite = 'critique';
         return resultat;
     }

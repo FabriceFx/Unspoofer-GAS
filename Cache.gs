@@ -16,9 +16,9 @@
 
 const CLE_CACHE = 'processedMessageIds';
 const CLE_STATS = 'unspooferStats';
-// Limite réduite à 400 pour respecter la taille max de 9 KB par propriété ScriptProperties.
-// Un ID Gmail ≈ 16 chars → 400 × ~20 octets (guillemets + virgules) ≈ 8 KB.
-const MAX_IDS_CACHES = 400;
+// Limite étendue à 500 grâce à la compression de stockage brute.
+// Un ID Gmail (16 hex chars) + 1 virgule = 17 octets. 500 IDs ≈ 8.5 KB.
+const MAX_IDS_CACHES = 500;
 
 /** @type {Set<string>|null} */
 let _ensembleTraite = null;
@@ -27,13 +27,23 @@ let _listeTraite = null;
 let _cacheModifie = false;
 
 /**
- * Charge le cache des ID traités depuis les propriétés du script (une fois par exécution).
+ * Charge le cache des ID traités depuis les propriétés du script (rétrocompatible JSON).
  */
 function chargerCache_() {
     if (_ensembleTraite !== null) return;
     try {
         const brut = PropertiesService.getScriptProperties().getProperty(CLE_CACHE);
-        _listeTraite = brut ? JSON.parse(brut) : [];
+        if (brut) {
+            if (brut.startsWith('[')) {
+                // Migration : ancien format JSON array
+                _listeTraite = JSON.parse(brut);
+            } else {
+                // Nouveau format compressé brute
+                _listeTraite = brut.split(',');
+            }
+        } else {
+            _listeTraite = [];
+        }
     } catch (e) {
         _listeTraite = [];
     }
@@ -42,16 +52,41 @@ function chargerCache_() {
 
 /**
  * Vérifie si un ID de message a déjà été traité.
+ * Optimisé avec double couche RAM (Set exécution + CacheService script).
  * @param {string} id
  * @returns {boolean}
  */
 function estTraite(id) {
+    // 1. Couche mémoire de l'exécution actuelle (O(1))
+    if (_ensembleTraite !== null && _ensembleTraite.has(id)) {
+        return true;
+    }
+
+    // 2. Couche CacheService (RAM partagée Apps Script, ultra-rapide)
+    try {
+        const cached = CacheService.getScriptCache().get('msg_' + id);
+        if (cached === '1') {
+            if (_ensembleTraite === null) {
+                _ensembleTraite = new Set();
+                _listeTraite = [];
+            }
+            if (!_ensembleTraite.has(id)) {
+                _ensembleTraite.add(id);
+                _listeTraite.push(id);
+            }
+            return true;
+        }
+    } catch (e) {
+        Logger.log('Erreur CacheService.get : ' + e.message);
+    }
+
+    // 3. Couche persistante ScriptProperties (Disque lent)
     chargerCache_();
     return _ensembleTraite.has(id);
 }
 
 /**
- * Marque un ID de message comme traité (par lots — appeler persisterCache() à la fin de l'exécution).
+ * Marque un ID de message comme traité (RAM + CacheService + file d'attente d'écriture).
  * @param {string} id
  */
 function marquerCommeTraite(id) {
@@ -60,11 +95,18 @@ function marquerCommeTraite(id) {
         _ensembleTraite.add(id);
         _listeTraite.push(id);
         _cacheModifie = true;
+
+        // Écriture immédiate en cache RAM partagé (TTL max 6h = 21600s)
+        try {
+            CacheService.getScriptCache().put('msg_' + id, '1', 21600);
+        } catch (e) {
+            Logger.log('Erreur CacheService.put : ' + e.message);
+        }
     }
 }
 
 /**
- * Écrit le cache dans les propriétés du script. Appeler une fois à la fin de l'analyse.
+ * Écrit le cache compacté dans les ScriptProperties à la fin de l'analyse.
  */
 function persisterCache() {
     if (!_cacheModifie || !_listeTraite) return;
@@ -75,15 +117,15 @@ function persisterCache() {
     }
 
     try {
-        PropertiesService.getScriptProperties().setProperty(CLE_CACHE, JSON.stringify(_listeTraite));
+        PropertiesService.getScriptProperties().setProperty(CLE_CACHE, _listeTraite.join(','));
         _cacheModifie = false;
     } catch (e) {
         Logger.log('ERREUR persisterCache : ' + e.message);
-        // Tentative de repli avec la moitié des IDs (Point 4)
+        // Tentative de repli d'urgence
         _listeTraite = _listeTraite.slice(_listeTraite.length - Math.floor(MAX_IDS_CACHES / 2));
         _ensembleTraite = new Set(_listeTraite);
         try {
-            PropertiesService.getScriptProperties().setProperty(CLE_CACHE, JSON.stringify(_listeTraite));
+            PropertiesService.getScriptProperties().setProperty(CLE_CACHE, _listeTraite.join(','));
             _cacheModifie = false;
         } catch (e2) {
             Logger.log('ERREUR critique persisterCache (repli) : ' + e2.message);
@@ -92,7 +134,7 @@ function persisterCache() {
 }
 
 /**
- * Efface tout le cache des ID traités.
+ * Efface le cache persistant et RAM.
  */
 function effacerCacheTraite() {
     PropertiesService.getScriptProperties().deleteProperty(CLE_CACHE);

@@ -410,7 +410,7 @@ function ajouterALaListeBlanche(domaineOuEmail) {
 /**
  * Fonction de test avec des exemples d'usurpation codés en dur.
  */
-function testerDetection() {
+function testerDetection(retournerResultats = false) {
     const casTests = [
         { nom: 'Usurpation Wix en cyrillique', de: '"W\u0456x.c\u043Em" <info@bistro-pub.de>', usurpationAttendue: true },
         { nom: 'Usurpation PayPal en cyrillique', de: '"P\u0430yP\u0430l Security" <alerts@some-random.com>', usurpationAttendue: true },
@@ -432,10 +432,16 @@ function testerDetection() {
         { nom: 'Reply-To divergent', de: '"Amazon Support" <noreply@amazon.com>', replyTo: 'hacker@evil.com', usurpationAttendue: true },
         { nom: 'Lien suspect dans le corps', de: '"Info" <info@legit.com>', corps: 'Cliquez ici : http://paypa1.com/secure', usurpationAttendue: true },
         { nom: 'Pièce jointe HTML', de: '"Facture" <info@legit.com>', pj: [{ name: 'facture.html' }], usurpationAttendue: true },
+        
+        // Nouveaux cas de test v2.2.0
+        { nom: 'Écart texte/lien HTML (Mismatch)', de: '"PayPal" <info@legit-company.com>', html: 'Cliquez ici : <a href="http://evil-paypal.com/login">https://paypal.com/mon-compte</a>', usurpationAttendue: true },
+        { nom: 'Typosquatting concaténé (Mots-clés)', de: '"Ameli Assistance" <support@ameli-verification-securite.com>', usurpationAttendue: true },
+        { nom: 'Domaine lié autorisé (Google via googlemail)', de: '"Google" <accounts@googlemail.com>', usurpationAttendue: false }
     ];
 
     let reussis = 0;
     let echoues = 0;
+    const details = [];
     const domaineProprietaireSauvegarde = _cacheDomaineProprietaire;
 
     try {
@@ -447,6 +453,7 @@ function testerDetection() {
                 getFrom: () => ct.de,
                 getReplyTo: () => ct.replyTo || '',
                 getPlainBody: () => ct.corps || '',
+                getBody: () => ct.html || '',
                 getAttachments: () => (ct.pj || []).map(p => ({ getName: () => p.name })),
                 getRawContent: () => ct.enTetesBruts || '',
             };
@@ -459,12 +466,30 @@ function testerDetection() {
             if (resultat.estUsurpation) Logger.log('  Sévérité : ' + resultat.severite + ' | Raison : ' + resultat.raison);
             if (statut === 'ÉCHEC') Logger.log('  ⚠️ Détecté=' + resultat.estUsurpation + ' Attendu=' + ct.usurpationAttendue);
             Logger.log('');
+
+            details.push({
+                nom: ct.nom,
+                attendu: ct.usurpationAttendue,
+                obtenu: resultat.estUsurpation,
+                statut: statut,
+                severite: resultat.severite || 'aucune',
+                raison: resultat.raison || 'Légitime (aucune menace détectée)'
+            });
         }
     } finally {
         _cacheDomaineProprietaire = domaineProprietaireSauvegarde;
     }
 
     Logger.log('Résultats : ' + reussis + ' réussis, ' + echoues + ' échoués sur ' + casTests.length + ' tests');
+
+    if (retournerResultats) {
+        return {
+            total: casTests.length,
+            reussis: reussis,
+            echoues: echoues,
+            details: details
+        };
+    }
 }
 
 /**

@@ -213,7 +213,26 @@ let _indexMarques = null;
 function getIndexMarques_() {
     if (_indexMarques) return _indexMarques;
     _indexMarques = { parDomaine: [], parNom: new Map() };
-    for (const domaine of DOMAINES_MARQUES) {
+    
+    // 1. Charger les marques statiques du fichier
+    const toutesLesMarques = [...DOMAINES_MARQUES];
+    
+    // 2. Charger les marques personnalisées dynamiques stockées par le Dashboard
+    try {
+        const customBruts = PropertiesService.getScriptProperties().getProperty('customBrands');
+        if (customBruts) {
+            const customBrands = JSON.parse(customBruts);
+            for (const cb of customBrands) {
+                if (cb.domaine && !toutesLesMarques.includes(cb.domaine)) {
+                    toutesLesMarques.push(cb.domaine.trim().toLowerCase());
+                }
+            }
+        }
+    } catch (e) {
+        Logger.log('Erreur chargement marques personnalisées : ' + e.message);
+    }
+    
+    for (const domaine of toutesLesMarques) {
         _indexMarques.parDomaine.push(domaine);
         const nom = extraireNomMarque(domaine);
         if (nom.length >= 3 && !_indexMarques.parNom.has(nom)) {
@@ -322,6 +341,18 @@ function distanceLevenshtein(a, b) {
  * @param {string} racineExpediteur - Domaine racine de l'expéditeur (ex : "paypa1.com")
  * @returns {{domaine: string, nomMarque: string}|null}
  */
+const MOTS_CLES_PHISHING = [
+    'login', 'signin', 'security', 'securite', 'support', 'update', 
+    'compte', 'verification', 'verif', 'portal', 'portail', 'alert', 
+    'alerte', 'service', 'client', 'facture', 'assistance', 'secure'
+];
+
+/**
+ * Vérifie si le domaine de l'expéditeur ressemble à un domaine de marque connue (typosquatting).
+ * Ex : "paypa1.com" ≈ "paypal.com" (Levenshtein), ou "paypal-securite.com" (Concaténation).
+ * @param {string} racineExpediteur - Domaine racine de l'expéditeur (ex : "paypa1.com")
+ * @returns {{domaine: string, nomMarque: string}|null}
+ */
 function verifierTyposquatting(racineExpediteur) {
     if (!racineExpediteur) return null;
 
@@ -341,6 +372,24 @@ function verifierTyposquatting(racineExpediteur) {
 
     const index = getIndexMarques_();
 
+    // 1. Détection par concaténation de mots-clés de phishing
+    for (const [nomMarque, domaine] of index.parNom.entries()) {
+        if (nomMarque.length < 4) continue;
+        
+        // Si le nom de l'expéditeur contient le nom de marque en entier
+        if (nomExpediteur.includes(nomMarque) && nomExpediteur !== nomMarque) {
+            for (const mot of MOTS_CLES_PHISHING) {
+                if (nomExpediteur.includes(nomMarque + '-' + mot) || 
+                    nomExpediteur.includes(mot + '-' + nomMarque) ||
+                    nomExpediteur.includes(nomMarque + mot) || 
+                    nomExpediteur.includes(mot + nomMarque)) {
+                    return { domaine: domaine, nomMarque: nomMarque };
+                }
+            }
+        }
+    }
+
+    // 2. Détection par distance de Levenshtein classique
     for (const [nomMarque, domaine] of index.parNom.entries()) {
         // Ignorer les noms trop courts — trop de faux positifs entre marques légitimes
         if (nomMarque.length < 4) continue;

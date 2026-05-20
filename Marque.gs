@@ -158,7 +158,7 @@ const GROUPES_MARQUES = [
         'ca-briepicardie.fr', 'ca-alsace-vosges.fr'],
     ['societegenerale.fr', 'boursorama.com'],
     ['free.fr', 'iliad.fr', 'freebox.fr'],
-    ['edf.fr', 'edf-particuliers.fr'],
+    ['edf.fr', 'edf-particuliers.fr', 'relation-client-edf.fr'],
     ['axa.fr', 'axa-banque.fr', 'axa-assurance.fr'],
     ['maif.fr', 'maif-vie.fr'],
     ['macif.fr', 'macif-mutualite.fr'],

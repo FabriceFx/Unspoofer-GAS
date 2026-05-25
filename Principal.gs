@@ -205,7 +205,7 @@ function envoyerAlerteUsurpation_(usurpations) {
   // Sujet bilingue
   const baseSujet = nbCritiques > 0 ? dict.alertSubjectCritique : dict.alertSubjectStandard;
   const sujetEmail = baseSujet + usurpations.length + ' ' + 
-                     (usurpations.length > 1 ? dict.alertTitle.toLowerCase() : dict.alertTitle.toLowerCase().slice(0, -1));
+                     (usurpations.length > 1 ? dict.alertSubjectSuffixPlural : dict.alertSubjectSuffixSingle);
 
   // Sous-titre bilingue
   const sousTitre = usurpations.length > 1 

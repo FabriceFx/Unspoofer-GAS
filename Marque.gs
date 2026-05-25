@@ -135,7 +135,7 @@ const GROUPES_MARQUES = [
     ['microsoft.com', 'outlook.com', 'live.com', 'hotmail.com', 'office.com',
         'office365.com', 'microsoftonline.com', 'sharepoint.com'],
     ['apple.com', 'icloud.com', 'me.com', 'mac.com'],
-    ['meta.com', 'facebook.com', 'instagram.com', 'whatsapp.com'],
+    ['meta.com', 'facebook.com', 'instagram.com', 'whatsapp.com', 'facebookmail.com'],
     ['amazon.com', 'amazonaws.com'],
     ['openai.com', 'chatgpt.com'],
     ['atlassian.com', 'trello.com', 'jira.com', 'confluence.com'],

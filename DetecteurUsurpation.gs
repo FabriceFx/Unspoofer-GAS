@@ -344,7 +344,12 @@ function verifierEcartsLiensHtml_(message) {
                     const marqueAffichee = trouverMarqueUsurpee(normaliserEnAscii(domaineAffiche));
                     if (marqueAffichee) {
                         const racineMarque = extraireDomaineRacine(marqueAffichee.domaine);
-                        if (racineReelle !== racineMarque && !estUnDomaineMarqueLie(racineMarque, racineReelle)) {
+                        
+                        // Exemption : pas d'usurpation possible entre domaines restreints du même gouvernement
+                        const tldsRestreints = ['.gouv.fr', '.gov', '.gov.uk', '.gc.ca', '.edu', '.mil'];
+                        const estExempte = tldsRestreints.some(tld => racineMarque.endsWith(tld) && racineReelle.endsWith(tld));
+
+                        if (!estExempte && racineReelle !== racineMarque && !estUnDomaineMarqueLie(racineMarque, racineReelle)) {
                             return {
                                 suspect: true,
                                 texteAffiche: domaineAffiche,

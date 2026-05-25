@@ -25,6 +25,17 @@ const PLATEFORMES_SUSPECTES = [
 ];
 
 /**
+ * Domaines transactionnels ou marketing légitimes qui utilisent couramment un Reply-To divergent.
+ */
+const PLATEFORMES_ENVOI_TIERS = new Set([
+    'weezevent.com', 'eventbrite.com', 'eventbrite.fr', 'mailchimp.com',
+    'sendinblue.com', 'brevo.com', 'mailjet.com', 'stripe.com',
+    'shopify.com', 'wix.com', 'squarespace.com', 'hubspot.com',
+    'salesforce.com', 'intercom.com', 'zendesk.com', 'billetweb.fr',
+    'helloasso.com', 'typeform.com'
+]);
+
+/**
  * Sélecteurs DKIM utilisés par des plateformes suspectes.
  */
 const SELECTEURS_DKIM_SUSPECTS = [
@@ -459,7 +470,8 @@ function verifierUsurpation(message) {
             const replyDomaine = extraireDomaineRacine(analyseReply.email.split('@')[1] || '');
             const expediteurDomaine = extraireDomaineRacine(domaineExpediteur);
             if (replyDomaine && expediteurDomaine && replyDomaine !== expediteurDomaine &&
-                !estUnDomaineMarqueLie(expediteurDomaine, replyDomaine)) {
+                !estUnDomaineMarqueLie(expediteurDomaine, replyDomaine) &&
+                !PLATEFORMES_ENVOI_TIERS.has(expediteurDomaine)) {
                 resultat.estUsurpation = true;
                 resultat.marque = '';
                 resultat.raison = dict.reasonReplyTo.replace('{param}', analyseReply.email);

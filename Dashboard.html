@@ -615,9 +615,12 @@
     .test-suite-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;   /* le bouton reste en haut quand le texte s'allonge */
+      gap: 24px;
       margin-bottom: 24px;
+      flex-wrap: wrap;
     }
+    .test-suite-header .btn { flex: none; white-space: nowrap; }
 
     .test-summary-badge {
       display: inline-flex;
@@ -1766,21 +1769,26 @@
 
           // Rendu des cartes de tests
           const grid = document.getElementById('testGrid');
-          grid.innerHTML = rapport.details.map(t => `
-            <div class="test-card" style="border-left: 4px solid ${t.statut === 'RÉUSSI' ? 'var(--color-success)' : 'var(--color-danger)'};">
+          // Chaque carte confronte l'attendu au verdict obtenu : afficher le seul
+          // « type détecté » ne permettait pas de comprendre pourquoi un cas
+          // légitime non signalé était pourtant un succès.
+          grid.innerHTML = rapport.details.map(t => {
+            const conforme = t.statut === 'RÉUSSI';
+            const verdict = t.obtenu ? escapeHtml(t.raison) : T('tsNoThreat');
+            return `
+            <div class="test-card" style="border-left: 4px solid ${conforme ? 'var(--color-success)' : 'var(--color-danger)'};">
               <div>
                 <div class="test-name">${escapeHtml(t.nom)}</div>
                 <div class="test-meta">
-                  <strong>Type détecté :</strong> ${escapeHtml(t.severite.toUpperCase())}<br>
-                  <strong>Raison :</strong> ${escapeHtml(t.raison)}
+                  <strong>${T('tsVerdict')} :</strong> ${verdict}
                 </div>
               </div>
               <div class="test-status">
-                <span class="badge ${t.attendu ? 'badge-danger' : 'badge-secondary'}">${t.attendu ? 'Menace' : 'Légitime'}</span>
-                <span class="badge ${t.statut === 'RÉUSSI' ? 'badge-success' : 'badge-danger'}">${t.statut}</span>
+                <span class="badge ${t.attendu ? 'badge-danger' : 'badge-secondary'}">${t.attendu ? T('tsExpectedThreat') : T('tsExpectedLegit')}</span>
+                <span class="badge ${conforme ? 'badge-success' : 'badge-danger'}">${conforme ? T('tsPass') : T('tsFail')}</span>
               </div>
-            </div>
-          `).join('');
+            </div>`;
+          }).join('');
         })
         .withFailureHandler(function(err) {
           setLoader(false);

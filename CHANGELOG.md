@@ -44,6 +44,17 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
   les dix derniers messages signalés et la recherche Gmail à utiliser.
 
+- **Onglet « Suite de tests » enfin explicite.** Son aide annonçait « vingt faux
+  messages d'usurpation » — c'était inexact, et cela masquait l'essentiel : la
+  suite compte **13 cas frauduleux et 7 cas légitimes**, et vérifie autant la
+  capacité à repérer une fraude que celle à laisser passer un message honnête.
+  Le texte explique désormais la composition, rappelle qu'aucun e-mail réel
+  n'est lu, et indique à quoi la suite sert : contrôler qu'une modification de
+  la liste blanche ou des marques personnalisées n'a rien cassé.
+- Cartes de résultat refondues : elles confrontent l'attendu au verdict obtenu
+  (« Menace attendue » / « Légitime attendu », puis « Conforme » ou « Écart »).
+  L'ancien affichage ne montrait que le type détecté, sans permettre de
+  comprendre pourquoi un cas légitime non signalé était un succès.
 - **Filtre du journal d'activité.** Chaque changement d'onglet produisait une
   ligne, noyant les évènements utiles. Les entrées sont désormais typées —
   `SYSTEM`, `ACTION`, `NAV`, `ERROR` — et un sélecteur propose trois vues :

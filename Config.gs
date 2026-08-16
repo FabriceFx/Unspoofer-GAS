@@ -199,10 +199,16 @@ const UI_TRANSLATIONS = {
 
     /* Suite de tests */
     tsTitle: "Banc d'essais et tests unitaires",
-    tsIntro: "Vingt faux messages d'usurpation, fabriqués pour l'occasion, sont soumis au moteur de détection. <strong>Aucun de vos e-mails n'est lu</strong> : ces cas sont écrits dans le code. Le test sert à vérifier que le détecteur fonctionne correctement après une modification de vos listes.",
+    tsIntro: "Vingt messages fictifs sont soumis au moteur : <strong>13 frauduleux</strong>, qui doivent être signalés, et <strong>7 légitimes</strong>, qui ne doivent surtout pas l'être. Un test réussit quand le verdict du moteur correspond à ce qui est attendu — repérer une fraude, mais aussi laisser passer un message honnête.<br><br><strong>Aucun de vos e-mails n'est lu</strong> : ces vingt cas sont écrits dans le code.<br><br>À quoi cela sert : après avoir modifié votre liste blanche ou vos marques personnalisées, relancez la suite. Un test qui passe à l'échec signale que votre modification a cassé une détection, ou en a créé une de trop.",
+    tsExpectedThreat: "Menace attendue",
+    tsExpectedLegit: "Légitime attendu",
+    tsPass: "Conforme",
+    tsFail: "Écart",
+    tsVerdict: "Verdict du moteur",
+    tsNoThreat: "Aucune menace détectée",
     tsRun: "Lancer les 20 tests",
     tsPassed: "{n}/20 tests validés avec succès",
-    tsFailedCount: "{n} tests en échec",
+    tsFailedCount: "Tests en échec : {n}",
     tsEmpty: "Cliquez sur « Lancer les 20 tests » pour observer les résultats de l'analyse heuristique simulée.",
 
     /* Guide */
@@ -335,10 +341,16 @@ const UI_TRANSLATIONS = {
 
     /* Test suite */
     tsTitle: "Test bench and unit tests",
-    tsIntro: "Twenty fake impersonation messages, written for the purpose, are fed to the detection engine. <strong>None of your e-mails are read</strong>: these cases live in the code. The test verifies the detector still behaves correctly after you change your lists.",
+    tsIntro: "Twenty fictitious messages are fed to the engine: <strong>13 fraudulent</strong>, which must be flagged, and <strong>7 legitimate</strong>, which must not be. A test passes when the engine's verdict matches what is expected — catching a fraud, but equally letting an honest message through.<br><br><strong>None of your e-mails are read</strong>: these twenty cases live in the code.<br><br>What it is for: after changing your allow list or your custom brands, run the suite again. A test turning to failure means your change broke a detection, or created one too many.",
+    tsExpectedThreat: "Threat expected",
+    tsExpectedLegit: "Legitimate expected",
+    tsPass: "As expected",
+    tsFail: "Mismatch",
+    tsVerdict: "Engine verdict",
+    tsNoThreat: "No threat detected",
     tsRun: "Run the 20 tests",
     tsPassed: "{n}/20 tests passed",
-    tsFailedCount: "{n} tests failed",
+    tsFailedCount: "Tests failed: {n}",
     tsEmpty: "Click “Run the 20 tests” to see the results of the simulated heuristic analysis.",
 
     /* Guide */

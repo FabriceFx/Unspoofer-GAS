@@ -17,6 +17,20 @@ tierces, libellés de marque ambigus) :
 node tests/listes.js
 ```
 
+Enfin, les contrôles statiques du tableau de bord :
+
+```bash
+node tests/dashboard.js
+```
+
+Le tableau de bord n'est exécuté nulle part avant d'être déployé : une fonction
+appelée sous un nom qui n'existe pas ne se manifeste qu'au clic de
+l'utilisateur, sans erreur visible. `dashboard.js` vérifie que le script
+compile, que toute fonction appelée — y compris depuis un `onclick` — est bien
+définie, que les dictionnaires fr/en ont les mêmes clés, qu'aucune clé n'est
+manquante ni orpheline, que chaque onglet a son contenu, et que le balisage est
+équilibré.
+
 Aucune dépendance : uniquement Node.js (module `vm` de la bibliothèque standard).
 
 | Option | Effet |

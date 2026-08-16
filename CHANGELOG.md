@@ -89,6 +89,13 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   au lieu d'une fois par fil. La déduplication passe par un `Set` d'identifiants
   de fils tenu pendant l'exécution. L'étiquetage, lui, était correct : seul le
   chiffre affiché était faux.
+- **Le sélecteur de langue restait sans effet.** `changerLangue()` appelait
+  `showLoader()` alors que la fonction s'appelle `setLoader()`. L'exception
+  survenait à la première ligne, avant tout appel au serveur : le menu changeait
+  de valeur, l'interface ne bougeait pas, et rien n'apparaissait à l'écran. Ce
+  défaut avait échappé aux vérifications précédentes parce qu'elles appliquaient
+  le dictionnaire directement, court-circuitant la fonction fautive. D'où le
+  nouveau contrôle statique.
 - **La détection automatique de langue ne s'est jamais déclenchée.**
   `getLangueUtilisateur_()` testait `if (CONFIG.LANGUAGE)` avant de consulter la
   langue du compte Google — or `CONFIG.LANGUAGE` valait `"fr"`, toujours vrai.
@@ -98,6 +105,11 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   par défaut passe à `"auto"` et l'ordre de priorité devient explicite :
   préférence utilisateur, puis `CONFIG.LANGUAGE` si elle impose une langue,
   puis le compte Google, puis le français.
+
+- `tests/dashboard.js` : contrôles statiques du tableau de bord — compilation du
+  script client, existence de toute fonction appelée (y compris depuis les
+  `onclick`), parité et complétude des dictionnaires, appariement des onglets,
+  équilibre du balisage.
 
 ### Connu / non traité
 

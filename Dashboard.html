@@ -1383,17 +1383,16 @@
      * @param {string} langue - 'fr' ou 'en'
      */
     function changerLangue(langue) {
-      showLoader(true);
+      setLoader(true);
       google.script.run
         .withSuccessHandler(data => {
-          appliquerTraductions(data.i18n);
-          populateDashboard(data);
-          document.documentElement.lang = data.lang;
-          showLoader(false);
+          populateDashboard(data);   // applique déjà le dictionnaire et la langue
+          setLoader(false);
           showToast(T('msgLangChanged'));
+          log('Langue de l\'interface : ' + data.lang.toUpperCase());
         })
         .withFailureHandler(err => {
-          showLoader(false);
+          setLoader(false);
           showToast(T('msgError', { n: err.message }));
         })
         .setLangue(langue);

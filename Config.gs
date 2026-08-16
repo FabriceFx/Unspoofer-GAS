@@ -280,7 +280,45 @@ const UI_TRANSLATIONS = {
     logFilterAll: "Tout",
     logFilterActions: "Actions et erreurs",
     logFilterErrors: "Erreurs seules",
-    logEmptyFiltered: "Aucune entrée ne correspond à ce filtre."
+    logEmptyFiltered: "Aucune entrée ne correspond à ce filtre.",
+
+    /* Onglet Listes de référence */
+    navLists: "Listes de référence",
+    listsTitle: "Listes de référence",
+    listsIntro: "Ces deux listes règlent le comportement du détecteur sans qu'il faille toucher au code. Une valeur livrée avec l'outil peut être désactivée durablement : le retrait est mémorisé et survit aux mises à jour.",
+    listsAdd: "Ajouter",
+    listsReset: "Rétablir les valeurs livrées",
+    listsOriginDefault: "livrée",
+    listsOriginAdded: "ajoutée",
+    listsOriginDisabled: "désactivée",
+    listsRestore: "Réactiver",
+    listsRemove: "Retirer",
+    listsEmpty: "Cette liste est vide.",
+    listsExample: "Exemple : {n}",
+
+    /* Onglet Maintenance */
+    navMaintenance: "Maintenance",
+    mtTitle: "Opérations de maintenance",
+    mtIntro: "Des actions rares, à n'utiliser qu'en cas de besoin. Aucune ne supprime de message.",
+    mtDiagTitle: "Diagnostic des alertes",
+    mtDiagBody: "Compare le compteur « usurpations bloquées » à ce que contient réellement Gmail, et explique l'écart s'il y en a un.",
+    mtDiagBtn: "Lancer le diagnostic",
+    mtDiagLabelOk: "Étiquette présente",
+    mtDiagLabelMissing: "Étiquette introuvable — elle sera recréée au prochain scan",
+    mtDiagThreads: "Fils étiquetés dans Gmail : {n}",
+    mtDiagCounter: "Compteur du tableau de bord : {n}",
+    mtDiagGap: "Écart : {n}",
+    mtDiagSamples: "Derniers messages signalés",
+    mtDiagNone: "Aucun message ne porte l'étiquette actuellement.",
+    mtRescanTitle: "Ré-analyse complète",
+    mtRescanBody: "Vide la mémoire des messages déjà examinés et relance une analyse sur la fenêtre courante. C'est l'action de reprise après un incident.",
+    mtRescanBtn: "Relancer une analyse complète",
+    mtRescanDone: "Ré-analyse terminée.",
+    mtResetTitle: "Remise à zéro des compteurs",
+    mtResetBody: "Efface les statistiques cumulées. Ne touche ni aux messages, ni aux étiquettes, ni aux listes.",
+    mtResetBtn: "Remettre les compteurs à zéro",
+    mtResetConfirm: "Effacer définitivement les statistiques cumulées ?",
+    mtResetDone: "Compteurs remis à zéro."
   },
 
   en: {
@@ -425,6 +463,44 @@ const UI_TRANSLATIONS = {
     logFilterAll: "Everything",
     logFilterActions: "Actions and errors",
     logFilterErrors: "Errors only",
-    logEmptyFiltered: "No entry matches this filter."
+    logEmptyFiltered: "No entry matches this filter.",
+
+    /* Reference lists tab */
+    navLists: "Reference lists",
+    listsTitle: "Reference lists",
+    listsIntro: "These two lists steer the detector without touching the code. A value shipped with the tool can be disabled for good: the removal is stored and survives updates.",
+    listsAdd: "Add",
+    listsReset: "Restore shipped values",
+    listsOriginDefault: "shipped",
+    listsOriginAdded: "added",
+    listsOriginDisabled: "disabled",
+    listsRestore: "Re-enable",
+    listsRemove: "Remove",
+    listsEmpty: "This list is empty.",
+    listsExample: "Example: {n}",
+
+    /* Maintenance tab */
+    navMaintenance: "Maintenance",
+    mtTitle: "Maintenance operations",
+    mtIntro: "Rare actions, to be used only when needed. None of them deletes a message.",
+    mtDiagTitle: "Alert diagnostic",
+    mtDiagBody: "Compares the “impersonations flagged” counter with what Gmail actually holds, and explains any gap.",
+    mtDiagBtn: "Run the diagnostic",
+    mtDiagLabelOk: "Label present",
+    mtDiagLabelMissing: "Label not found — it will be recreated on the next scan",
+    mtDiagThreads: "Threads labelled in Gmail: {n}",
+    mtDiagCounter: "Dashboard counter: {n}",
+    mtDiagGap: "Gap: {n}",
+    mtDiagSamples: "Most recent flagged messages",
+    mtDiagNone: "No message currently carries the label.",
+    mtRescanTitle: "Full re-analysis",
+    mtRescanBody: "Clears the memory of already-examined messages and runs a fresh analysis over the current window. This is the recovery action after an incident.",
+    mtRescanBtn: "Run a full re-analysis",
+    mtRescanDone: "Re-analysis complete.",
+    mtResetTitle: "Reset the counters",
+    mtResetBody: "Clears the cumulative statistics. Touches neither messages, nor labels, nor lists.",
+    mtResetBtn: "Reset the counters",
+    mtResetConfirm: "Permanently clear the cumulative statistics?",
+    mtResetDone: "Counters reset."
   }
 };

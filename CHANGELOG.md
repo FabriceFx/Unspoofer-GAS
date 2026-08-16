@@ -82,6 +82,17 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (« Menace attendue » / « Légitime attendu », puis « Conforme » ou « Écart »).
   L'ancien affichage ne montrait que le type détecté, sans permettre de
   comprendre pourquoi un cas légitime non signalé était un succès.
+- **Onglet « Listes de référence ».** Le mécanisme construit en 2.4.0 était
+  complet côté serveur, testé, documenté — et inutilisable pour qui ne lit pas
+  le code. Les plateformes d'envoi tierces et les libellés de marque ambigus se
+  gèrent enfin depuis l'interface : ajout, retrait, réactivation d'une valeur
+  livrée neutralisée, et retour aux valeurs d'origine. L'origine de chaque
+  entrée est affichée (livrée, ajoutée, désactivée).
+- **Onglet « Maintenance ».** Trois actions jusqu'ici réservées à l'éditeur
+  Apps Script : le diagnostic des alertes, qui compare le compteur à ce que
+  contient réellement Gmail ; la ré-analyse complète, action de reprise après
+  incident ; et la remise à zéro des compteurs, sous confirmation. Aucune ne
+  supprime de message.
 - **Filtre du journal d'activité.** Chaque changement d'onglet produisait une
   ligne, noyant les évènements utiles. Les entrées sont désormais typées —
   `SYSTEM`, `ACTION`, `NAV`, `ERROR` — et un sélecteur propose trois vues :
@@ -182,10 +193,6 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
 
 ### Connu / non traité
 
-- Les listes de référence introduites en 2.4.0 (plateformes d'envoi, libellés
-  ambigus) n'ont toujours pas d'écran dédié. Les points d'accès serveur sont en
-  place ; le guide oriente pour l'instant vers la liste blanche et les marques
-  personnalisées.
 - L'étiquette Gmail reste nommée `ALERTE-USURPATION` quelle que soit la langue.
   La renommer casserait les filtres et recherches déjà en place chez les
   utilisateurs existants.

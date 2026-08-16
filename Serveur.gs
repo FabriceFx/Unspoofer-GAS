@@ -273,3 +273,82 @@ function removeCustomBrand(domaine) {
   }
   return customBrands;
 }
+
+// ─── Points d'accès de maintenance ─────────────────────────────────────
+
+/**
+ * Exécute le diagnostic des alertes et le renvoie au tableau de bord.
+ *
+ * Les dates sont converties en chaînes ISO : google.script.run ne transmet
+ * pas les objets Date au client.
+ *
+ * @returns {{etiquetteExiste: boolean, filsEtiquetes: number,
+ *            statUsurpations: number, ecart: number, exemples: Array<Object>}}
+ */
+function runDiagnostic() {
+  Logger.log('Diagnostic lancé depuis le tableau de bord');
+  const rapport = diagnostiquerAlertes();
+  return {
+    etiquetteExiste: rapport.etiquetteExiste,
+    filsEtiquetes: rapport.filsEtiquetes,
+    statUsurpations: rapport.statUsurpations,
+    ecart: rapport.ecart,
+    exemples: (rapport.exemples || []).map(function (e) {
+      return {
+        objet: e.objet,
+        de: e.de,
+        date: e.date ? new Date(e.date).toISOString() : '',
+      };
+    }),
+  };
+}
+
+/**
+ * Vide le cache des messages traités puis relance une analyse complète.
+ * C'est l'action de reprise après un incident : étiquette supprimée,
+ * messages désétiquetés, ou modification profonde des listes.
+ * @returns {Object} État du tableau de bord après l'opération
+ */
+function runFullRescan() {
+  Logger.log('Ré-analyse complète lancée depuis le tableau de bord');
+  reanalyserBoiteReception();
+  return getDashboardData();
+}
+
+/**
+ * Remet les compteurs à zéro. Ne touche ni aux messages, ni aux étiquettes,
+ * ni aux listes : seules les statistiques cumulées sont effacées.
+ * @returns {Object} État du tableau de bord après remise à zéro
+ */
+function resetStats() {
+  Logger.log('Remise à zéro des compteurs depuis le tableau de bord');
+  reinitialiserStatistiques();
+  return getDashboardData();
+}
+
+// ─── Points d'accès des listes de référence ────────────────────────────
+// (getListesModifiables, ajouterEntreeListe, retirerEntreeListe et
+//  reinitialiserListe sont définis dans Listes.gs et directement appelables.)
+
+/**
+ * Modifie une liste de référence et renvoie l'état complet du tableau de bord,
+ * de sorte que l'interface se rafraîchisse d'un seul aller-retour.
+ *
+ * @param {string} operation - 'ajouter', 'retirer' ou 'reinitialiser'
+ * @param {string} nomListe
+ * @param {string} [valeur]
+ * @returns {{ok: boolean, message: string, donnees: Object}}
+ */
+function modifierListeReference(operation, nomListe, valeur) {
+  let resultat;
+  if (operation === 'ajouter') resultat = ajouterEntreeListe(nomListe, valeur);
+  else if (operation === 'retirer') resultat = retirerEntreeListe(nomListe, valeur);
+  else if (operation === 'reinitialiser') resultat = reinitialiserListe(nomListe);
+  else resultat = { ok: false, message: 'Opération inconnue : ' + operation };
+
+  return {
+    ok: resultat.ok,
+    message: resultat.message,
+    donnees: getDashboardData(),
+  };
+}

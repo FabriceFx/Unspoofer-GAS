@@ -730,6 +730,37 @@
       font-size: 11px;
       padding: 4px 8px;
     }
+    /* Listes de référence : une puce par entrée, l'origine en pastille. */
+    .liste-entrees {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+    }
+    .entree-liste {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--surface-variant);
+      border-radius: var(--radius-pill);
+      padding: 6px 8px 6px 14px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+    }
+    .entree-liste.desactivee { opacity: .55; text-decoration: line-through; }
+    .entree-liste .origine {
+      font-family: var(--font-body); font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em; color: var(--text-dark);
+    }
+    .entree-liste button {
+      border: none; background: none; cursor: pointer; padding: 2px;
+      color: var(--text-muted); display: flex; border-radius: 50%;
+    }
+    .entree-liste button:hover { background: rgba(11,87,208,.12); color: var(--color-primary); }
+    .entree-liste .material-symbols-rounded { font-size: 16px; }
+
+    .diag-ligne {
+      display: flex; gap: 10px; align-items: flex-start;
+      font-size: 13px; line-height: 1.5; color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .diag-ligne .material-symbols-rounded { font-size: 18px; flex: none; }
+
     .log-vide {
       color: var(--text-dark);
       font-family: var(--font-body);
@@ -986,6 +1017,14 @@
         <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
         <span data-i18n="navTests">Suite de tests</span>
       </button>
+      <button class="nav-tab" data-tab="lists" onclick="switchTab('lists')">
+        <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+        <span data-i18n="navLists">Listes de référence</span>
+      </button>
+      <button class="nav-tab" data-tab="maintenance" onclick="switchTab('maintenance')">
+        <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+        <span data-i18n="navMaintenance">Maintenance</span>
+      </button>
       <button class="nav-tab" data-tab="guide" onclick="switchTab('guide')">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
         <span data-i18n="navGuide">Guide</span>
@@ -1229,6 +1268,70 @@
       </div>
     </div>
 
+    <!-- ONGLET : LISTES DE RÉFÉRENCE -->
+    <div id="tab-lists" class="tab-content">
+      <div class="panel" style="margin-bottom: 24px;">
+        <h2 class="panel-title">
+          <span class="material-symbols-rounded">tune</span>
+          <span data-i18n="listsTitle">Listes de référence</span>
+        </h2>
+        <p class="aide" style="margin-bottom:0" data-i18n="listsIntro">
+          Ces deux listes règlent le comportement du détecteur sans qu'il faille
+          toucher au code.
+        </p>
+      </div>
+      <div id="conteneurListes"></div>
+    </div>
+
+    <!-- ONGLET : MAINTENANCE -->
+    <div id="tab-maintenance" class="tab-content">
+      <div class="panel" style="margin-bottom: 24px;">
+        <h2 class="panel-title">
+          <span class="material-symbols-rounded">build</span>
+          <span data-i18n="mtTitle">Opérations de maintenance</span>
+        </h2>
+        <p class="aide" style="margin-bottom:0" data-i18n="mtIntro">
+          Des actions rares, à n'utiliser qu'en cas de besoin.
+        </p>
+      </div>
+
+      <div class="guide-grille">
+        <div class="panel">
+          <h2 class="panel-title">
+            <span class="material-symbols-rounded">troubleshoot</span>
+            <span data-i18n="mtDiagTitle">Diagnostic des alertes</span>
+          </h2>
+          <p class="aide" data-i18n="mtDiagBody">Compare le compteur à ce que contient Gmail.</p>
+          <button class="btn btn-secondary" onclick="lancerDiagnostic()">
+            <span data-i18n="mtDiagBtn">Lancer le diagnostic</span>
+          </button>
+          <div id="resultatDiagnostic" style="margin-top:18px"></div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">
+            <span class="material-symbols-rounded">refresh</span>
+            <span data-i18n="mtRescanTitle">Ré-analyse complète</span>
+          </h2>
+          <p class="aide" data-i18n="mtRescanBody">Vide la mémoire des messages examinés et relance une analyse.</p>
+          <button class="btn btn-secondary" onclick="lancerReanalyse()">
+            <span data-i18n="mtRescanBtn">Relancer une analyse complète</span>
+          </button>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">
+            <span class="material-symbols-rounded">restart_alt</span>
+            <span data-i18n="mtResetTitle">Remise à zéro des compteurs</span>
+          </h2>
+          <p class="aide" data-i18n="mtResetBody">Efface les statistiques cumulées.</p>
+          <button class="btn btn-danger" onclick="remettreCompteursAZero()">
+            <span data-i18n="mtResetBtn">Remettre les compteurs à zéro</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ONGLET 5 : GUIDE -->
     <div id="tab-guide" class="tab-content">
 
@@ -1454,6 +1557,156 @@
       }
     }
 
+    /* ====================================================================
+       LISTES DE RÉFÉRENCE
+       ==================================================================== */
+
+    /**
+     * Reconstruit l'affichage des listes modifiables.
+     * @param {Array<Object>} listes - Tel que fourni par getListesModifiables()
+     */
+    function renderListes(listes) {
+      const conteneur = document.getElementById('conteneurListes');
+      if (!conteneur) return;
+      if (!listes || !listes.length) { conteneur.innerHTML = ''; return; }
+
+      conteneur.innerHTML = listes.map(function (l) {
+        const entrees = l.entrees.length ? l.entrees.map(function (e) {
+          const desactivee = e.origine === 'defaut_desactive';
+          const origine = desactivee ? T('listsOriginDisabled')
+            : (e.origine === 'ajout' ? T('listsOriginAdded') : T('listsOriginDefault'));
+          // Une valeur livrée puis désactivée se réactive ; les autres se retirent.
+          const action = desactivee ? 'ajouter' : 'retirer';
+          const icone = desactivee ? 'undo' : 'close';
+          const titre = desactivee ? T('listsRestore') : T('listsRemove');
+          return '<span class="entree-liste' + (desactivee ? ' desactivee' : '') + '">' +
+            escapeHtml(e.valeur) +
+            '<span class="origine">' + origine + '</span>' +
+            '<button title="' + titre + '" onclick="modifierListe(\'' + action + '\', \'' +
+              l.nom + '\', \'' + escapeHtml(e.valeur) + '\')">' +
+            '<span class="material-symbols-rounded">' + icone + '</span></button></span>';
+        }).join('') : '<p class="aide" style="margin:0">' + T('listsEmpty') + '</p>';
+
+        return '<div class="panel" style="margin-bottom:24px">' +
+          '<h2 class="panel-title"><span class="material-symbols-rounded">list</span>' +
+          escapeHtml(l.libelle) + '</h2>' +
+          '<p class="aide">' + escapeHtml(l.description) + '</p>' +
+          '<div class="form-group">' +
+          '<input type="text" class="input-control" id="saisie-' + l.nom + '" ' +
+            'placeholder="' + T('listsExample', { n: l.exemple }) + '" ' +
+            'onkeydown="if(event.key===\'Enter\') modifierListe(\'ajouter\', \'' + l.nom + '\')">' +
+          '<button class="btn btn-primary" onclick="modifierListe(\'ajouter\', \'' + l.nom + '\')">' +
+            T('listsAdd') + '</button>' +
+          '<button class="btn btn-secondary" onclick="modifierListe(\'reinitialiser\', \'' + l.nom + '\')">' +
+            T('listsReset') + '</button>' +
+          '</div>' +
+          '<div class="liste-entrees">' + entrees + '</div></div>';
+      }).join('');
+    }
+
+    /**
+     * Ajoute, retire ou réinitialise une entrée de liste de référence.
+     * @param {string} operation - 'ajouter', 'retirer' ou 'reinitialiser'
+     * @param {string} nomListe
+     * @param {string} [valeur] - Omise pour un ajout : lue dans le champ de saisie
+     */
+    function modifierListe(operation, nomListe, valeur) {
+      let saisie = null;
+      if (operation === 'ajouter' && valeur === undefined) {
+        saisie = document.getElementById('saisie-' + nomListe);
+        valeur = saisie ? saisie.value.trim() : '';
+        if (!valeur) return;
+      }
+      setLoader(true);
+      google.script.run
+        .withSuccessHandler(function (rep) {
+          setLoader(false);
+          populateDashboard(rep.donnees);
+          showToast(rep.message);
+          log(rep.message, rep.ok ? 'ACTION' : 'ERROR');
+        })
+        .withFailureHandler(function (err) {
+          setLoader(false);
+          showToast(T('msgError', { n: err.message }));
+          log(T('logFailure', { n: err.message }), 'ERROR');
+        })
+        .modifierListeReference(operation, nomListe, valeur || '');
+    }
+
+    /* ====================================================================
+       MAINTENANCE
+       ==================================================================== */
+
+    /** Lance le diagnostic des alertes et affiche son rapport. */
+    function lancerDiagnostic() {
+      setLoader(true);
+      google.script.run
+        .withSuccessHandler(function (r) {
+          setLoader(false);
+          const ligne = function (icone, texte) {
+            return '<div class="diag-ligne"><span class="material-symbols-rounded">' +
+              icone + '</span><span>' + texte + '</span></div>';
+          };
+          let html = ligne(r.etiquetteExiste ? 'check_circle' : 'error',
+            r.etiquetteExiste ? T('mtDiagLabelOk') : T('mtDiagLabelMissing'));
+          html += ligne('label', T('mtDiagThreads', { n: r.filsEtiquetes }));
+          html += ligne('tag', T('mtDiagCounter', { n: r.statUsurpations }));
+          html += ligne('difference', T('mtDiagGap', { n: r.ecart }));
+          if (r.exemples && r.exemples.length) {
+            html += '<p class="aide" style="margin:14px 0 6px"><strong>' +
+              T('mtDiagSamples') + '</strong></p>';
+            html += r.exemples.map(function (e) {
+              return '<div class="diag-ligne"><span class="material-symbols-rounded">mail</span><span>' +
+                escapeHtml(e.de) + ' — ' + escapeHtml(e.objet) + '</span></div>';
+            }).join('');
+          } else if (r.etiquetteExiste) {
+            html += '<p class="aide" style="margin-top:14px">' + T('mtDiagNone') + '</p>';
+          }
+          document.getElementById('resultatDiagnostic').innerHTML = html;
+          log(T('mtDiagThreads', { n: r.filsEtiquetes }), 'ACTION');
+        })
+        .withFailureHandler(function (err) {
+          setLoader(false);
+          showToast(T('msgError', { n: err.message }));
+        })
+        .runDiagnostic();
+    }
+
+    /** Vide le cache des messages examinés et relance une analyse complète. */
+    function lancerReanalyse() {
+      setLoader(true);
+      google.script.run
+        .withSuccessHandler(function (donnees) {
+          setLoader(false);
+          populateDashboard(donnees);
+          showToast(T('mtRescanDone'));
+          log(T('mtRescanDone'), 'ACTION');
+        })
+        .withFailureHandler(function (err) {
+          setLoader(false);
+          showToast(T('msgError', { n: err.message }));
+        })
+        .runFullRescan();
+    }
+
+    /** Remet les compteurs à zéro, après confirmation. */
+    function remettreCompteursAZero() {
+      if (!confirm(T('mtResetConfirm'))) return;
+      setLoader(true);
+      google.script.run
+        .withSuccessHandler(function (donnees) {
+          setLoader(false);
+          populateDashboard(donnees);
+          showToast(T('mtResetDone'));
+          log(T('mtResetDone'), 'ACTION');
+        })
+        .withFailureHandler(function (err) {
+          setLoader(false);
+          showToast(T('msgError', { n: err.message }));
+        })
+        .resetStats();
+    }
+
     /**
      * Change la langue de l'interface et recharge l'état depuis le serveur.
      * @param {string} langue - 'fr' ou 'en'
@@ -1643,6 +1896,9 @@
 
       // Remplissage des Custom Brands
       renderCustomBrands(data.customBrands);
+
+      // Listes de référence modifiables
+      renderListes(data.listesModifiables);
     }
 
     // Affichage interactif de la Whitelist

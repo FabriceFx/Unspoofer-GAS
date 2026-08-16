@@ -39,8 +39,20 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
 - `setLangue()` : point d'accès de changement de langue, la préférence étant
   conservée dans les propriétés du script.
 
+- `diagnostiquerAlertes()` : compare le compteur « usurpations bloquées » au
+  nombre de fils portant réellement l'étiquette dans Gmail, et explique l'écart
+  (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
+  les dix derniers messages signalés et la recherche Gmail à utiliser.
+
 ### Corrigé
 
+- **Compteur d'usurpations surévalué sur les fils à plusieurs messages.** La
+  déduplication reposait sur `fil.getLabels()`, dont l'instantané ne reflète pas
+  l'étiquette posée quelques lignes plus haut dans la même exécution. Un fil
+  contenant plusieurs messages suspects était donc compté une fois par message
+  au lieu d'une fois par fil. La déduplication passe par un `Set` d'identifiants
+  de fils tenu pendant l'exécution. L'étiquetage, lui, était correct : seul le
+  chiffre affiché était faux.
 - **La détection automatique de langue ne s'est jamais déclenchée.**
   `getLangueUtilisateur_()` testait `if (CONFIG.LANGUAGE)` avant de consulter la
   langue du compte Google — or `CONFIG.LANGUAGE` valait `"fr"`, toujours vrai.

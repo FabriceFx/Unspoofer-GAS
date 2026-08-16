@@ -73,6 +73,8 @@ function analyserBoiteReception() {
     let nombreAnalyses = 0;
     let nombreIgnores = 0;
     const detailsUsurpations = [];
+    /** Fils déjà étiquetés au cours de cette exécution (déduplication du compteur). */
+    const filsSignales = new Set();
     let limiteAtteinte = false;
 
     // Réinitialiser les quotas pour cette exécution (Point 3)
@@ -109,8 +111,17 @@ function analyserBoiteReception() {
                         const resultat = verifierUsurpation(message);
 
                         if (resultat.estUsurpation) {
-                            // Déduplication des alertes : vérifier si le thread est déjà étiqueté (Point 1)
-                            const dejaSignale = fil.getLabels().some(l => l.getName() === NOM_ETIQUETTE);
+                            // Déduplication des alertes.
+                            // On mémorise les fils étiquetés pendant cette exécution :
+                            // fil.getLabels() renvoie un instantané qui ne reflète pas
+                            // forcément l'étiquette posée quelques lignes plus haut. Sur
+                            // un fil comportant plusieurs messages suspects, le compteur
+                            // était alors incrémenté une fois par message au lieu d'une
+                            // fois par fil, gonflant le total affiché au tableau de bord.
+                            const idFil = fil.getId();
+                            const dejaSignale = filsSignales.has(idFil) ||
+                                fil.getLabels().some(l => l.getName() === NOM_ETIQUETTE);
+                            filsSignales.add(idFil);
 
                             fil.addLabel(etiquette);
                             message.star();
@@ -540,6 +551,102 @@ function reanalyserBoiteReception() {
     Logger.log('Cache vidé. Démarrage d\'une nouvelle analyse...');
     analyserBoiteReception();
     Logger.log('Ré-analyse terminée.');
+}
+
+/**
+ * Compare le compteur affiché au tableau de bord à ce que contient réellement
+ * Gmail, et explique l'écart s'il y en a un.
+ *
+ * À lancer depuis l'éditeur Apps Script (Exécuter > diagnostiquerAlertes) puis
+ * à lire dans le journal d'exécution.
+ *
+ * @returns {{etiquetteExiste: boolean, filsEtiquetes: number, statUsurpations: number,
+ *            ecart: number, exemples: Array<Object>}} Rapport de diagnostic.
+ */
+function diagnostiquerAlertes() {
+    const rapport = {
+        etiquetteExiste: false,
+        filsEtiquetes: 0,
+        statUsurpations: 0,
+        ecart: 0,
+        exemples: [],
+    };
+
+    Logger.log('════════ DIAGNOSTIC DES ALERTES ════════');
+
+    // 1. L'étiquette existe-t-elle encore ?
+    const etiquette = GmailApp.getUserLabelByName(NOM_ETIQUETTE);
+    rapport.etiquetteExiste = !!etiquette;
+    if (!etiquette) {
+        Logger.log('✗ L\'étiquette « ' + NOM_ETIQUETTE + ' » est INTROUVABLE.');
+        Logger.log('  Elle a probablement été supprimée depuis Gmail. Supprimer une');
+        Logger.log('  étiquette la retire de tous les messages qui la portaient, sans');
+        Logger.log('  toucher aux messages eux-mêmes. Les compteurs, eux, sont conservés.');
+        Logger.log('  → Lancez configurer() pour la recréer, puis reanalyserBoiteReception().');
+        return rapport;
+    }
+    Logger.log('✓ Étiquette « ' + NOM_ETIQUETTE + ' » présente.');
+
+    // 2. Combien de fils la portent réellement ?
+    let debut = 0;
+    const PAS = 100;
+    let lot;
+    do {
+        lot = GmailApp.search('label:' + NOM_ETIQUETTE, debut, PAS);
+        rapport.filsEtiquetes += lot.length;
+        for (const fil of lot) {
+            if (rapport.exemples.length < 10) {
+                const dernier = fil.getMessages()[fil.getMessages().length - 1];
+                rapport.exemples.push({
+                    objet: dernier.getSubject(),
+                    de: dernier.getFrom(),
+                    date: dernier.getDate(),
+                });
+            }
+        }
+        debut += PAS;
+    } while (lot.length === PAS);
+
+    Logger.log('→ Fils portant l\'étiquette dans Gmail : ' + rapport.filsEtiquetes);
+
+    // 3. Que dit le compteur ?
+    const stats = getStatistiques();
+    rapport.statUsurpations = stats.totalUsurpations || 0;
+    rapport.ecart = rapport.statUsurpations - rapport.filsEtiquetes;
+    Logger.log('→ Compteur « usurpations bloquées » : ' + rapport.statUsurpations);
+    Logger.log('→ Écart : ' + rapport.ecart);
+
+    // 4. Interprétation
+    if (rapport.filsEtiquetes === 0 && rapport.statUsurpations > 0) {
+        Logger.log('');
+        Logger.log('Aucun fil ne porte l\'étiquette alors que le compteur est positif.');
+        Logger.log('Causes possibles, par ordre de fréquence :');
+        Logger.log('  a) les messages signalés ont été supprimés ou archivés depuis ;');
+        Logger.log('  b) l\'étiquette a été supprimée puis recréée dans Gmail ;');
+        Logger.log('  c) le compteur est cumulatif depuis l\'installation, alors que');
+        Logger.log('     la recherche ne porte que sur les messages encore présents.');
+        Logger.log('  → reinitialiserStatistiques() remet le compteur à zéro.');
+    } else if (rapport.ecart > 0) {
+        Logger.log('');
+        Logger.log('Le compteur dépasse le nombre de fils étiquetés. C\'est attendu si');
+        Logger.log('des messages signalés ont depuis été supprimés ou archivés.');
+    } else if (rapport.filsEtiquetes > 0) {
+        Logger.log('');
+        Logger.log('Compteur et étiquettes concordent.');
+        Logger.log('Pour les retrouver dans Gmail, cherchez : label:' + NOM_ETIQUETTE);
+        Logger.log('L\'étiquette peut être repliée sous « Plus » dans la barre latérale.');
+    }
+
+    if (rapport.exemples.length) {
+        Logger.log('');
+        Logger.log('Derniers messages étiquetés :');
+        rapport.exemples.forEach(e => {
+            Logger.log('  • ' + e.date + ' — ' + e.de + ' — ' + e.objet);
+        });
+    }
+
+    Logger.log('════════════════════════════════════════');
+    return rapport;
 }
 
 /**

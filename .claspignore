@@ -1,8 +1,7 @@
 tests/**
 node_modules/**
 .git/**
-README.md
-CHANGELOG.md
+*.md
 LICENSE
 .gitignore
 .claspignore

@@ -44,6 +44,12 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
   les dix derniers messages signalés et la recherche Gmail à utiliser.
 
+- **Habillage Google Workspace / Material Design 3.** Le tableau de bord
+  reprend la charte des applications Workspace : clair par défaut, bleu `#0b57d0`,
+  Google Sans avec repli Roboto, boutons pilule, onglets en pastille tonale,
+  surfaces plates délimitées par un contour plutôt que par une ombre. Le thème
+  sombre devient une simple redéfinition des mêmes jetons. La palette rejoint
+  celle de `CONFIG.COLORS`, jusque-là déclarée mais ignorée par l'interface.
 - **Contrôle de cohérence au tableau de bord.** Si le compteur annonce des
   usurpations alors qu'aucun message ne porte l'étiquette dans Gmail, un
   bandeau l'explique et propose un scan de reprise. Le diagnostic distingue

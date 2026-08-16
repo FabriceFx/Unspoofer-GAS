@@ -44,6 +44,25 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
   les dix derniers messages signalés et la recherche Gmail à utiliser.
 
+- **La suite de tests intégrée ne s'exécutait plus du tout.** Le faux
+  `GmailMessage` qu'elle construit ne fournissait pas `getSubject()`, appelé par
+  le moteur depuis le garde-fou anti-boucle d'auto-alerte introduit en mai. La
+  suite levait une exception dès le premier cas : le bouton ne produisait aucun
+  résultat et aucun message d'erreur. `tests/suite-integree.js` couvre désormais
+  ce chemin, que le corpus de `run.js` n'empruntait pas.
+- **Régression : l'analyse s'arrêtait dès qu'une marque était jugée légitime.**
+  Le déplacement du contrôle Reply-To après l'analyse de marque avait créé un
+  angle mort : un message parti du vrai domaine d'une marque sortait par un
+  `return` immédiat, sans que l'adresse de réponse, les liens du corps ni les
+  pièces jointes soient examinés. Un `"Amazon Support" <noreply@amazon.com>`
+  avec un Reply-To détourné n'était plus détecté. L'analyse se poursuit
+  désormais jusqu'au bout.
+- **Attente de test erronée.** Le cas « Netflix omicron grec » exigeait qu'un
+  message d'hameçonnage — nom d'affichage annonçant un domaine sans rapport avec
+  l'expéditeur — ne soit **pas** signalé. Il documentait une limite du
+  rapprochement de marque, mais le message reste frauduleux et le contrôle
+  « domaine générique » le rattrape légitimement. Attente corrigée, cas renommé.
+  La suite compte donc 14 cas frauduleux et 6 légitimes.
 - **Onglet « Suite de tests » enfin explicite.** Son aide annonçait « vingt faux
   messages d'usurpation » — c'était inexact, et cela masquait l'essentiel : la
   suite compte **13 cas frauduleux et 7 cas légitimes**, et vérifie autant la

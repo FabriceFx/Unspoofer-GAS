@@ -17,11 +17,25 @@ tierces, libellés de marque ambigus) :
 node tests/listes.js
 ```
 
-Enfin, les contrôles statiques du tableau de bord :
+Les contrôles statiques du tableau de bord :
 
 ```bash
 node tests/dashboard.js
 ```
+
+Et la suite de vingt cas intégrée au produit, celle qu'expose l'onglet
+« Suite de tests » :
+
+```bash
+node tests/suite-integree.js
+```
+
+Cette suite construit un faux `GmailMessage` à la main. Dès que le moteur
+appelle une méthode absente de ce faux message, elle lève une exception au
+premier cas et l'onglet reste vide, sans message d'erreur — ce qui s'est
+produit lorsqu'un correctif a introduit un appel à `getSubject()`. Le corpus de
+`run.js` ne couvrait pas ce risque : il fabrique ses propres messages et
+n'emprunte jamais ce chemin.
 
 Le tableau de bord n'est exécuté nulle part avant d'être déployé : une fonction
 appelée sous un nom qui n'existe pas ne se manifeste qu'au clic de

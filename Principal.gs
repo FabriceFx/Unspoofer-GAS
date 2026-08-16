@@ -467,7 +467,13 @@ function testerDetection(retournerResultats = false) {
         { nom: 'Email Wix légitime', de: '"Wix.com" <noreply@wix.com>', usurpationAttendue: false },
         { nom: 'Email Google légitime', de: '"Google" <no-reply@accounts.google.com>', usurpationAttendue: false },
         { nom: 'Usurpation Apple pleine largeur', de: '"\uFF21\uFF50\uFF50\uFF4C\uFF45 Support" <help@totally-legit.xyz>', usurpationAttendue: true },
-        { nom: 'Netflix omicron grec (netflio != netflix)', de: '"Netfli\u03BF.com" <billing@fake-stream.net>', usurpationAttendue: false },
+        // Le rapprochement de marque \u00E9choue ici : normalis\u00E9, \u00AB Netfli\u03BF \u00BB donne
+        // \u00AB netflio \u00BB, qui n'est pas \u00AB netflix \u00BB. Le message reste n\u00E9anmoins
+        // frauduleux \u2014 un nom d'affichage annon\u00E7ant un domaine sans rapport
+        // avec l'exp\u00E9diteur r\u00E9el \u2014 et c'est le contr\u00F4le \u00AB domaine g\u00E9n\u00E9rique \u00BB
+        // qui le rattrape. L'attente \u00E9tait \u00E0 false, ce qui revenait \u00E0 exiger
+        // qu'un message d'hame\u00E7onnage passe au travers.
+        { nom: 'Domaine annonc\u00E9 sans rapport avec l\'exp\u00E9diteur', de: '"Netfli\u03BF.com" <billing@fake-stream.net>', usurpationAttendue: true },
         { nom: 'Email sans marque', de: '"Jean Dupont" <jean@exemple.com>', usurpationAttendue: false },
         { nom: 'Usurpation Microsoft cyrillique', de: '"Micr\u043Es\u043Eft.com" <security@phish-domain.ru>', usurpationAttendue: true },
         { nom: 'Sous-domaine Amazon légitime', de: '"Amazon.com" <ship-confirm@ship.amazon.com>', usurpationAttendue: false },
@@ -499,13 +505,20 @@ function testerDetection(retournerResultats = false) {
             _cacheDomaineProprietaire = Object.prototype.hasOwnProperty.call(ct, 'domaineProprietaire')
                 ? ct.domaineProprietaire : '';
 
+            // Le message simulé doit couvrir TOUTE la surface de GmailMessage
+            // utilisée par verifierUsurpation(). Il manquait getSubject(),
+            // appelé depuis le garde-fou anti-boucle d'auto-alerte : la suite
+            // levait une exception dès le premier cas et n'affichait donc
+            // jamais le moindre résultat.
             const messageSimule = {
                 getFrom: () => ct.de,
+                getSubject: () => ct.objet || 'Message de test',
                 getReplyTo: () => ct.replyTo || '',
                 getPlainBody: () => ct.corps || '',
-                getBody: () => ct.html || '',
+                getBody: () => ct.html || ct.corps || '',
                 getAttachments: () => (ct.pj || []).map(p => ({ getName: () => p.name })),
                 getRawContent: () => ct.enTetesBruts || '',
+                getId: () => 'test-' + ct.nom,
             };
 
             const resultat = verifierUsurpation(messageSimule);

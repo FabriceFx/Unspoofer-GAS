@@ -564,15 +564,25 @@ function verifierUsurpation(message) {
     const racineActuelle = extraireDomaineRacine(domaineExpediteur);
 
     // 7. Évaluation de la correspondance de marque
+    //
+    // Conclure « ce n'est pas une usurpation » ne doit PAS interrompre
+    // l'analyse : un message parti du vrai domaine d'une marque peut tout de
+    // même porter une adresse de réponse détournée, un lien trompeur ou une
+    // pièce jointe dangereuse. Ces cas sortaient auparavant par un return
+    // immédiat, sans jamais atteindre les contrôles suivants.
     if (correspondanceMarque) {
         const racineMarque = extraireDomaineRacine(correspondanceMarque.domaine);
-        if (racineActuelle === racineMarque) return resultat;
-        if (estUnDomaineMarqueLie(racineMarque, racineActuelle)) return resultat;
+        const memeMarque = racineActuelle === racineMarque ||
+            estUnDomaineMarqueLie(racineMarque, racineActuelle) ||
+            // Deux domaines d'une même autorité publique ne peuvent pas
+            // s'usurper : leur enregistrement est contrôlé.
+            estMemeAutoriteEtatique(racineMarque, racineActuelle);
 
-        // Deux domaines d'une même autorité publique ne peuvent pas s'usurper :
-        // leur enregistrement est contrôlé (impots.gouv.fr / finances.gouv.fr).
-        if (estMemeAutoriteEtatique(racineMarque, racineActuelle)) return resultat;
+        if (memeMarque) correspondanceMarque = null;
+    }
 
+    if (correspondanceMarque) {
+        const racineMarque = extraireDomaineRacine(correspondanceMarque.domaine);
         const domaineImplicite = extraireDomaineDuNomAffichage(expediteur.nomAffichage);
         if (domaineImplicite) {
             const racineImplicite = extraireDomaineRacine(domaineImplicite);

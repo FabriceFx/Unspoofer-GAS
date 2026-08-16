@@ -1,0 +1,547 @@
+{
+  "_doc": {
+    "role": "Corpus de référence pour mesurer le moteur de détection Unspoofer.",
+    "proprietaire": "Boîte analysée : utilisateur@exemple.fr (sert aux règles de domaine propriétaire).",
+    "attendu": "'legitime' = ne doit PAS être signalé. 'phishing' = doit être signalé.",
+    "motifAttendu": "Clé du contrôle qui devrait déclencher (voir EMAIL_TRANSLATIONS dans Config.gs). Un motif différent = détection correcte mais mal classée.",
+    "discutable": "true = la vérité terrain est un choix de politique defensible dans les deux sens ; comptabilisé à part.",
+    "donnees": "Tous les domaines non institutionnels sont fictifs (exemple.fr, *-random.tk). Aucune donnée réelle."
+  },
+
+  "proprietaire": "utilisateur@exemple.fr",
+
+  "cas": [
+    {
+      "id": "L01-google",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Google\" <no-reply@accounts.google.com>",
+      "objet": "Alerte de sécurité"
+    },
+    {
+      "id": "L02-paypal",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"PayPal\" <service@paypal.com>",
+      "objet": "Votre reçu"
+    },
+    {
+      "id": "L03-edf-domaine-lie",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"EDF\" <contact@relation-client-edf.fr>",
+      "objet": "Votre facture d'électricité",
+      "note": "Domaine lié déclaré dans GROUPES_MARQUES."
+    },
+    {
+      "id": "L04-colissimo-groupe",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Colissimo\" <suivi@laposte.fr>",
+      "objet": "Votre colis est arrivé"
+    },
+    {
+      "id": "L05-ameli",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Ameli\" <noreply@ameli.fr>",
+      "objet": "Votre relevé de remboursement"
+    },
+    {
+      "id": "L06-microsoft-sous-domaine",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Microsoft\" <noreply@accountprotection.microsoft.com>",
+      "objet": "Activité inhabituelle"
+    },
+    {
+      "id": "L07-amazon",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Amazon\" <auto-confirm@amazon.com>",
+      "objet": "Votre commande a été expédiée"
+    },
+    {
+      "id": "L08-outlook-groupe-microsoft",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Microsoft Outlook\" <no-reply@outlook.com>",
+      "objet": "Rapport de remise"
+    },
+    {
+      "id": "L09-boursorama",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Boursorama\" <info@boursorama.com>",
+      "objet": "Votre relevé mensuel"
+    },
+    {
+      "id": "L10-free-mono-mot",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Free\" <noreply@free.fr>",
+      "objet": "Votre facture Freebox"
+    },
+    {
+      "id": "L11-ing-mono-mot",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"ING\" <contact@ing.fr>",
+      "objet": "Votre relevé"
+    },
+    {
+      "id": "L12-service-public",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Service Public\" <noreply@service-public.fr>",
+      "objet": "Votre démarche a été enregistrée"
+    },
+
+    {
+      "id": "L13-dgfip-marque-affichee",
+      "categorie": "legitime_institutionnel",
+      "attendu": "legitime",
+      "de": "\"impots.gouv.fr\" <noreply@dgfip.finances.gouv.fr>",
+      "objet": "Votre avis d'imposition est disponible",
+      "note": "La DGFiP affiche la marque impots.gouv.fr mais émet depuis finances.gouv.fr — deux domaines .gouv.fr distincts."
+    },
+    {
+      "id": "L14-ants-gouv",
+      "categorie": "legitime_institutionnel",
+      "attendu": "legitime",
+      "de": "\"ANTS\" <ne-pas-repondre@ants.gouv.fr>",
+      "objet": "Votre titre est prêt"
+    },
+
+    {
+      "id": "L15-square-habitat",
+      "categorie": "legitime_homonyme",
+      "attendu": "legitime",
+      "de": "\"Square Habitat Rennes\" <contact@squarehabitat-rennes.fr>",
+      "objet": "Votre visite de mardi",
+      "note": "Enseigne immobilière réelle. Collision avec la marque square.com."
+    },
+    {
+      "id": "L16-april-formation",
+      "categorie": "legitime_homonyme",
+      "attendu": "legitime",
+      "de": "\"April Formation\" <contact@april-formation.fr>",
+      "objet": "Votre inscription",
+      "note": "Collision avec l'assureur april.fr."
+    },
+    {
+      "id": "L17-wise-solutions",
+      "categorie": "legitime_homonyme",
+      "attendu": "legitime",
+      "de": "\"Wise Solutions\" <contact@wise-solutions.fr>",
+      "objet": "Proposition commerciale",
+      "note": "Collision avec la fintech wise.com."
+    },
+    {
+      "id": "L18-orange-bleue",
+      "categorie": "legitime_homonyme",
+      "attendu": "legitime",
+      "de": "\"L'Orange Bleue\" <contact@lorangebleue-exemple.fr>",
+      "objet": "Votre abonnement salle de sport",
+      "note": "Collision avec l'opérateur orange.fr."
+    },
+    {
+      "id": "L19-discount-auto",
+      "categorie": "legitime_homonyme",
+      "attendu": "legitime",
+      "de": "\"Discount Auto Pièces\" <contact@discount-auto-exemple.fr>",
+      "objet": "Votre devis",
+      "note": "Collision avec la banque israélienne discount.co.il."
+    },
+    {
+      "id": "L20-cash-express",
+      "categorie": "legitime_homonyme",
+      "attendu": "legitime",
+      "de": "\"Cash Express\" <contact@cash-express-exemple.fr>",
+      "objet": "Votre reprise",
+      "note": "Collision avec cash.app."
+    },
+    {
+      "id": "L21-crypto-formation",
+      "categorie": "legitime_homonyme",
+      "attendu": "legitime",
+      "de": "\"Crypto Academy\" <contact@crypto-academy-exemple.fr>",
+      "objet": "Votre formation",
+      "note": "Collision avec crypto.com."
+    },
+
+    {
+      "id": "L22-nom-personne-point",
+      "categorie": "legitime_personne",
+      "attendu": "legitime",
+      "de": "\"Jean M.Dupont\" <j.dupont@exemple-cabinet.fr>",
+      "objet": "Compte rendu de réunion",
+      "note": "Initiale collée au nom : ne doit pas être lu comme un domaine."
+    },
+    {
+      "id": "L23-nom-docteur",
+      "categorie": "legitime_personne",
+      "attendu": "legitime",
+      "de": "\"Dr.Martin\" <secretariat@cabinet-exemple.fr>",
+      "objet": "Votre rendez-vous"
+    },
+    {
+      "id": "L24-nom-simple",
+      "categorie": "legitime_personne",
+      "attendu": "legitime",
+      "de": "\"Marie Lefevre\" <m.lefevre@exemple.fr>",
+      "objet": "Point de suivi"
+    },
+    {
+      "id": "L25-sans-nom-affiche",
+      "categorie": "legitime_personne",
+      "attendu": "legitime",
+      "de": "<collegue@exemple.fr>",
+      "objet": "Re: dossier"
+    },
+    {
+      "id": "L26-service-client-point",
+      "categorie": "legitime_personne",
+      "attendu": "legitime",
+      "de": "\"Service.Client\" <sav@boutique-exemple.fr>",
+      "objet": "Votre commande",
+      "note": "Libellé avec point : ne doit pas être lu comme un domaine."
+    },
+
+    {
+      "id": "L27-eventbrite-replyto",
+      "categorie": "legitime_plateforme",
+      "attendu": "legitime",
+      "de": "\"Eventbrite\" <noreply@eventbrite.fr>",
+      "replyTo": "organisateur@asso-exemple.fr",
+      "objet": "Votre billet"
+    },
+    {
+      "id": "L28-mailchimp-replyto",
+      "categorie": "legitime_plateforme",
+      "attendu": "legitime",
+      "de": "\"Newsletter Asso\" <campaign@mailchimp.com>",
+      "replyTo": "contact@asso-exemple.fr",
+      "objet": "Notre lettre de mars"
+    },
+    {
+      "id": "L29-helloasso-replyto",
+      "categorie": "legitime_plateforme",
+      "attendu": "legitime",
+      "de": "\"HelloAsso\" <noreply@helloasso.com>",
+      "replyTo": "tresorier@asso-exemple.fr",
+      "objet": "Reçu de votre don"
+    },
+    {
+      "id": "L30-domaine-proprietaire-affiche",
+      "categorie": "legitime_plateforme",
+      "attendu": "legitime",
+      "de": "\"exemple.fr — Formulaires\" <forms@notifications-exemple.fr>",
+      "objet": "Nouvelle réponse au formulaire",
+      "note": "Le nom affiche le domaine du destinataire lui-même."
+    },
+
+    {
+      "id": "L31-pj-pdf",
+      "categorie": "legitime_piece_jointe",
+      "attendu": "legitime",
+      "de": "\"Comptabilité\" <compta@exemple.fr>",
+      "objet": "Facture de mars",
+      "piecesJointes": ["facture-2026-03.pdf"]
+    },
+    {
+      "id": "L32-pj-zip",
+      "categorie": "legitime_piece_jointe",
+      "attendu": "legitime",
+      "discutable": true,
+      "de": "\"Support IT\" <it@exemple.fr>",
+      "objet": "Journaux demandés",
+      "piecesJointes": ["journaux.zip"],
+      "note": "Politique : .zip d'un correspondant interne. Signaler toute archive est defendable mais très bruyant."
+    },
+
+    {
+      "id": "P01-marque-mono-mot",
+      "categorie": "phishing_marque",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"PayPal\" <secure@paypal-verify-random.tk>",
+      "objet": "Votre compte est limité"
+    },
+    {
+      "id": "P02-netflix",
+      "categorie": "phishing_marque",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"Netflix\" <billing@netflix-payment-random.tk>",
+      "objet": "Échec de paiement"
+    },
+    {
+      "id": "P03-partie-locale",
+      "categorie": "phishing_marque",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "<paypal-service@random-host.tk>",
+      "objet": "Action requise",
+      "note": "Aucun nom affiché : la marque est dans la partie locale."
+    },
+    {
+      "id": "P04-domaine-marque-affiche",
+      "categorie": "phishing_marque",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"impots.gouv.fr\" <noreply@impots-remboursement-random.tk>",
+      "objet": "Remboursement de 328,40 €"
+    },
+
+    {
+      "id": "P05-homoglyphe-paypal",
+      "categorie": "phishing_homoglyphe",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "severiteAttendue": "critique",
+      "de": "\"РayPal\" <a@secure-random.tk>",
+      "objet": "Vérification requise",
+      "note": "Р cyrillique U+0420 en première lettre."
+    },
+    {
+      "id": "P06-homoglyphe-amazon",
+      "categorie": "phishing_homoglyphe",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"аmazon\" <deals@promo-random.tk>",
+      "objet": "Votre colis est bloqué",
+      "note": "а cyrillique U+0430."
+    },
+    {
+      "id": "P07-homoglyphe-grec",
+      "categorie": "phishing_homoglyphe",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"Netflιx\" <support@stream-random.tk>",
+      "objet": "Mise à jour de facturation",
+      "note": "ι grec U+03B9."
+    },
+
+    {
+      "id": "P08-typo-caractere-paypal",
+      "categorie": "phishing_typosquatting",
+      "attendu": "phishing",
+      "motifAttendu": "reasonTyposquatting",
+      "de": "\"Service\" <no-reply@paypa1.com>",
+      "objet": "Confirmez votre identité"
+    },
+    {
+      "id": "P09-typo-caractere-amazon",
+      "categorie": "phishing_typosquatting",
+      "attendu": "phishing",
+      "motifAttendu": "reasonTyposquatting",
+      "de": "\"Livraison\" <info@arnazon.com>",
+      "objet": "Votre colis"
+    },
+    {
+      "id": "P10-typo-motcle-suffixe",
+      "categorie": "phishing_typosquatting",
+      "attendu": "phishing",
+      "motifAttendu": "reasonTyposquatting",
+      "de": "\"Support\" <service@paypal-securite.com>",
+      "objet": "Sécurisez votre compte"
+    },
+    {
+      "id": "P11-typo-motcle-prefixe",
+      "categorie": "phishing_typosquatting",
+      "attendu": "phishing",
+      "motifAttendu": "reasonTyposquatting",
+      "de": "\"Alerte\" <no-reply@securite-netflix.com>",
+      "objet": "Connexion suspecte"
+    },
+    {
+      "id": "P12-typo-tld-paypal",
+      "categorie": "phishing_typosquatting_tld",
+      "attendu": "phishing",
+      "motifAttendu": "reasonTyposquatting",
+      "de": "\"Service client\" <no-reply@paypal.co>",
+      "objet": "Vérification de compte",
+      "note": "Label identique, TLD différent : vecteur très courant et peu coûteux."
+    },
+    {
+      "id": "P13-typo-tld-netflix",
+      "categorie": "phishing_typosquatting_tld",
+      "attendu": "phishing",
+      "motifAttendu": "reasonTyposquatting",
+      "de": "\"Support\" <billing@netflix.co>",
+      "objet": "Problème de paiement"
+    },
+    {
+      "id": "P14-typo-tld-ameli",
+      "categorie": "phishing_typosquatting_tld",
+      "attendu": "phishing",
+      "motifAttendu": "reasonTyposquatting",
+      "de": "\"Remboursement\" <noreply@ameli.co>",
+      "objet": "Votre remboursement en attente"
+    },
+
+    {
+      "id": "P15-marque-fr-credit-agricole",
+      "categorie": "phishing_marque_fr_multimot",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"Crédit Agricole\" <securite@credit-agricole-verif-random.tk>",
+      "objet": "Votre accès a été suspendu"
+    },
+    {
+      "id": "P16-marque-fr-bnp",
+      "categorie": "phishing_marque_fr_multimot",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"BNP Paribas\" <alerte@bnp-securite-random.tk>",
+      "objet": "Opération à valider"
+    },
+    {
+      "id": "P17-marque-fr-societe-generale",
+      "categorie": "phishing_marque_fr_multimot",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"Société Générale\" <alerte@sg-verif-random.tk>",
+      "objet": "Nouvel appareil détecté"
+    },
+    {
+      "id": "P18-marque-fr-banque-postale",
+      "categorie": "phishing_marque_fr_multimot",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"La Banque Postale\" <alerte@lbp-verif-random.tk>",
+      "objet": "Confirmation nécessaire"
+    },
+    {
+      "id": "P19-marque-fr-assurance-maladie",
+      "categorie": "phishing_marque_fr_alias",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"Assurance Maladie\" <noreply@ameli-remboursement-random.tk>",
+      "objet": "Remboursement disponible",
+      "note": "Nom courant de l'organisme, différent du nom de domaine (ameli.fr) : nécessite une table d'alias."
+    },
+    {
+      "id": "P20-marque-fr-pole-emploi",
+      "categorie": "phishing_marque_fr_multimot",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"Pôle emploi\" <contact@pole-emploi-actualisation-random.tk>",
+      "objet": "Actualisation obligatoire"
+    },
+    {
+      "id": "P21-marque-fr-secu",
+      "categorie": "phishing_marque_fr_alias",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"Sécurité Sociale\" <noreply@secu-remboursement-random.tk>",
+      "objet": "Votre carte Vitale expire"
+    },
+
+    {
+      "id": "P22-ordre-marque-vs-replyto",
+      "categorie": "phishing_classement",
+      "attendu": "phishing",
+      "motifAttendu": "reasonImpersonation",
+      "de": "\"PayPal\" <service@paypal-secure-random.tk>",
+      "replyTo": "pirate@collecte-random.ru",
+      "objet": "Litige ouvert sur votre compte",
+      "note": "Usurpation de marque ET Reply-To divergent. Le motif le plus grave doit primer."
+    },
+
+    {
+      "id": "P23-lien-html-trompeur",
+      "categorie": "phishing_lien",
+      "attendu": "phishing",
+      "motifAttendu": "reasonHtmlLinkMismatch",
+      "de": "\"Facturation\" <billing@service-inconnu-random.tk>",
+      "objet": "Facture impayée",
+      "corpsHtml": "<p>Bonjour,</p><p>Régularisez ici : <a href=\"http://collecte-random.tk/login\">paypal.com</a></p>"
+    },
+    {
+      "id": "P24-lien-corps-typosquatte",
+      "categorie": "phishing_lien",
+      "attendu": "phishing",
+      "motifAttendu": "reasonBodyLink",
+      "de": "\"Info\" <news@lettre-info-random.tk>",
+      "objet": "Mise à jour de sécurité",
+      "corpsTexte": "Connectez-vous immédiatement : http://paypa1.com/login pour éviter la suspension."
+    },
+
+    {
+      "id": "P25-pj-exe",
+      "categorie": "phishing_piece_jointe",
+      "attendu": "phishing",
+      "motifAttendu": "reasonAttachment",
+      "de": "\"Facture\" <compta@fournisseur-inconnu-random.tk>",
+      "objet": "Facture en attente",
+      "piecesJointes": ["facture_2026.exe"]
+    },
+    {
+      "id": "P26-pj-html",
+      "categorie": "phishing_piece_jointe",
+      "attendu": "phishing",
+      "motifAttendu": "reasonAttachment",
+      "de": "\"Document\" <envoi@partage-random.tk>",
+      "objet": "Document partagé",
+      "piecesJointes": ["document_securise.html"]
+    },
+
+    {
+      "id": "P27-spf-fail",
+      "categorie": "phishing_authentification",
+      "attendu": "phishing",
+      "motifAttendu": "reasonAuthFail",
+      "de": "\"Direction\" <direction@exemple.fr>",
+      "objet": "Virement urgent",
+      "enTetes": "Authentication-Results: mx.google.com; spf=fail smtp.mailfrom=exemple.fr; dkim=none",
+      "note": "Usurpation du domaine interne (fraude au président)."
+    },
+    {
+      "id": "P28-dmarc-fail",
+      "categorie": "phishing_authentification",
+      "attendu": "phishing",
+      "motifAttendu": "reasonAuthFail",
+      "de": "\"Ressources Humaines\" <rh@exemple.fr>",
+      "objet": "Mise à jour de vos coordonnées bancaires",
+      "enTetes": "Authentication-Results: mx.google.com; dmarc=fail header.from=exemple.fr"
+    },
+
+    {
+      "id": "P29-plateforme-firebase",
+      "categorie": "phishing_plateforme",
+      "attendu": "phishing",
+      "motifAttendu": "reasonPlatform",
+      "de": "\"Support\" <alerte@monapp-random.firebaseapp.com>",
+      "objet": "Vérifiez votre compte"
+    },
+    {
+      "id": "P30-dkim-firebase",
+      "categorie": "phishing_plateforme",
+      "attendu": "phishing",
+      "motifAttendu": "reasonDkim",
+      "de": "\"Assistance\" <support@domaine-perso-random.tk>",
+      "objet": "Confirmation requise",
+      "enTetes": "DKIM-Signature: v=1; a=rsa-sha256; s=firebase1; d=domaine-perso-random.tk"
+    },
+
+    {
+      "id": "P31-replyto-divergent",
+      "categorie": "phishing_replyto",
+      "attendu": "phishing",
+      "motifAttendu": "reasonReplyTo",
+      "de": "\"Assistance\" <contact@service-clients-random.tk>",
+      "replyTo": "recolte@collecte-random.ru",
+      "objet": "Votre dossier"
+    },
+    {
+      "id": "P32-domaine-generique-affiche",
+      "categorie": "phishing_generique",
+      "attendu": "phishing",
+      "motifAttendu": "reasonGenericDomain",
+      "de": "\"secure-bank-exemple.fr\" <contact@autre-domaine-random.tk>",
+      "objet": "Sécurisation de votre compte"
+    }
+  ]
+}

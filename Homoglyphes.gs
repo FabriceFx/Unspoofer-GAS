@@ -134,3 +134,55 @@ function contientHomoglyphes(chaine) {
     }
     return false;
 }
+
+/**
+ * Lettres latines accentuées et leur équivalent non accentué.
+ *
+ * Volontairement SÉPARÉE de CARTE_HOMOGLYPHES : un « é » dans un nom français
+ * est une écriture normale, pas un signal d'attaque. L'inclure dans la table
+ * des homoglyphes ferait passer « Crédit Agricole » pour une tentative
+ * d'usurpation et gonflerait la sévérité de tout courrier en français.
+ */
+const CARTE_ACCENTS = {
+    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a', 'æ': 'ae',
+    'ç': 'c',
+    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+    'ñ': 'n',
+    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o', 'œ': 'oe',
+    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+    'ý': 'y', 'ÿ': 'y',
+    'ß': 'ss',
+};
+
+/**
+ * Remplace les lettres accentuées par leur équivalent ASCII.
+ * @param {string} str
+ * @returns {string}
+ */
+function replierAccents(str) {
+    if (!str) return '';
+    let resultat = '';
+    for (let i = 0; i < str.length; i++) {
+        const c = str[i];
+        const minuscule = c.toLowerCase();
+        resultat += CARTE_ACCENTS[minuscule] !== undefined ? CARTE_ACCENTS[minuscule] : c;
+    }
+    return resultat;
+}
+
+/**
+ * Forme compacte d'une chaîne pour comparaison à un nom de domaine :
+ * homoglyphes normalisés, accents repliés, puis suppression de tout ce qui
+ * n'est ni lettre ni chiffre.
+ *
+ * Permet de rapprocher un nom affiché de son domaine : « Crédit Agricole »
+ * et « creditagricole.fr » se rejoignent sur « creditagricole ».
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+function normaliserEnFormeCompacte(str) {
+    if (!str) return '';
+    return replierAccents(normaliserEnAscii(str)).replace(/[^a-z0-9]/g, '');
+}

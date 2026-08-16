@@ -1,0 +1,1274 @@
+{
+  "metriques": {
+    "total": 63,
+    "VP": 22,
+    "FP": 11,
+    "VN": 20,
+    "FN": 10,
+    "malClasses": 1,
+    "rappel": 0.6875,
+    "precision": 0.6666666666666666,
+    "tauxFauxPositifs": 0.3548387096774194
+  },
+  "resultats": [
+    {
+      "id": "L01-google",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L02-paypal",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L03-edf-domaine-lie",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "Domaine lié déclaré dans GROUPES_MARQUES.",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L04-colissimo-groupe",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L05-ameli",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L06-microsoft-sous-domaine",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L07-amazon",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L08-outlook-groupe-microsoft",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L09-boursorama",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L10-free-mono-mot",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L11-ing-mono-mot",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L12-service-public",
+      "categorie": "legitime_marque",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L13-dgfip-marque-affichee",
+      "categorie": "legitime_institutionnel",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe impots.gouv.fr mais l'e-mail provient de finances.gouv.fr",
+      "note": "La DGFiP affiche la marque impots.gouv.fr mais émet depuis finances.gouv.fr — deux domaines .gouv.fr distincts.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L14-ants-gouv",
+      "categorie": "legitime_institutionnel",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L15-square-habitat",
+      "categorie": "legitime_homonyme",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe square.com mais l'e-mail provient de squarehabitat-rennes.fr",
+      "note": "Enseigne immobilière réelle. Collision avec la marque square.com.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L16-april-formation",
+      "categorie": "legitime_homonyme",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe april.fr mais l'e-mail provient de april-formation.fr",
+      "note": "Collision avec l'assureur april.fr.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L17-wise-solutions",
+      "categorie": "legitime_homonyme",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe wise.com mais l'e-mail provient de wise-solutions.fr",
+      "note": "Collision avec la fintech wise.com.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L18-orange-bleue",
+      "categorie": "legitime_homonyme",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe orange.fr mais l'e-mail provient de lorangebleue-exemple.fr",
+      "note": "Collision avec l'opérateur orange.fr.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L19-discount-auto",
+      "categorie": "legitime_homonyme",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe discount.co.il mais l'e-mail provient de discount-auto-exemple.fr",
+      "note": "Collision avec la banque israélienne discount.co.il.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L20-cash-express",
+      "categorie": "legitime_homonyme",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe cash.app mais l'e-mail provient de cash-express-exemple.fr",
+      "note": "Collision avec cash.app.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L21-crypto-formation",
+      "categorie": "legitime_homonyme",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe crypto.com mais l'e-mail provient de crypto-academy-exemple.fr",
+      "note": "Collision avec crypto.com.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L22-nom-personne-point",
+      "categorie": "legitime_personne",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonGenericDomain",
+      "motifAttendu": null,
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage contient le domaine m.dupont mais l'e-mail provient de exemple-cabinet.fr",
+      "note": "Initiale collée au nom : ne doit pas être lu comme un domaine.",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L23-nom-docteur",
+      "categorie": "legitime_personne",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonGenericDomain",
+      "motifAttendu": null,
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage contient le domaine dr.martin mais l'e-mail provient de cabinet-exemple.fr",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L24-nom-simple",
+      "categorie": "legitime_personne",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L25-sans-nom-affiche",
+      "categorie": "legitime_personne",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L26-service-client-point",
+      "categorie": "legitime_personne",
+      "discutable": false,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonGenericDomain",
+      "motifAttendu": null,
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage contient le domaine service.client mais l'e-mail provient de boutique-exemple.fr",
+      "note": "Libellé avec point : ne doit pas être lu comme un domaine.",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "L27-eventbrite-replyto",
+      "categorie": "legitime_plateforme",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L28-mailchimp-replyto",
+      "categorie": "legitime_plateforme",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L29-helloasso-replyto",
+      "categorie": "legitime_plateforme",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L30-domaine-proprietaire-affiche",
+      "categorie": "legitime_plateforme",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "Le nom affiche le domaine du destinataire lui-même.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L31-pj-pdf",
+      "categorie": "legitime_piece_jointe",
+      "discutable": false,
+      "verdict": "VN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": null,
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "L32-pj-zip",
+      "categorie": "legitime_piece_jointe",
+      "discutable": true,
+      "verdict": "FP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonAttachment",
+      "motifAttendu": null,
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Pièce jointe suspecte détectée : journaux.zip",
+      "note": "Politique : .zip d'un correspondant interne. Signaler toute archive est defendable mais très bruyant.",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P01-marque-mono-mot",
+      "categorie": "phishing_marque",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe paypal.com mais l'e-mail provient de paypal-verify-random.tk",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P02-netflix",
+      "categorie": "phishing_marque",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe netflix.com mais l'e-mail provient de netflix-payment-random.tk",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P03-partie-locale",
+      "categorie": "phishing_marque",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe paypal.com mais l'e-mail provient de random-host.tk",
+      "note": "Aucun nom affiché : la marque est dans la partie locale.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P04-domaine-marque-affiche",
+      "categorie": "phishing_marque",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe impots.gouv.fr mais l'e-mail provient de impots-remboursement-random.tk",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P05-homoglyphe-paypal",
+      "categorie": "phishing_homoglyphe",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "critique",
+      "severiteAttendue": "critique",
+      "raison": "Le nom d'affichage usurpe paypal.com mais l'e-mail provient de secure-random.tk",
+      "note": "Р cyrillique U+0420 en première lettre.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P06-homoglyphe-amazon",
+      "categorie": "phishing_homoglyphe",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe amazon.com mais l'e-mail provient de promo-random.tk",
+      "note": "а cyrillique U+0430.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P07-homoglyphe-grec",
+      "categorie": "phishing_homoglyphe",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonImpersonation",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage usurpe netflix.com mais l'e-mail provient de stream-random.tk",
+      "note": "ι grec U+03B9.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P08-typo-caractere-paypal",
+      "categorie": "phishing_typosquatting",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonTyposquatting",
+      "motifAttendu": "reasonTyposquatting",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Domaine suspect par typosquatting : paypa1.com ressemble à paypal.com",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P09-typo-caractere-amazon",
+      "categorie": "phishing_typosquatting",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonTyposquatting",
+      "motifAttendu": "reasonTyposquatting",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Domaine suspect par typosquatting : arnazon.com ressemble à amazon.com",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P10-typo-motcle-suffixe",
+      "categorie": "phishing_typosquatting",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonTyposquatting",
+      "motifAttendu": "reasonTyposquatting",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Domaine suspect par typosquatting : paypal-securite.com ressemble à paypal.com",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P11-typo-motcle-prefixe",
+      "categorie": "phishing_typosquatting",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonTyposquatting",
+      "motifAttendu": "reasonTyposquatting",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Domaine suspect par typosquatting : securite-netflix.com ressemble à netflix.com",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P12-typo-tld-paypal",
+      "categorie": "phishing_typosquatting_tld",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonTyposquatting",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "Label identique, TLD différent : vecteur très courant et peu coûteux.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P13-typo-tld-netflix",
+      "categorie": "phishing_typosquatting_tld",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonTyposquatting",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P14-typo-tld-ameli",
+      "categorie": "phishing_typosquatting_tld",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonTyposquatting",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P15-marque-fr-credit-agricole",
+      "categorie": "phishing_marque_fr_multimot",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonImpersonation",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P16-marque-fr-bnp",
+      "categorie": "phishing_marque_fr_multimot",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonImpersonation",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P17-marque-fr-societe-generale",
+      "categorie": "phishing_marque_fr_multimot",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonImpersonation",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P18-marque-fr-banque-postale",
+      "categorie": "phishing_marque_fr_multimot",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonImpersonation",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P19-marque-fr-assurance-maladie",
+      "categorie": "phishing_marque_fr_alias",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonImpersonation",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "Nom courant de l'organisme, différent du nom de domaine (ameli.fr) : nécessite une table d'alias.",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P20-marque-fr-pole-emploi",
+      "categorie": "phishing_marque_fr_multimot",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonImpersonation",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P21-marque-fr-secu",
+      "categorie": "phishing_marque_fr_alias",
+      "discutable": false,
+      "verdict": "FN",
+      "malClasse": false,
+      "severiteEcart": false,
+      "motif": "",
+      "motifAttendu": "reasonImpersonation",
+      "severite": null,
+      "severiteAttendue": null,
+      "raison": "",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P22-ordre-marque-vs-replyto",
+      "categorie": "phishing_classement",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": true,
+      "motif": "reasonReplyTo",
+      "motifAttendu": "reasonImpersonation",
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Répondre à (Reply-To) divergent : pirate@collecte-random.ru",
+      "note": "Usurpation de marque ET Reply-To divergent. Le motif le plus grave doit primer.",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P23-lien-html-trompeur",
+      "categorie": "phishing_lien",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonHtmlLinkMismatch",
+      "motifAttendu": "reasonHtmlLinkMismatch",
+      "severite": "critique",
+      "severiteAttendue": null,
+      "raison": "Lien trompeur détecté : le texte affiche paypal.com mais pointe vers collecte-random.tk",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P24-lien-corps-typosquatte",
+      "categorie": "phishing_lien",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonBodyLink",
+      "motifAttendu": "reasonBodyLink",
+      "severite": "critique",
+      "severiteAttendue": null,
+      "raison": "Lien suspect détecté (typosquatting) dans le corps du message",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 1,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P25-pj-exe",
+      "categorie": "phishing_piece_jointe",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonAttachment",
+      "motifAttendu": "reasonAttachment",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Pièce jointe suspecte détectée : facture_2026.exe",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P26-pj-html",
+      "categorie": "phishing_piece_jointe",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonAttachment",
+      "motifAttendu": "reasonAttachment",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Pièce jointe suspecte détectée : document_securise.html",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P27-spf-fail",
+      "categorie": "phishing_authentification",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonAuthFail",
+      "motifAttendu": "reasonAuthFail",
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Échec d'authentification e-mail : spf=fail",
+      "note": "Usurpation du domaine interne (fraude au président).",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P28-dmarc-fail",
+      "categorie": "phishing_authentification",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonAuthFail",
+      "motifAttendu": "reasonAuthFail",
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Échec d'authentification e-mail : dmarc=fail",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P29-plateforme-firebase",
+      "categorie": "phishing_plateforme",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonPlatform",
+      "motifAttendu": "reasonPlatform",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Envoyé depuis une plateforme suspecte : firebaseapp.com",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P30-dkim-firebase",
+      "categorie": "phishing_plateforme",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonDkim",
+      "motifAttendu": "reasonDkim",
+      "severite": "elevee",
+      "severiteAttendue": null,
+      "raison": "Envoyé via une plateforme suspecte : firebase (domaine personnalisé)",
+      "note": "",
+      "appels": {
+        "getRawContent": 1,
+        "getPlainBody": 1,
+        "getBody": 1,
+        "getAttachments": 1
+      }
+    },
+    {
+      "id": "P31-replyto-divergent",
+      "categorie": "phishing_replyto",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonReplyTo",
+      "motifAttendu": "reasonReplyTo",
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Répondre à (Reply-To) divergent : recolte@collecte-random.ru",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    },
+    {
+      "id": "P32-domaine-generique-affiche",
+      "categorie": "phishing_generique",
+      "discutable": false,
+      "verdict": "VP",
+      "malClasse": false,
+      "motif": "reasonGenericDomain",
+      "motifAttendu": "reasonGenericDomain",
+      "severite": "moyenne",
+      "severiteAttendue": null,
+      "raison": "Le nom d'affichage contient le domaine secure-bank-exemple.fr mais l'e-mail provient de autre-domaine-random.tk",
+      "note": "",
+      "appels": {
+        "getRawContent": 0,
+        "getPlainBody": 0,
+        "getBody": 0,
+        "getAttachments": 0
+      }
+    }
+  ]
+}

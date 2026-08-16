@@ -121,6 +121,32 @@ const DOMAINES_MARQUES = [
     // ── Expédition française / européenne ────────────────────────────────
     'laposte.fr', 'colissimo.fr', 'chronopost.fr', 'mondialrelay.fr',
     'dpd.fr', 'gls-france.fr',
+    'relaiscolis.com', 'tnt.fr',
+
+    // ── Crédit à la consommation ─────────────────────────────────────────
+    // Cible fréquente : promesse de crédit ou régularisation d'échéance
+    'cetelem.fr', 'cofidis.fr', 'sofinco.fr', 'younited-credit.com',
+
+    // ── Formation & retraite ─────────────────────────────────────────────
+    // moncompteformation : un des vecteurs d'arnaque les plus actifs en France
+    'moncompteformation.gouv.fr', 'lassuranceretraite.fr',
+    'agirc-arrco.fr', 'info-retraite.fr',
+
+    // ── Services publics complémentaires ─────────────────────────────────
+    'franceconnect.gouv.fr', 'msa.fr', 'demarches-simplifiees.fr',
+
+    // ── Distribution d'énergie ───────────────────────────────────────────
+    'enedis.fr', 'grdf.fr',
+
+    // ── E-commerce & plateformes grand public ────────────────────────────
+    'rakuten.fr', 'zalando.fr', 'shein.com', 'temu.com', 'backmarket.fr',
+    'doctolib.fr',
+
+    // ── Streaming complémentaire ─────────────────────────────────────────
+    'canalplus.com', 'primevideo.com',
+
+    // ── Cryptomonnaies complémentaires ───────────────────────────────────
+    'trezor.io', 'bitpanda.com',
 
 ];
 
@@ -166,7 +192,74 @@ const GROUPES_MARQUES = [
     ['malakoffhumanis.com', 'malakoffmederic.com', 'humanis.com'],
     ['fnac.com', 'darty.com'],                      // Groupe Fnac-Darty
     ['totalenergies.fr', 'total.fr'],
+
+    // ── Administrations de l'État français ──
+    // La DGFiP affiche la marque impots.gouv.fr mais émet depuis finances.gouv.fr
+    ['impots.gouv.fr', 'finances.gouv.fr', 'tresor.gouv.fr', 'dgfip.finances.gouv.fr'],
+    ['ameli.fr', 'cpam.fr', 'securite-sociale.fr', 'assurance-maladie.fr'],
+    ['pole-emploi.fr', 'francetravail.fr'],         // Renommage France Travail (2024)
+    ['edf.fr', 'enedis.fr'],
+    ['engie.fr', 'grdf.fr'],
 ];
+
+/**
+ * Suffixes réservés à des autorités publiques : leur enregistrement est
+ * contrôlé, donc une usurpation d'un de ces domaines par un autre est
+ * impossible en pratique. Sert à éteindre les faux positifs entre
+ * administrations d'un même État.
+ */
+const SUFFIXES_ETATIQUES = ['.gouv.fr', '.gov', '.gov.uk', '.gc.ca', '.edu', '.mil'];
+
+/**
+ * Indique si deux domaines relèvent de la même autorité publique.
+ * @param {string} racineA
+ * @param {string} racineB
+ * @returns {boolean}
+ */
+function estMemeAutoriteEtatique(racineA, racineB) {
+    if (!racineA || !racineB) return false;
+    const a = racineA.toLowerCase();
+    const b = racineB.toLowerCase();
+    return SUFFIXES_ETATIQUES.some((s) => a.endsWith(s) && b.endsWith(s));
+}
+
+/**
+ * Libellés de marque qui sont aussi des mots courants du français ou de
+ * l'anglais. Une correspondance sur ces seuls libellés ne suffit pas :
+ * « Square Habitat », « L'Orange Bleue » ou « April Formation » sont des
+ * entreprises réelles sans rapport avec square.com, orange.fr ou april.fr.
+ *
+ * Ces marques exigent une corroboration (voir verifierUsurpation).
+ */
+const MARQUES_AMBIGUES = new Set([
+    'april', 'blockchain', 'boulanger', 'cash', 'crypto', 'discount',
+    'free', 'gett', 'ing', 'ledger', 'meta', 'nickel', 'notion',
+    'orange', 'poste', 'slack', 'square', 'total', 'walla', 'wise', 'zoom',
+]);
+
+/**
+ * Noms usuels d'organismes qui ne correspondent pas à leur nom de domaine.
+ * Clé : forme compacte du nom affiché. Valeur : domaine officiel.
+ *
+ * Sans cette table, « Assurance Maladie » ou « France Travail » ne peuvent
+ * pas être rapprochés d'ameli.fr ou de pole-emploi.fr.
+ */
+const ALIAS_MARQUES = {
+    'assurancemaladie': 'ameli.fr',
+    'lassurancemaladie': 'ameli.fr',
+    'cartevitale': 'ameli.fr',
+    'francetravail': 'pole-emploi.fr',
+    'poleemploi': 'pole-emploi.fr',
+    'tresorpublic': 'tresor.gouv.fr',
+    'directiongeneraledesfinancespubliques': 'impots.gouv.fr',
+    'dgfip': 'impots.gouv.fr',
+    'moncompteformation': 'moncompteformation.gouv.fr',
+    'comptepersonneldeformation': 'moncompteformation.gouv.fr',
+    'lassuranceretraite': 'lassuranceretraite.fr',
+    'caissedallocationsfamiliales': 'caf.fr',
+    'agencenationaledestitressecurises': 'ants.gouv.fr',
+    'assurancevieillesse': 'lassuranceretraite.fr',
+};
 
 /**
  * Marques financières — déclenchent un niveau de sévérité CRITIQUE
@@ -206,17 +299,31 @@ const MARQUES_FINANCIERES = new Set([
 let _indexMarques = null;
 
 /**
+ * Longueur minimale d'un libellé compact pour autoriser une correspondance
+ * par inclusion. En dessous, le risque de collision fortuite à l'intérieur
+ * d'un nom plus long est trop élevé.
+ */
+const LONGUEUR_MIN_COMPACTE = 8;
+
+/**
  * Construit un index des marques pour une recherche plus rapide (O(1) pour les noms).
  * Évite la double boucle O(n²).
- * @returns {{parDomaine: string[], parNom: Map<string, string>}}
+ *
+ * Trois entrées :
+ *   parDomaine  — domaines complets, correspondance la plus fiable
+ *   parNom      — libellé seul (« paypal »), avec test de délimitation
+ *   parCompacte — libellé sans séparateur ni accent (« creditagricole »),
+ *                 pour rapprocher un nom affiché en plusieurs mots de son domaine
+ *
+ * @returns {{parDomaine: string[], parNom: Map<string, string>, parCompacte: Map<string, string>}}
  */
 function getIndexMarques_() {
     if (_indexMarques) return _indexMarques;
-    _indexMarques = { parDomaine: [], parNom: new Map() };
-    
+    _indexMarques = { parDomaine: [], parNom: new Map(), parCompacte: new Map() };
+
     // 1. Charger les marques statiques du fichier
     const toutesLesMarques = [...DOMAINES_MARQUES];
-    
+
     // 2. Charger les marques personnalisées dynamiques stockées par le Dashboard
     try {
         const customBruts = PropertiesService.getScriptProperties().getProperty('customBrands');
@@ -231,14 +338,29 @@ function getIndexMarques_() {
     } catch (e) {
         Logger.log('Erreur chargement marques personnalisées : ' + e.message);
     }
-    
+
     for (const domaine of toutesLesMarques) {
         _indexMarques.parDomaine.push(domaine);
         const nom = extraireNomMarque(domaine);
         if (nom.length >= 3 && !_indexMarques.parNom.has(nom)) {
             _indexMarques.parNom.set(nom, domaine);
         }
+        // Forme compacte : « pole-emploi » → « poleemploi »
+        const compacte = normaliserEnFormeCompacte(nom);
+        if (compacte.length >= LONGUEUR_MIN_COMPACTE &&
+            !MARQUES_AMBIGUES.has(nom) &&
+            !_indexMarques.parCompacte.has(compacte)) {
+            _indexMarques.parCompacte.set(compacte, domaine);
+        }
     }
+
+    // 3. Noms usuels d'organismes qui diffèrent de leur nom de domaine
+    for (const alias in ALIAS_MARQUES) {
+        if (alias.length >= LONGUEUR_MIN_COMPACTE && !_indexMarques.parCompacte.has(alias)) {
+            _indexMarques.parCompacte.set(alias, ALIAS_MARQUES[alias]);
+        }
+    }
+
     return _indexMarques;
 }
 
@@ -256,7 +378,16 @@ function estUnDomaineMarqueLie(racineMarque, racineExpediteur) {
         for (const groupe of GROUPES_MARQUES) {
             const racines = groupe.map(d => extraireDomaineRacine(d));
             for (const racine of racines) {
-                _cacheDomaineLie[racine] = racines;
+                // Fusion, et non remplacement : un domaine peut figurer dans
+                // plusieurs groupes (edf.fr appartient au groupe historique EDF
+                // et au groupe de distribution EDF/Enedis). Écraser l'entrée
+                // ferait perdre silencieusement les liens du premier groupe.
+                if (!_cacheDomaineLie[racine]) _cacheDomaineLie[racine] = [];
+                for (const r of racines) {
+                    if (!_cacheDomaineLie[racine].includes(r)) {
+                        _cacheDomaineLie[racine].push(r);
+                    }
+                }
             }
         }
     }
@@ -276,22 +407,38 @@ function extraireNomMarque(domaine) {
 /**
  * Vérifie si un nom d'affichage normalisé contient un domaine de marque connu ou un nom de marque.
  * Retourne le domaine de marque correspondant ou null.
+ *
+ * Les trois passages vont du plus fiable au moins fiable. Le dernier peut
+ * correspondre sur un libellé qui est aussi un mot courant : il est alors
+ * marqué `ambigu`, à charge pour l'appelant d'exiger une corroboration.
+ *
  * @param {string} nomAffichageNormalise - Déjà normalisé (ASCII, minuscules)
- * @returns {{domaine: string, nomMarque: string}|null}
+ * @returns {{domaine: string, nomMarque: string, ambigu: boolean}|null}
  */
 function trouverMarqueUsurpee(nomAffichageNormalise) {
     if (!nomAffichageNormalise) return null;
 
     const index = getIndexMarques_();
 
-    // Premier passage : vérification du domaine complet
+    // Premier passage : domaine complet cité dans le nom affiché (« paypal.com »)
     for (const domaine of index.parDomaine) {
         if (nomAffichageNormalise.includes(domaine)) {
-            return { domaine: domaine, nomMarque: extraireNomMarque(domaine) };
+            return { domaine: domaine, nomMarque: extraireNomMarque(domaine), ambigu: false };
         }
     }
 
-    // Deuxième passage : noms de marques seuls (mot délimité)
+    // Deuxième passage : forme compacte, pour les raisons sociales en plusieurs
+    // mots et les noms usuels (« Crédit Agricole », « Assurance Maladie »)
+    const compacte = normaliserEnFormeCompacte(nomAffichageNormalise);
+    if (compacte) {
+        for (const [cle, domaine] of index.parCompacte.entries()) {
+            if (compacte.includes(cle)) {
+                return { domaine: domaine, nomMarque: extraireNomMarque(domaine), ambigu: false };
+            }
+        }
+    }
+
+    // Troisième passage : libellé seul, en exigeant une délimitation de mot
     for (const [nom, domaine] of index.parNom.entries()) {
         const pos = nomAffichageNormalise.indexOf(nom);
         if (pos !== -1) {
@@ -300,12 +447,48 @@ function trouverMarqueUsurpee(nomAffichageNormalise) {
                 ? nomAffichageNormalise[pos + nom.length] : ' ';
             const estDelimiteur = (ch) => /[^a-z0-9]/.test(ch);
             if (estDelimiteur(avant) && estDelimiteur(apres)) {
-                return { domaine: domaine, nomMarque: nom };
+                return { domaine: domaine, nomMarque: nom, ambigu: MARQUES_AMBIGUES.has(nom) };
             }
         }
     }
 
     return null;
+}
+
+/**
+ * Cherche une corroboration lorsque la marque détectée porte un libellé
+ * ambigu. Sans elle, « Square Habitat » ou « April Formation » seraient
+ * signalés comme des usurpations.
+ *
+ * Signaux retenus :
+ *   - le nom affiché est exactement le nom de la marque (les homonymes
+ *     légitimes portent presque toujours un qualificatif) ;
+ *   - le domaine expéditeur combine le nom de la marque et un mot-clé
+ *     d'hameçonnage (« orange-securite.tk ») ;
+ *   - des homoglyphes ou un échec d'authentification accompagnent le message.
+ *
+ * @param {string} nomMarque
+ * @param {string} nomAffichageNormalise
+ * @param {string} racineExpediteur
+ * @param {boolean} homoglyphesPresents
+ * @param {boolean} authEchouee
+ * @returns {boolean}
+ */
+function corroboreMarqueAmbigue(nomMarque, nomAffichageNormalise, racineExpediteur,
+    homoglyphesPresents, authEchouee) {
+    if (homoglyphesPresents || authEchouee) return true;
+
+    const affiche = normaliserEnFormeCompacte(nomAffichageNormalise);
+    if (affiche === normaliserEnFormeCompacte(nomMarque)) return true;
+
+    const label = (racineExpediteur || '').split('.')[0];
+    if (label.includes(nomMarque)) {
+        for (const mot of MOTS_CLES_PHISHING) {
+            if (label.includes(mot)) return true;
+        }
+    }
+
+    return false;
 }
 
 // ─── Détection de typosquatting (distance de Levenshtein) ──────────────────
@@ -371,6 +554,19 @@ function verifierTyposquatting(racineExpediteur) {
     if (nomExpediteur.length < 3) return null;
 
     const index = getIndexMarques_();
+
+    // 0. Changement de TLD : libellé identique à une marque, domaine différent.
+    //    « paypal.co » ou « ameli.co » ne coûtent presque rien à l'attaquant et
+    //    échappent à la distance de Levenshtein, qui ne compare que le libellé.
+    const entreeExacte = index.parNom.get(nomExpediteur);
+    if (entreeExacte && !MARQUES_AMBIGUES.has(nomExpediteur)) {
+        const racineMarque = extraireDomaineRacine(entreeExacte);
+        if (racineMarque === racineExpediteur ||
+            estUnDomaineMarqueLie(racineMarque, racineExpediteur)) {
+            return null;   // domaine officiel de la marque
+        }
+        return { domaine: entreeExacte, nomMarque: nomExpediteur };
+    }
 
     // 1. Détection par concaténation de mots-clés de phishing
     for (const [nomMarque, domaine] of index.parNom.entries()) {

@@ -251,7 +251,32 @@ function extraireDomaineRacine(domaine) {
 }
 
 /**
+ * Extensions acceptées comme terminaison d'un vrai nom de domaine.
+ *
+ * Sans cette validation, « Jean M.Dupont », « Dr.Martin » ou « Service.Client »
+ * sont lus comme des domaines (le motif accepte n'importe quelles lettres en
+ * terminaison) et déclenchent une alerte d'usurpation générique.
+ */
+const TLD_CONNUS = new Set([
+    // Génériques
+    'com', 'net', 'org', 'info', 'biz', 'name', 'pro', 'int',
+    'app', 'dev', 'io', 'ai', 'co', 'me', 'tv', 'cc', 'xyz', 'online',
+    'site', 'shop', 'store', 'cloud', 'tech', 'agency', 'group', 'email',
+    'edu', 'gov', 'mil',
+    // Europe
+    'fr', 'be', 'ch', 'lu', 'de', 'es', 'it', 'pt', 'nl', 'uk', 'ie',
+    'at', 'dk', 'se', 'no', 'fi', 'pl', 'cz', 'gr', 'ro', 'hu', 'eu',
+    // Reste du monde
+    'us', 'ca', 'mx', 'br', 'ar', 'ru', 'ua', 'cn', 'jp', 'kr', 'in',
+    'au', 'nz', 'za', 'il', 'tr', 'ma', 'sn', 'ci',
+    // Terminaisons fréquemment employées par les campagnes d'hameçonnage
+    'tk', 'ml', 'ga', 'cf', 'gq', 'top', 'link', 'click', 'live', 'icu',
+]);
+
+/**
  * Extrait un motif de domaine d'un nom d'affichage après normalisation.
+ * La terminaison doit être une extension connue, faute de quoi un nom propre
+ * ponctué serait pris pour un domaine.
  * @param {string} nomAffichage
  * @returns {string|null}
  */
@@ -260,9 +285,14 @@ function extraireDomaineDuNomAffichage(nomAffichage) {
 
     const normalise = normaliserEnAscii(nomAffichage);
     const motifDomaine = /([a-z0-9][-a-z0-9]*\.)+[a-z]{2,}/g;
-    const correspondance = normalise.match(motifDomaine);
+    const correspondances = normalise.match(motifDomaine);
+    if (!correspondances) return null;
 
-    return correspondance ? correspondance[0] : null;
+    for (const candidat of correspondances) {
+        const parties = candidat.split('.');
+        if (TLD_CONNUS.has(parties[parties.length - 1])) return candidat;
+    }
+    return null;
 }
 
 // ─── Détermination de la sévérité (Fix #7) ─────────────────────────────
@@ -356,9 +386,9 @@ function verifierEcartsLiensHtml_(message) {
                     if (marqueAffichee) {
                         const racineMarque = extraireDomaineRacine(marqueAffichee.domaine);
                         
-                        // Exemption : pas d'usurpation possible entre domaines restreints du même gouvernement
-                        const tldsRestreints = ['.gouv.fr', '.gov', '.gov.uk', '.gc.ca', '.edu', '.mil'];
-                        const estExempte = tldsRestreints.some(tld => racineMarque.endsWith(tld) && racineReelle.endsWith(tld));
+                        // Exemption : pas d'usurpation possible entre domaines
+                        // restreints d'une même autorité publique (cf. Marque.gs)
+                        const estExempte = estMemeAutoriteEtatique(racineMarque, racineReelle);
 
                         if (!estExempte && racineReelle !== racineMarque && !estUnDomaineMarqueLie(racineMarque, racineReelle)) {
                             return {
@@ -462,25 +492,10 @@ function verifierUsurpation(message) {
         return resultat;
     }
 
-    // 4. Détection Reply-To divergent (Point 5)
-    try {
-        const replyTo = message.getReplyTo ? message.getReplyTo() : '';
-        if (replyTo) {
-            const analyseReply = analyserExpediteur(replyTo);
-            const replyDomaine = extraireDomaineRacine(analyseReply.email.split('@')[1] || '');
-            const expediteurDomaine = extraireDomaineRacine(domaineExpediteur);
-            if (replyDomaine && expediteurDomaine && replyDomaine !== expediteurDomaine &&
-                !estUnDomaineMarqueLie(expediteurDomaine, replyDomaine) &&
-                !PLATEFORMES_ENVOI_TIERS.has(expediteurDomaine)) {
-                resultat.estUsurpation = true;
-                resultat.marque = '';
-                resultat.raison = dict.reasonReplyTo.replace('{param}', analyseReply.email);
-                resultat.details = 'De : ' + de + ' | Reply-To : ' + replyTo;
-                resultat.severite = 'moyenne';
-                return resultat;
-            }
-        }
-    } catch (e) { /* ignore reply-to errors */ }
+    // 4. (Le contrôle Reply-To a été déplacé après l'analyse de marque —
+    //     voir l'étape 9b. C'est un signal faible : placé ici, il court-circuitait
+    //     la détection d'usurpation de marque et déclassait une alerte critique
+    //     en alerte moyenne.)
 
     // 5. Normaliser le nom d'affichage et chercher une correspondance de marque
     const nomNormalise = expediteur.nomAffichage ? normaliserEnAscii(expediteur.nomAffichage) : '';
@@ -503,6 +518,10 @@ function verifierUsurpation(message) {
         if (racineActuelle === racineMarque) return resultat;
         if (estUnDomaineMarqueLie(racineMarque, racineActuelle)) return resultat;
 
+        // Deux domaines d'une même autorité publique ne peuvent pas s'usurper :
+        // leur enregistrement est contrôlé (impots.gouv.fr / finances.gouv.fr).
+        if (estMemeAutoriteEtatique(racineMarque, racineActuelle)) return resultat;
+
         const domaineImplicite = extraireDomaineDuNomAffichage(expediteur.nomAffichage);
         if (domaineImplicite) {
             const racineImplicite = extraireDomaineRacine(domaineImplicite);
@@ -511,17 +530,26 @@ function verifierUsurpation(message) {
 
         // Usurpation de marque confirmée
         const authEmail = verifierAuthentificationEmail_(getEnTetes());
-        resultat.estUsurpation = true;
-        resultat.marque = correspondanceMarque.nomMarque;
-        resultat.raison = dict.reasonImpersonation
-            .replace('{param1}', correspondanceMarque.domaine)
-            .replace('{param2}', racineActuelle);
-        resultat.details = 'De : ' + de + ' | Normalisé : ' + nomNormalise +
-            ' | Domaine réel : ' + racineActuelle;
-        if (authEmail.details) resultat.details += ' | Auth : ' + authEmail.details;
-        resultat.severite = determinerSeverite_('marque', correspondanceMarque.nomMarque,
-            homoglyphesPresents, estAuthEchouee_(authEmail));
-        return resultat;
+
+        // Libellé de marque qui est aussi un mot courant : sans corroboration,
+        // on refuse de conclure (« Square Habitat », « April Formation »).
+        if (correspondanceMarque.ambigu &&
+            !corroboreMarqueAmbigue(correspondanceMarque.nomMarque, nomNormalise,
+                racineActuelle, homoglyphesPresents, estAuthEchouee_(authEmail))) {
+            correspondanceMarque = null;
+        } else {
+            resultat.estUsurpation = true;
+            resultat.marque = correspondanceMarque.nomMarque;
+            resultat.raison = dict.reasonImpersonation
+                .replace('{param1}', correspondanceMarque.domaine)
+                .replace('{param2}', racineActuelle);
+            resultat.details = 'De : ' + de + ' | Normalisé : ' + nomNormalise +
+                ' | Domaine réel : ' + racineActuelle;
+            if (authEmail.details) resultat.details += ' | Auth : ' + authEmail.details;
+            resultat.severite = determinerSeverite_('marque', correspondanceMarque.nomMarque,
+                homoglyphesPresents, estAuthEchouee_(authEmail));
+            return resultat;
+        }
     }
 
     // 8. Vérification générique : domaine dans le nom d'affichage
@@ -557,6 +585,26 @@ function verifierUsurpation(message) {
         resultat.severite = determinerSeverite_('typosquatting', typosquatting.nomMarque, false, false);
         return resultat;
     }
+
+    // 9b. Reply-To divergent (Point 5) — signal faible, évalué après les
+    //     contrôles d'usurpation de marque pour ne pas les court-circuiter.
+    try {
+        const replyTo = message.getReplyTo ? message.getReplyTo() : '';
+        if (replyTo) {
+            const analyseReply = analyserExpediteur(replyTo);
+            const replyDomaine = extraireDomaineRacine(analyseReply.email.split('@')[1] || '');
+            if (replyDomaine && racineActuelle && replyDomaine !== racineActuelle &&
+                !estUnDomaineMarqueLie(racineActuelle, replyDomaine) &&
+                !PLATEFORMES_ENVOI_TIERS.has(racineActuelle)) {
+                resultat.estUsurpation = true;
+                resultat.marque = '';
+                resultat.raison = dict.reasonReplyTo.replace('{param}', analyseReply.email);
+                resultat.details = 'De : ' + de + ' | Reply-To : ' + replyTo;
+                resultat.severite = 'moyenne';
+                return resultat;
+            }
+        }
+    } catch (e) { /* ignore reply-to errors */ }
 
     // 10. Vérification des liens suspects dans le corps (Point 4)
     const liensSuspects = verifierLiensSuspects_(message);

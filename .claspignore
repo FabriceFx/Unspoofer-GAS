@@ -6,3 +6,4 @@ CHANGELOG.md
 LICENSE
 .gitignore
 .claspignore
+*.pdf

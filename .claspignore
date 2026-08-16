@@ -1,0 +1,8 @@
+tests/**
+node_modules/**
+.git/**
+README.md
+CHANGELOG.md
+LICENSE
+.gitignore
+.claspignore

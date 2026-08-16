@@ -4,8 +4,9 @@
  * ============================================================================
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : FF Labs - Détecteur Phishing
- *  Rôle        : Détection d'usurpation de domaines et d'homoglyphes dans les caractères unicode.
- *  Version     : 2.1.0
+ *  Rôle        : Normalisation des caractères trompeurs — homoglyphes Unicode, accents,
+ *                forme compacte — pour permettre la comparaison à un nom de domaine.
+ *  Version     : 2.4.0
  * ============================================================================
  */
 

@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : FF Labs - Détecteur Phishing
  *  Rôle        : Contrôleur et orchestrateur d'exécution des tâches d'analyse en arrière-plan.
- *  Version     : 2.1.0
+ *  Version     : 2.4.0
  * ============================================================================
  */
 
@@ -408,7 +408,12 @@ function ajouterALaListeBlanche(domaineOuEmail) {
 }
 
 /**
- * Fonction de test avec des exemples d'usurpation codés en dur.
+ * Exécute la suite de tests intégrée sur des exemples d'usurpation codés en dur.
+ * Appelée depuis le menu du script et depuis le tableau de bord (runUnitTests).
+ * @param {boolean} [retournerResultats=false] - Si vrai, renvoie le détail des
+ *   résultats ; sinon, se contente de les journaliser.
+ * @returns {{total: number, reussis: number, echoues: number, details: Array<Object>}|undefined}
+ *   Le rapport de test si retournerResultats vaut vrai, rien sinon.
  */
 function testerDetection(retournerResultats = false) {
     const casTests = [

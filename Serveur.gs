@@ -5,13 +5,16 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : FF Labs - Détecteur Phishing
  *  Rôle        : Contrôleur Web App et points d'accès RPC pour le Dashboard interactif.
- *  Version     : 2.2.0
+ *  Version     : 2.4.0
  * ============================================================================
  */
 
 /**
  * Point d'entrée de la Web App Google Apps Script.
  * Charge l'interface du Dashboard avec le bac à sable IFRAME et le support responsive.
+ * @param {Object} e - Paramètres de la requête HTTP GET fournis par Apps Script
+ *   (non utilisés : le tableau de bord n'accepte aucun paramètre d'URL).
+ * @returns {HtmlOutput} La page du tableau de bord, prête à être servie.
  */
 function doGet(e) {
   return HtmlService.createTemplateFromFile('Dashboard')

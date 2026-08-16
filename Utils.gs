@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : FF Labs - Détecteur Phishing
  *  Rôle        : Utilitaires généraux côté serveur (helpers d'inclusion HTML, formatage, etc.).
- *  Version     : 2.1.0
+ *  Version     : 2.4.0
  * ============================================================================
  */
 

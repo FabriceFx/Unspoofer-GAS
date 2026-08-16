@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : FF Labs - Détecteur Phishing
  *  Rôle        : Centralisation des constantes globales, des variables d'environnement et de configuration.
- *  Version     : 2.1.0
+ *  Version     : 2.4.0
  * ============================================================================
  */
 
@@ -15,7 +15,7 @@
 
 const CONFIG = {
   PROJECT_NAME: "Unspoofer",
-  VERSION: "2.1.0",
+  VERSION: "2.4.0",
   LANGUAGE: "fr",           /* Langue par défaut ('fr' ou 'en') */
   COLORS: {
     PRIMARY: "#0b57d0",     /* Bleu Google Workspace */

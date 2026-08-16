@@ -4,8 +4,9 @@
  * ============================================================================
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : FF Labs - Détecteur Phishing
- *  Rôle        : Contrôle de conformité de l'identité de marque et des signatures de confiance.
- *  Version     : 2.1.0
+ *  Rôle        : Base des marques surveillées (domaines, groupes liés, alias, libellés
+ *                ambigus), correspondance de marque et détection de typosquatting.
+ *  Version     : 2.4.0
  * ============================================================================
  */
 
@@ -18,7 +19,9 @@
  *   - Vade Secure Phishers' Favorites (top 25 mensuel)
  *   - Proofpoint State of the Phish Report
  *
- * Dernière mise à jour : mai 2025
+ * Dernière mise à jour : août 2026 — ajout du crédit à la consommation, de la
+ * formation et de la retraite, de la distribution d'énergie et de plateformes
+ * grand public. 191 domaines surveillés.
  */
 
 const DOMAINES_MARQUES = [

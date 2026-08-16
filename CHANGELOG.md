@@ -2,7 +2,7 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-## [Non publié]
+## [2.4.0] — 2026-08-16
 
 > **Fatigué de voir vos newsletters légitimes et vos alertes de compte finir
 > en « tentative d'usurpation » ?**
@@ -132,8 +132,9 @@ conditions réelles. Voir [`tests/README.md`](tests/README.md).*
 - Une marque au libellé ambigu usurpée **sans** mot-clé d'hameçonnage, sans
   homoglyphe et sans échec d'authentification n'est pas détectée. C'est le prix
   assumé de la suppression des faux positifs sur les homonymes.
-- Les numéros de version des en-têtes de fichiers (`2.1.0`) et de
-  `CONFIG.VERSION` sont désynchronisés de l'historique Git (jalon `v2.3`).
+- *(Résolu dans cette version)* Les numéros de version des bandeaux de fichiers
+  et de `CONFIG.VERSION`, jusqu'ici désynchronisés (2.1.0, 2.2.0, 2.4.0 selon
+  les fichiers), sont alignés sur `2.4.0`.
 - Le mécanisme de listes modifiables ne couvre pour l'instant que les
   ensembles de valeurs. La table d'alias `ALIAS_MARQUES` et les mots-clés
   `MOTS_CLES_PHISHING` restent figés dans le code : la première est un

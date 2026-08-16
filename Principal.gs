@@ -95,6 +95,8 @@ function analyserBoiteReception() {
     const detailsUsurpations = [];
     /** Fils déjà étiquetés au cours de cette exécution (déduplication du compteur). */
     const filsSignales = new Set();
+    /** Messages dont l'analyse a été tronquée faute de quota d'appels Gmail. */
+    let nombrePartiels = 0;
     let limiteAtteinte = false;
 
     // Réinitialiser les quotas pour cette exécution (Point 3)
@@ -162,8 +164,17 @@ function analyserBoiteReception() {
                             }
                         }
 
-                        // On ne marque traité que si l'analyse a abouti sans erreur
-                        marquerCommeTraite(idMsg);
+                        // On ne mémorise le message comme traité que si l'analyse
+                        // a été COMPLÈTE. Lorsque le quota d'appels Gmail est
+                        // épuisé, certains contrôles (corps du message, en-têtes
+                        // d'authentification) sont sautés en silence : mémoriser
+                        // le message reviendrait à ne jamais l'examiner en entier.
+                        // Il sera repris à la prochaine exécution, quota reinitialisé.
+                        if (resultat.analysePartielle) {
+                            nombrePartiels++;
+                        } else {
+                            marquerCommeTraite(idMsg);
+                        }
                         nombreAnalyses++; // Déplacé ici (Point 7)
                     } catch (e) {
                         Logger.log('Erreur message ' + idMsg + ' : ' + e.message);
@@ -189,6 +200,13 @@ function analyserBoiteReception() {
     Logger.log('Analyse terminée. Analysés : ' + nombreAnalyses +
         ', Ignorés (cache) : ' + nombreIgnores +
         ', Usurpations trouvées : ' + nombreUsurpations);
+
+    if (nombrePartiels > 0) {
+        Logger.log('⚠ ' + nombrePartiels + ' message(s) analysés partiellement : le quota ' +
+            'd\'appels Gmail de cette exécution a été atteint, certains contrôles ' +
+            '(corps, en-têtes) ont été sautés. Ces messages ne sont PAS mémorisés et ' +
+            'seront repris à la prochaine exécution.');
+    }
 }
 
 /**

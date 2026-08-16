@@ -51,6 +51,23 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
 
 ### Corrigé
 
+- **Sous-détection silencieuse par épuisement du quota d'appels Gmail.** Le
+  moteur plafonne ses appels à Gmail pour éviter l'erreur « Service invoked too
+  many times ». Une fois le plafond atteint, les contrôles portant sur le corps
+  du message et sur les en-têtes d'authentification étaient sautés **sans
+  aucune trace**, et le message était malgré tout mémorisé comme définitivement
+  traité : il n'était donc jamais réexaminé. Mesuré sur 60 messages frauduleux
+  identiques, 15 seulement étaient détectés, les 45 autres perdus pour de bon.
+  Trois correctifs :
+  - un seul appel Gmail par message pour lire le corps, partagé par la
+    recherche de liens typosquattés et le contrôle des liens trompeurs. Ces
+    deux contrôles téléchargeaient chacun le même message (`getPlainBody` puis
+    `getBody`), divisant par deux la couverture. Elle passe de 15 à 30 messages
+    par exécution ;
+  - `verifierUsurpation()` signale désormais une `analysePartielle` ;
+  - un message analysé partiellement n'est plus mémorisé : il est repris à
+    l'exécution suivante, quota réinitialisé, et le journal indique combien de
+    messages sont concernés.
 - **Panne silencieuse quand l'étiquette est supprimée.** Supprimer
   `ALERTE-USURPATION` depuis Gmail la retire de tous les messages qui la
   portaient. `analyserBoiteReception()` abandonnait alors à chaque exécution :

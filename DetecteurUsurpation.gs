@@ -347,15 +347,13 @@ function determinerSeverite_(typeDetection, nomMarque, homoglyphesPresents, auth
 
 /**
  * Détecteur de liens suspects dans le corps du message (Point 4).
- * Limité par quota pour éviter les erreurs Apps Script (Point 3).
- * @param {GmailMessage} message
+ * @param {string|null} corps - Corps du message, ou null s'il n'a pas pu être lu
+ *   (quota d'appels Gmail épuisé).
  * @returns {{suspect: boolean, url: string, marque: string}}
  */
-function verifierLiensSuspects_(message) {
-    if (_appelsPlainBody >= MAX_PLAIN_BODY_PAR_EXEC) return { suspect: false, url: '', marque: '' };
+function verifierLiensSuspects_(corps) {
+    if (corps === null) return { suspect: false, url: '', marque: '', quotaEpuise: true };
     try {
-        const corps = message.getPlainBody() || '';
-        _appelsPlainBody++;
         // Regex pour extraire les URLs
         const urls = corps.match(/https?:\/\/[^\s"<>]+/gi) || [];
         for (const url of urls) {
@@ -370,21 +368,21 @@ function verifierLiensSuspects_(message) {
             } catch (e) { /* URL malformée */ }
         }
     } catch (e) { /* ignore body errors */ }
-    return { suspect: false, url: '', marque: '' };
+    return { suspect: false, url: '', marque: '', quotaEpuise: false };
 }
 
 /**
  * Détecteur d'écarts texte/lien HTML (HTML Link Text Mismatch).
  * Gère le cas classique où le texte d'un lien affiche un domaine de confiance (ex : paypal.com)
  * mais pointe en réalité vers un domaine externe non lié.
- * @param {GmailMessage} message
- * @returns {{suspect: boolean, texteAffiche: string, urlReelle: string, domaineReel: string}}
+ * @param {string|null} html - Corps du message, ou null si non lu (quota épuisé).
+ * @returns {{suspect: boolean, texteAffiche: string, urlReelle: string, domaineReel: string, quotaEpuise: boolean}}
  */
-function verifierEcartsLiensHtml_(message) {
-    if (_appelsPlainBody >= MAX_PLAIN_BODY_PAR_EXEC) return { suspect: false, texteAffiche: '', urlReelle: '', domaineReel: '' };
+function verifierEcartsLiensHtml_(html) {
+    if (html === null) {
+        return { suspect: false, texteAffiche: '', urlReelle: '', domaineReel: '', quotaEpuise: true };
+    }
     try {
-        const html = message.getBody() || '';
-        _appelsPlainBody++;
         
         // Regex pour capturer les balises <a href="...">...</a>
         const regexLien = /<a\s+(?:[^>]*?\s+)?href=["'](https?:\/\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
@@ -430,7 +428,7 @@ function verifierEcartsLiensHtml_(message) {
     } catch (e) {
         Logger.log('Erreur verifierEcartsLiensHtml_ : ' + e.message);
     }
-    return { suspect: false, texteAffiche: '', urlReelle: '', domaineReel: '' };
+    return { suspect: false, texteAffiche: '', urlReelle: '', domaineReel: '', quotaEpuise: false };
 }
 
 /**
@@ -463,7 +461,11 @@ function verifierPiecesJointes_(message) {
  */
 function verifierUsurpation(message) {
     const de = message.getFrom();
-    const resultat = { estUsurpation: false, raison: '', marque: '', details: '', severite: '' };
+    // analysePartielle : un contrôle a été sauté faute de quota d'appels Gmail.
+    // L'appelant ne doit alors PAS mémoriser le message comme définitivement
+    // traité, sous peine de ne jamais l'examiner en entier.
+    const resultat = { estUsurpation: false, raison: '', marque: '', details: '',
+                       severite: '', analysePartielle: false };
     
     // Initialisation du dictionnaire bilingue
     const lang = getLangueUtilisateur_();
@@ -474,6 +476,8 @@ function verifierUsurpation(message) {
     const getEnTetes = () => {
         if (_enTetesCache === undefined) {
             if (_appelsRawContent >= MAX_RAW_CONTENT_PAR_EXEC) {
+                // En-têtes non lus : SPF/DKIM/DMARC ne peuvent pas être évalués.
+                resultat.analysePartielle = true;
                 _enTetesCache = '';
                 return '';
             }
@@ -484,6 +488,28 @@ function verifierUsurpation(message) {
             catch (e) { _enTetesCache = ''; }
         }
         return _enTetesCache;
+    };
+
+    // Chargement paresseux du corps : un seul appel Gmail par message, partagé
+    // par la recherche de liens typosquattés et le contrôle des liens trompeurs.
+    // Auparavant chacun appelait Gmail de son côté (getPlainBody puis getBody),
+    // consommant deux unités de quota pour lire deux fois le même message : la
+    // couverture effective tombait à quinze messages par exécution.
+    let _corpsCache;
+    const getCorps = () => {
+        if (_corpsCache === undefined) {
+            if (_appelsPlainBody >= MAX_PLAIN_BODY_PAR_EXEC) {
+                _corpsCache = null;   // null = non lu faute de quota
+                return null;
+            }
+            try {
+                _corpsCache = message.getBody() || '';
+                _appelsPlainBody++;
+            } catch (e) {
+                _corpsCache = '';
+            }
+        }
+        return _corpsCache;
     };
 
     // 1. Analyser l'expéditeur
@@ -632,7 +658,8 @@ function verifierUsurpation(message) {
     } catch (e) { /* ignore reply-to errors */ }
 
     // 10. Vérification des liens suspects dans le corps (Point 4)
-    const liensSuspects = verifierLiensSuspects_(message);
+    const liensSuspects = verifierLiensSuspects_(getCorps());
+    if (liensSuspects.quotaEpuise) resultat.analysePartielle = true;
     if (liensSuspects.suspect) {
         resultat.estUsurpation = true;
         resultat.marque = liensSuspects.marque;
@@ -643,7 +670,8 @@ function verifierUsurpation(message) {
     }
 
     // 10b. Vérification des écarts texte/lien HTML (HTML Link Text Mismatch)
-    const ecartLienHtml = verifierEcartsLiensHtml_(message);
+    const ecartLienHtml = verifierEcartsLiensHtml_(getCorps());
+    if (ecartLienHtml.quotaEpuise) resultat.analysePartielle = true;
     if (ecartLienHtml.suspect) {
         resultat.estUsurpation = true;
         resultat.marque = '';

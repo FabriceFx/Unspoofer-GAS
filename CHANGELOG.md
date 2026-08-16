@@ -103,6 +103,15 @@ pas.
   gèrent enfin depuis l'interface : ajout, retrait, réactivation d'une valeur
   livrée neutralisée, et retour aux valeurs d'origine. L'origine de chaque
   entrée est affichée (livrée, ajoutée, désactivée).
+- **Message d'attente invisible en thème clair.** Le texte du voile de
+  chargement était fixé à `color: white`, hérité de l'époque où l'interface
+  n'existait qu'en sombre. Il disparaissait donc sur fond clair pendant tout
+  le scan. Trois autres blancs en dur souffraient du défaut symétrique en thème
+  sombre : la pastille de l'interrupteur et les badges de résultat de tests,
+  illisibles sur leurs fonds éclaircis. Tous passent sur des jetons qui
+  s'inversent avec le thème. Le rail du rouet reprenait par ailleurs l'ancien
+  bleu Google en dur, et une déclaration `opacity` en écrasait une autre dans
+  le voile.
 - **Choix du thème.** L'interface suivait le réglage du système sans possibilité
   de le contredire : un poste en mode sombre imposait un fond noir. Un sélecteur
   propose désormais « Thème du système », « Thème clair » et « Thème sombre »,

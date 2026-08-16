@@ -708,6 +708,38 @@
     .badge-danger { background-color: var(--color-danger); color: white; }
     .badge-secondary { background-color: rgba(255,255,255,0.1); color: var(--text-muted); }
 
+    /* Version affichee pres du nom : le serveur la transmettait deja dans
+       getDashboardData(), l'interface ne l'affichait nulle part. */
+    .pied-page {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-dark);
+    }
+    .pied-page a { color: var(--color-primary); text-decoration: none; }
+    .pied-page a:hover { text-decoration: underline; }
+    .pied-page strong { color: var(--text-muted); font-weight: 500; }
+    .pied-separateur { opacity: .5; }
+
+    .version-chip {
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-variant);
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
     .lang-select {
       background: transparent;
       border: 1px solid var(--border-color);
@@ -1030,7 +1062,7 @@
           </svg>
         </div>
         <div class="brand-name">
-          <h1 id="appName">Unspoofer</h1>
+          <h1 id="appName">Unspoofer <span class="version-chip" id="appVersion"></span></h1>
           <p id="appVer" data-i18n="appSubtitle">Bouclier anti-usurpation Gmail</p>
         </div>
       </div>
@@ -1532,6 +1564,19 @@
 
     </div>
 
+
+    <!-- PIED DE PAGE -->
+    <footer class="pied-page">
+      <span><strong>Unspoofer</strong> <span id="piedVersion"></span></span>
+      <span class="pied-separateur">·</span>
+      <span><span data-i18n="footerBy">Conçu par</span>
+        <a href="https://faucheux.bzh" target="_blank" rel="noopener">Fabrice Faucheux</a></span>
+      <span class="pied-separateur">·</span>
+      <a href="https://github.com/FabriceFx/Unspoofer-GAS" target="_blank" rel="noopener"
+         data-i18n="footerSource">Code source</a>
+      <span class="pied-separateur">·</span>
+      <span>MIT</span>
+    </footer>
   </div>
 
   <script>
@@ -1966,6 +2011,11 @@
         const sel = document.getElementById('selecteurLangue');
         if (sel) sel.value = data.lang;
       }
+
+      const puce = document.getElementById('appVersion');
+      if (puce && data.version) puce.textContent = 'v' + data.version;
+      const piedVersion = document.getElementById('piedVersion');
+      if (piedVersion && data.version) piedVersion.textContent = 'v' + data.version;
 
       document.getElementById('userEmail').innerText = data.userEmail || '—';
       document.getElementById('userAvatar').innerText = (data.userEmail || 'U')[0].toUpperCase();

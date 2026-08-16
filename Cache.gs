@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Routines de stockage temporaire et gestion de cache de haute performance.
- *  Version     : 2.4.0
+ *  Version     : 2.5.0
  * ============================================================================
  */
 

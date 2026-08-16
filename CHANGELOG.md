@@ -2,11 +2,18 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-## [Non publié]
+## [2.5.0] — 2026-08-16
 
-Un utilisateur découvrant l'outil signalait que l'interface web n'expliquait
-rien : des indicateurs à zéro, quatre onglets, et aucune indication de ce qu'il
-fallait faire ni de ce qui se passe une fois une menace détectée.
+Une version d'usage réel. Elle part d'un constat d'utilisateur — « l'interface
+n'explique rien » — et se termine par la correction de trois pannes silencieuses
+que personne n'aurait vues : une protection à l'arrêt qui s'annonçait active,
+une sous-détection par épuisement de quota, et une suite de tests qui ne
+s'exécutait plus depuis des mois.
+
+L'interface devient bilingue et adopte les codes de Google Workspace, les
+listes de référence construites en 2.4.0 deviennent enfin utilisables, et six
+suites de tests couvrent désormais ce que la précédente version ne mesurait
+pas.
 
 ### Ajouté
 
@@ -96,6 +103,11 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   gèrent enfin depuis l'interface : ajout, retrait, réactivation d'une valeur
   livrée neutralisée, et retour aux valeurs d'origine. L'origine de chaque
   entrée est affichée (livrée, ajoutée, désactivée).
+- **Version affichée et pied de page.** `getDashboardData()` transmettait déjà
+  `CONFIG.VERSION`, mais l'interface ne l'affichait nulle part : le numéro ne
+  pouvait pas « bouger » à l'écran. Il apparaît désormais en pastille près du
+  nom de l'application et dans un pied de page, aux côtés du site de l'auteur,
+  du lien vers le code source et de la licence.
 - **Bouton « Repartir de zéro ».** Efface les compteurs, la mémoire des messages
   examinés **et l'étiquetage**, puis relance une analyse. Le retrait de
   l'étiquette n'est pas cosmétique : la déduplication considère qu'un fil déjà

@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Listes de référence modifiables sans redéploiement du code.
- *  Version     : 2.4.0
+ *  Version     : 2.5.0
  * ============================================================================
  */
 

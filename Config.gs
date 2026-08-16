@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Centralisation des constantes globales, des variables d'environnement et de configuration.
- *  Version     : 2.4.0
+ *  Version     : 2.5.0
  * ============================================================================
  */
 
@@ -15,7 +15,7 @@
 
 const CONFIG = {
   PROJECT_NAME: "Unspoofer",
-  VERSION: "2.4.0",
+  VERSION: "2.5.0",
   /* Langue : 'auto' suit le compte Google de l'utilisateur ; 'fr' ou 'en'
      imposent une langue. Une préférence choisie depuis le tableau de bord
      l'emporte sur cette valeur. Voir getLangueUtilisateur_() dans Utils.gs. */
@@ -326,7 +326,9 @@ const UI_TRANSLATIONS = {
     mtFullBody: "Efface les compteurs, la mémoire des messages examinés et l'étiquetage, puis relance une analyse. C'est la seule séquence qui reconstruit des compteurs justes : sans retirer l'étiquette, les fils déjà signalés ne seraient pas recomptés.",
     mtFullBtn: "Repartir de zéro",
     mtFullConfirm: "Les compteurs, la mémoire des messages examinés et l'étiquette ALERTE-USURPATION vont être effacés, puis une analyse complète sera relancée. Aucun message ne sera supprimé ni déplacé : l'étiquette sera reposée sur ceux toujours jugés frauduleux.",
-    mtFullDone: "Remise à zéro effectuée : {n} fil(s) désétiqueté(s), analyse relancée."
+    mtFullDone: "Remise à zéro effectuée : {n} fil(s) désétiqueté(s), analyse relancée.",
+    footerBy: "Conçu par",
+    footerSource: "Code source"
   },
 
   en: {
@@ -517,6 +519,8 @@ const UI_TRANSLATIONS = {
     mtFullBody: "Clears the counters, the memory of examined messages and the labelling, then runs a fresh analysis. This is the only sequence that rebuilds accurate counters: without removing the label, threads already flagged would not be counted again.",
     mtFullBtn: "Start from scratch",
     mtFullConfirm: "The counters, the memory of examined messages and the ALERTE-USURPATION label will be cleared, then a full analysis will run. No message will be deleted or moved: the label will be re-applied to those still judged fraudulent.",
-    mtFullDone: "Reset complete: {n} thread(s) unlabelled, analysis restarted."
+    mtFullDone: "Reset complete: {n} thread(s) unlabelled, analysis restarted.",
+    footerBy: "Built by",
+    footerSource: "Source code"
   }
 };

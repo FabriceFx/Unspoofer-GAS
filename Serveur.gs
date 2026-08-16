@@ -64,6 +64,7 @@ function getDashboardData() {
     sante: verifierCoherenceEtiquette_(),
     userEmail: getEmailProprietaire_(),
     lang: langue,
+    theme: getThemeUtilisateur_(),
     // Dictionnaire de l'interface, appliqué côté client via data-i18n
     i18n: UI_TRANSLATIONS[langue] || UI_TRANSLATIONS.fr
   };
@@ -103,6 +104,17 @@ function verifierCoherenceEtiquette_() {
 function setLangue(langue) {
   const appliquee = definirLangueUtilisateur_(langue);
   Logger.log('Langue de l\'interface : ' + appliquee);
+  return getDashboardData();
+}
+
+/**
+ * Change le thème de l'interface et renvoie l'état complet du tableau de bord.
+ * @param {string} theme - 'auto', 'clair' ou 'sombre'
+ * @returns {Object} Données du tableau de bord
+ */
+function setTheme(theme) {
+  const applique = definirThemeUtilisateur_(theme);
+  Logger.log('Thème de l\'interface : ' + applique);
   return getDashboardData();
 }
 

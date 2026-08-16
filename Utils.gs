@@ -43,6 +43,38 @@ function getFenetreAnalyse_() {
 /** Clé de stockage de la préférence de langue choisie dans le tableau de bord. */
 const CLE_PROPRIETE_LANGUE = 'languePreferee';
 
+/** Clé de stockage du thème choisi dans le tableau de bord. */
+const CLE_PROPRIETE_THEME = 'themePrefere';
+
+/**
+ * Thème retenu pour l'interface : 'auto' suit le système de l'utilisateur,
+ * 'clair' et 'sombre' l'imposent.
+ * @returns {string} 'auto', 'clair' ou 'sombre'
+ */
+function getThemeUtilisateur_() {
+  try {
+    const choisi = PropertiesService.getScriptProperties()
+      .getProperty(CLE_PROPRIETE_THEME);
+    if (choisi === 'clair' || choisi === 'sombre') return choisi;
+  } catch (e) { /* propriétés indisponibles */ }
+  return 'auto';
+}
+
+/**
+ * Enregistre le thème choisi.
+ * @param {string} theme - 'auto', 'clair' ou 'sombre'
+ * @returns {string} Le thème effectivement appliqué
+ */
+function definirThemeUtilisateur_(theme) {
+  const proprietes = PropertiesService.getScriptProperties();
+  if (theme === 'clair' || theme === 'sombre') {
+    proprietes.setProperty(CLE_PROPRIETE_THEME, theme);
+  } else {
+    proprietes.deleteProperty(CLE_PROPRIETE_THEME);
+  }
+  return getThemeUtilisateur_();
+}
+
 /**
  * Plafond retenu pour une valeur de propriété de script.
  *

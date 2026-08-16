@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <script>
+    /* Pose le theme avant le premier rendu, pour eviter un flash clair puis
+       sombre. La preference enregistree cote serveur est appliquee ensuite,
+       quand les donnees arrivent. */
+    (function () {
+      var sombre = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', sombre ? 'dark' : 'light');
+    })();
+  </script>
   <meta charset="UTF-8">
   <title>Unspoofer — Tableau de Bord de Sécurité</title>
   <!-- Polices premium depuis Google Fonts -->
@@ -64,29 +73,31 @@
       --transition-fast: all .2s cubic-bezier(.2, 0, 0, 1);
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg-primary: #131314;
-        --bg-secondary: #1e1f20;
-        --bg-glass: #1e1f20;
-        --bg-glass-hover: #2d2f31;
-        --surface-variant: #2d2f31;
-        --surface-tonal: #0842a0;
-        --border-color: #444746;
-        --border-color-active: #a8c7fa;
-        --color-primary: #a8c7fa;
-        --color-primary-glow: #0842a0;
-        --color-on-primary: #062e6f;
-        --color-success: #6dd58c;
-        --color-warning: #fdd663;
-        --color-danger: #f2b8b5;
-        --color-danger-glow: #601410;
-        --text-main: #e3e3e3;
-        --text-muted: #c4c7c5;
-        --text-dark: #8e918f;
-        --shadow-premium: none;
-        --shadow-raised: 0 1px 3px rgba(0, 0, 0, .4);
-      }
+    /* Le thème sombre est piloté par l'attribut data-theme, pose par le script
+       d'amorcage en <head> avant le premier rendu. Les jetons ne sont donc
+       definis qu'une seule fois : une media query aurait impose de dupliquer
+       tout le bloc pour gerer un choix explicite. */
+    :root[data-theme="dark"] {
+      --bg-primary: #131314;
+      --bg-secondary: #1e1f20;
+      --bg-glass: #1e1f20;
+      --bg-glass-hover: #2d2f31;
+      --surface-variant: #2d2f31;
+      --surface-tonal: #0842a0;
+      --border-color: #444746;
+      --border-color-active: #a8c7fa;
+      --color-primary: #a8c7fa;
+      --color-primary-glow: #0842a0;
+      --color-on-primary: #062e6f;
+      --color-success: #6dd58c;
+      --color-warning: #fdd663;
+      --color-danger: #f2b8b5;
+      --color-danger-glow: #601410;
+      --text-main: #e3e3e3;
+      --text-muted: #c4c7c5;
+      --text-dark: #8e918f;
+      --shadow-premium: none;
+      --shadow-raised: 0 1px 3px rgba(0, 0, 0, .4);
     }
 
     * {
@@ -1067,6 +1078,12 @@
         </div>
       </div>
       <div class="user-profile">
+        <select id="selecteurTheme" class="lang-select" onchange="changerTheme(this.value)"
+                data-i18n-title="themeLabel" title="Thème de l'interface">
+          <option value="auto" data-i18n="themeAuto">Thème du système</option>
+          <option value="clair" data-i18n="themeLight">Thème clair</option>
+          <option value="sombre" data-i18n="themeDark">Thème sombre</option>
+        </select>
         <select id="selecteurLangue" class="lang-select" onchange="changerLangue(this.value)"
                 data-i18n-title="langLabel" title="Langue de l'interface">
           <option value="fr">Français</option>
@@ -1660,6 +1677,59 @@
     }
 
     /* ====================================================================
+       THÈME
+       ==================================================================== */
+
+    /** Écouteur du thème système, actif seulement en mode « auto ». */
+    let _ecouteSysteme = null;
+
+    /**
+     * Applique un thème à la page.
+     *
+     * En mode « auto », le thème système est résolu ici plutôt que par une
+     * media query CSS : cela permet de ne définir les jetons sombres qu'une
+     * seule fois, au lieu de les dupliquer pour gérer un choix explicite.
+     *
+     * @param {string} theme - 'auto', 'clair' ou 'sombre'
+     */
+    function appliquerTheme(theme) {
+      const racine = document.documentElement;
+
+      if (_ecouteSysteme) {
+        _ecouteSysteme.removeEventListener('change', _suivreSysteme_);
+        _ecouteSysteme = null;
+      }
+
+      if (theme === 'clair') { racine.setAttribute('data-theme', 'light'); return; }
+      if (theme === 'sombre') { racine.setAttribute('data-theme', 'dark'); return; }
+
+      // Auto : on suit le système, et on continue de le suivre s'il change.
+      _ecouteSysteme = window.matchMedia('(prefers-color-scheme: dark)');
+      _suivreSysteme_();
+      _ecouteSysteme.addEventListener('change', _suivreSysteme_);
+    }
+
+    /** Recopie l'état du thème système sur l'attribut data-theme. */
+    function _suivreSysteme_() {
+      document.documentElement.setAttribute(
+        'data-theme', _ecouteSysteme && _ecouteSysteme.matches ? 'dark' : 'light');
+    }
+
+    /**
+     * Change le thème et enregistre la préférence côté serveur.
+     * @param {string} theme
+     */
+    function changerTheme(theme) {
+      // Application immédiate : inutile d'attendre le serveur pour un réglage
+      // purement visuel.
+      appliquerTheme(theme);
+      google.script.run
+        .withSuccessHandler(function () { showToast(T('msgThemeChanged')); })
+        .withFailureHandler(function (err) { showToast(T('msgError', { n: err.message })); })
+        .setTheme(theme);
+    }
+
+    /* ====================================================================
        LISTES DE RÉFÉRENCE
        ==================================================================== */
 
@@ -2010,6 +2080,12 @@
         document.documentElement.lang = data.lang;
         const sel = document.getElementById('selecteurLangue');
         if (sel) sel.value = data.lang;
+      }
+
+      if (data.theme) {
+        appliquerTheme(data.theme);
+        const selTheme = document.getElementById('selecteurTheme');
+        if (selTheme) selTheme.value = data.theme;
       }
 
       const puce = document.getElementById('appVersion');

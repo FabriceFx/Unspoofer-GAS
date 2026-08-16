@@ -103,6 +103,15 @@ pas.
   gèrent enfin depuis l'interface : ajout, retrait, réactivation d'une valeur
   livrée neutralisée, et retour aux valeurs d'origine. L'origine de chaque
   entrée est affichée (livrée, ajoutée, désactivée).
+- **Choix du thème.** L'interface suivait le réglage du système sans possibilité
+  de le contredire : un poste en mode sombre imposait un fond noir. Un sélecteur
+  propose désormais « Thème du système », « Thème clair » et « Thème sombre »,
+  la préférence étant conservée côté script comme celle de langue.
+  Techniquement, le mode sombre passe d'une media query à l'attribut
+  `data-theme`, résolu en JavaScript : les jetons de couleur ne sont ainsi
+  définis **qu'une seule fois**, là où une media query aurait imposé de
+  dupliquer tout le bloc pour gérer un choix explicite. Un script d'amorçage en
+  `<head>` pose le thème avant le premier rendu, ce qui évite un flash clair.
 - **Version affichée et pied de page.** `getDashboardData()` transmettait déjà
   `CONFIG.VERSION`, mais l'interface ne l'affichait nulle part : le numéro ne
   pouvait pas « bouger » à l'écran. Il apparaît désormais en pastille près du

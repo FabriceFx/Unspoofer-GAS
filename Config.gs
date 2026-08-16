@@ -147,6 +147,11 @@ const UI_TRANSLATIONS = {
     navTests: "Suite de tests",
     navGuide: "Guide",
     langLabel: "Langue de l'interface",
+    themeLabel: "Thème de l'interface",
+    themeAuto: "Thème du système",
+    themeLight: "Thème clair",
+    themeDark: "Thème sombre",
+    msgThemeChanged: "Thème de l'interface modifié.",
 
     /* Encart de première utilisation */
     firstRunTitle: "Aucune analyse n'a encore été effectuée.",
@@ -340,6 +345,11 @@ const UI_TRANSLATIONS = {
     navTests: "Test suite",
     navGuide: "Guide",
     langLabel: "Interface language",
+    themeLabel: "Interface theme",
+    themeAuto: "System theme",
+    themeLight: "Light theme",
+    themeDark: "Dark theme",
+    msgThemeChanged: "Interface theme changed.",
 
     /* First-run callout */
     firstRunTitle: "No scan has been run yet.",

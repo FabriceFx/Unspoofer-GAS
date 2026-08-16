@@ -28,8 +28,11 @@
 - 🎚️ **Listes de référence modifiables à chaud** : Les 35 plateformes d'envoi tierces (Brevo, SendGrid, Mailjet, Eventbrite…) et les libellés de marque ambigus se règlent depuis le tableau de bord, sans redéploiement. Une valeur par défaut peut être neutralisée durablement.
 - 🎯 **Faux positifs maîtrisés** : Les libellés qui sont aussi des mots courants (`orange`, `square`, `free`, `wise`) exigent une corroboration avant de déclencher — « Square Habitat » ou « L'Orange Bleue » ne sont pas signalés.
 - 🚀 **Cache hybride RAM & sérialisation compacte** : Double couche de mise en cache ultra-rapide (RAM `CacheService` + chaîne compressée délimitée par des virgules dans `ScriptProperties`) étendant la capacité jusqu'à 500 messages sans perte de performance.
-- 🎨 **Tableau de bord interactif** : Interface d'administration en Material Design 3 responsive (statistiques KPIs, recherche en liste blanche, ajout de marques personnalisées et banc d'essais interactif).
-- 🧪 **Banc de test exécutable** : Un corpus de 64 messages étiquetés mesure le taux de détection et de faux positifs hors Apps Script — voir [`tests/`](tests/).
+- 🎨 **Tableau de bord en sept onglets** : Interface aux codes Google Workspace (Material Design 3) — statut et indicateurs, liste blanche, marques personnalisées, suite de tests, listes de référence, maintenance et guide de prise en main.
+- 🌍 **Interface bilingue et thème au choix** : Français et anglais, avec un sélecteur ; thème clair, sombre ou celui du système. Les deux préférences sont conservées et s'appliquent aussi aux alertes par e-mail.
+- 🩺 **Diagnostic et reprise** : Un onglet Maintenance compare le compteur d'alertes à ce que contient réellement Gmail, relance une analyse complète, ou repart de zéro en effaçant compteurs, cache et étiquetage avant de tout reconstruire.
+- 🛟 **Défaillances visibles** : L'étiquette supprimée depuis Gmail est recréée automatiquement, un message analysé partiellement est repris à l'exécution suivante, et un bandeau prévient si le compteur annonce des alertes introuvables dans Gmail.
+- 🧪 **Six suites de tests exécutables** : Corpus de 64 messages étiquetés, listes modifiables, contrôles statiques du tableau de bord, suite intégrée, plafonds de stockage et remise à zéro — le tout hors Apps Script, voir [`tests/`](tests/).
 
 ---
 
@@ -56,6 +59,11 @@
 | `ajouterEntreeListe(liste, valeur)` | Ajoute une plateforme d'envoi ou un libellé ambigu, ou réactive une valeur par défaut retirée. |
 | `retirerEntreeListe(liste, valeur)` | Retire une entrée. Sur une valeur par défaut, le retrait est mémorisé et survit aux mises à jour. |
 | `reinitialiserListe(liste)` | Annule toutes les modifications et revient aux valeurs livrées. |
+| `diagnostiquerAlertes()` | Compare le compteur d'usurpations au nombre de fils réellement étiquetés dans Gmail et explique l'écart. |
+| `repartirDeZero()` | Efface compteurs, cache et étiquetage, puis relance une analyse pour reconstruire des chiffres justes. |
+| `reinitialiserStatistiques()` | Remet les compteurs à zéro sans toucher aux messages ni aux listes. |
+| `analyserMarquesNonDetectees()` | Recense les domaines récurrents parmi les alertes des 30 derniers jours. |
+| `desinstaller()` | Supprime les déclencheurs et vide le cache. L'étiquette est conservée pour examen. |
 
 ---
 
@@ -71,7 +79,7 @@
 - **[Config.gs](Config.gs)** : Constantes globales, palette et dictionnaire bilingue des alertes.
 - **[Utils.gs](Utils.gs)** : Utilitaires partagés (identité du propriétaire, langue, échappement HTML).
 - **[Dashboard.html](Dashboard.html)** : Vue client du tableau de bord d'administration de sécurité.
-- **[tests/](tests/)** : Banc de test exécutant le moteur hors Apps Script sur un corpus étiqueté.
+- **[tests/](tests/)** : Six suites exécutant le moteur et le tableau de bord hors Apps Script — corpus étiqueté, listes modifiables, contrôles statiques de l'interface, suite intégrée, plafonds de stockage et remise à zéro.
 
 ---
 
@@ -111,8 +119,11 @@ Ce projet est disponible sous licence **MIT**. Pour plus d'informations, veuille
 - 🎚️ **Hot-editable reference lists**: The 35 third-party sending platforms (Brevo, SendGrid, Mailjet, Eventbrite…) and the ambiguous brand labels are managed from the dashboard, with no redeployment. A shipped default can be disabled for good.
 - 🎯 **False positives under control**: Labels that are also common words (`orange`, `square`, `free`, `wise`) require corroboration before triggering — real businesses such as "Square Habitat" are not flagged.
 - 🚀 **RAM Hybrid Cache & Compression**: Fast access utilizing RAM `CacheService` backed by comma-separated hex compacting inside `ScriptProperties` to track 500+ messages.
-- 🎨 **Material Design 3 Dashboard**: Web App administration panel supporting KPI statistics, real-time logging, custom brands, interactive unit tests, and whitelist controls.
-- 🧪 **Executable test bench**: A 64-message labelled corpus measures detection and false-positive rates outside Apps Script — see [`tests/`](tests/).
+- 🎨 **Seven-tab dashboard**: Interface following Google Workspace conventions (Material Design 3) — status and indicators, allow list, custom brands, test suite, reference lists, maintenance, and a getting-started guide.
+- 🌍 **Bilingual interface, theme of your choice**: French and English via a selector; light, dark, or the system theme. Both preferences are stored and also apply to the e-mail alerts.
+- 🩺 **Diagnostic and recovery**: A Maintenance tab compares the alert counter with what Gmail actually holds, runs a full re-analysis, or starts from scratch — clearing counters, cache and labelling before rebuilding everything.
+- 🛟 **Failures made visible**: A label deleted from Gmail is recreated automatically, a partially analysed message is picked up on the next run, and a banner warns when the counter claims alerts that cannot be found in Gmail.
+- 🧪 **Six executable test suites**: 64-message labelled corpus, editable lists, dashboard static checks, built-in suite, storage caps and full reset — all outside Apps Script, see [`tests/`](tests/).
 
 ---
 
@@ -139,6 +150,11 @@ Ce projet est disponible sous licence **MIT**. Pour plus d'informations, veuille
 | `ajouterEntreeListe(list, value)` | Adds a sending platform or an ambiguous label, or re-enables a removed default. |
 | `retirerEntreeListe(list, value)` | Removes an entry. On a shipped default, the removal is stored and survives updates. |
 | `reinitialiserListe(list)` | Discards every change and restores the shipped values. |
+| `diagnostiquerAlertes()` | Compares the impersonation counter with the number of threads actually labelled in Gmail and explains the gap. |
+| `repartirDeZero()` | Clears counters, cache and labelling, then runs an analysis to rebuild accurate figures. |
+| `reinitialiserStatistiques()` | Resets the counters without touching messages or lists. |
+| `analyserMarquesNonDetectees()` | Lists recurring domains among the alerts of the past 30 days. |
+| `desinstaller()` | Removes the triggers and clears the cache. The label is kept for review. |
 
 ---
 
@@ -154,7 +170,7 @@ Ce projet est disponible sous licence **MIT**. Pour plus d'informations, veuille
 - **[Config.gs](Config.gs)**: Global constants, palette, and the bilingual alert dictionary.
 - **[Utils.gs](Utils.gs)**: Shared helpers (owner identity, language, HTML escaping).
 - **[Dashboard.html](Dashboard.html)**: Front-end client Material Design 3 administrative view template.
-- **[tests/](tests/)**: Test bench running the engine outside Apps Script against a labelled corpus.
+- **[tests/](tests/)**: Six suites running the engine and the dashboard outside Apps Script — labelled corpus, editable lists, interface static checks, built-in suite, storage caps and full reset.
 
 ---
 

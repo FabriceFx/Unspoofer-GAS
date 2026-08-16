@@ -2,6 +2,46 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [Non publié]
+
+Un utilisateur découvrant l'outil signalait que l'interface web n'expliquait
+rien : des indicateurs à zéro, quatre onglets, et aucune indication de ce qu'il
+fallait faire ni de ce qui se passe une fois une menace détectée.
+
+### Ajouté
+
+- **Onglet « Guide »** dans le tableau de bord : à quoi sert l'outil, démarrage
+  en trois étapes, ce qui se produit en cas de détection (étiquette, étoile,
+  e-mail — aucune suppression ni déplacement), signification des trois niveaux
+  de sévérité, marche à suivre quand un message légitime est signalé, lecture
+  des quatre indicateurs, et note de confidentialité.
+- **Encart de première utilisation** sur l'onglet « Statut », affiché tant
+  qu'aucune analyse n'a eu lieu. Des indicateurs à zéro sans explication
+  laissaient l'utilisateur sans point de départ.
+- Aide contextuelle sur les onglets « Marques perso » (distinction entre le nom,
+  qui sert à reconnaître, et le domaine, qui sert à vérifier) et « Suite de
+  tests » (préciser qu'aucun e-mail réel n'est lu).
+
+### Corrigé
+
+- L'onglet « Marques perso » annonçait « plus de 80 marques » — dernier endroit
+  du projet où subsistait ce chiffre périmé. Corrigé en 191 domaines.
+- `switchTab()` retrouvait l'onglet actif en comparant le libellé visible du
+  bouton. Le repérage passe par un attribut `data-tab` : l'ancienne heuristique
+  aurait mal réagi à l'ajout d'un cinquième onglet.
+
+### Connu / non traité
+
+- Le tableau de bord reste **uniquement en français**, alors que
+  `getDashboardData()` renvoie déjà `lang` — valeur que l'interface ignore. Les
+  alertes et rapports par e-mail sont bilingues, pas l'interface web.
+- Les listes de référence introduites en 2.4.0 (plateformes d'envoi, libellés
+  ambigus) n'ont toujours pas d'écran dédié. Les points d'accès serveur sont en
+  place ; le guide oriente pour l'instant vers la liste blanche et les marques
+  personnalisées.
+
+---
+
 ## [2.4.0] — 2026-08-16
 
 > **Fatigué de voir vos newsletters légitimes et vos alertes de compte finir

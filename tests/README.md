@@ -10,6 +10,13 @@ performances.
 node tests/run.js
 ```
 
+Et pour les listes de référence modifiables à chaud (plateformes d'envoi
+tierces, libellés de marque ambigus) :
+
+```bash
+node tests/listes.js
+```
+
 Aucune dépendance : uniquement Node.js (module `vm` de la bibliothèque standard).
 
 | Option | Effet |
@@ -101,3 +108,22 @@ Ajouter une entrée dans `corpus.json` :
 Champs disponibles : `de`, `replyTo`, `objet`, `corpsTexte`, `corpsHtml`,
 `piecesJointes` (tableau de noms), `enTetes` (en-têtes bruts),
 `severiteAttendue`, `discutable`.
+
+## Tester les listes modifiables
+
+`listes.js` vérifie qu'un ajout ou un retrait effectué depuis le tableau de bord
+change réellement le comportement du moteur. Le harnais expose pour cela deux
+fonctions :
+
+```js
+const { analyser, executer } = require('./harness.js');
+
+const stockage = {};   // ScriptProperties partagées entre les appels
+
+executer("ajouterEntreeListe('plateformesTierces', 'sendgrid.net')", { stockage });
+const { resultat } = analyser(monCas, { stockage });
+```
+
+Chaque appel crée un contexte neuf — l'état de module repart à zéro, comme
+entre deux exécutions Apps Script — mais `stockage` persiste, exactement comme
+les propriétés du script en production.

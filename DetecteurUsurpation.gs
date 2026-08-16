@@ -26,14 +26,39 @@ const PLATEFORMES_SUSPECTES = [
 
 /**
  * Domaines transactionnels ou marketing légitimes qui utilisent couramment un Reply-To divergent.
+ *
+ * Valeurs par défaut : la liste effective est obtenue via
+ * getPlateformesTierces_(), qui y applique les ajouts et retraits de
+ * l'utilisateur (voir Listes.gs). Une plateforme d'emailing peut ainsi être
+ * déclarée depuis le tableau de bord, sans redéploiement.
  */
-const PLATEFORMES_ENVOI_TIERS = new Set([
-    'weezevent.com', 'eventbrite.com', 'eventbrite.fr', 'mailchimp.com',
-    'sendinblue.com', 'brevo.com', 'mailjet.com', 'stripe.com',
-    'shopify.com', 'wix.com', 'squarespace.com', 'hubspot.com',
-    'salesforce.com', 'intercom.com', 'zendesk.com', 'billetweb.fr',
-    'helloasso.com', 'typeform.com'
+const PLATEFORMES_ENVOI_TIERS_DEFAUT = new Set([
+    // Billetterie et événementiel
+    'weezevent.com', 'eventbrite.com', 'eventbrite.fr', 'billetweb.fr',
+    'helloasso.com',
+    // Emailing et marketing
+    'mailchimp.com', 'sendinblue.com', 'brevo.com', 'mailjet.com',
+    'sendgrid.net', 'sendgrid.com', 'mailgun.org', 'postmarkapp.com',
+    'amazonses.com', 'sparkpostmail.com', 'mandrillapp.com',
+    'klaviyo.com', 'activecampaign.com', 'getresponse.com',
+    'constantcontact.com', 'mailerlite.com',
+    // Publication et lettres d'information
+    'substack.com', 'beehiiv.com',
+    // Commerce et paiement
+    'stripe.com', 'shopify.com', 'wix.com', 'squarespace.com',
+    // Relation client et productivité
+    'hubspot.com', 'salesforce.com', 'intercom.com', 'zendesk.com',
+    'typeform.com', 'calendly.com', 'docusign.net', 'yousign.com',
 ]);
+
+/**
+ * Liste effective des plateformes d'envoi tierces, modifications utilisateur
+ * comprises.
+ * @returns {Set<string>}
+ */
+function getPlateformesTierces_() {
+    return getListeEffective_('plateformesTierces');
+}
 
 /**
  * Sélecteurs DKIM utilisés par des plateformes suspectes.
@@ -595,7 +620,7 @@ function verifierUsurpation(message) {
             const replyDomaine = extraireDomaineRacine(analyseReply.email.split('@')[1] || '');
             if (replyDomaine && racineActuelle && replyDomaine !== racineActuelle &&
                 !estUnDomaineMarqueLie(racineActuelle, replyDomaine) &&
-                !PLATEFORMES_ENVOI_TIERS.has(racineActuelle)) {
+                !getPlateformesTierces_().has(racineActuelle)) {
                 resultat.estUsurpation = true;
                 resultat.marque = '';
                 resultat.raison = dict.reasonReplyTo.replace('{param}', analyseReply.email);

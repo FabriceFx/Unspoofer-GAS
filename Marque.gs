@@ -230,12 +230,26 @@ function estMemeAutoriteEtatique(racineA, racineB) {
  * entreprises réelles sans rapport avec square.com, orange.fr ou april.fr.
  *
  * Ces marques exigent une corroboration (voir verifierUsurpation).
+ *
+ * Valeurs par défaut : la liste effective est obtenue via
+ * getMarquesAmbigues_(), qui y applique les ajouts et retraits de
+ * l'utilisateur (voir Listes.gs). Une entreprise homonyme d'une marque
+ * surveillée peut ainsi être déclarée depuis le tableau de bord.
  */
-const MARQUES_AMBIGUES = new Set([
+const MARQUES_AMBIGUES_DEFAUT = new Set([
     'april', 'blockchain', 'boulanger', 'cash', 'crypto', 'discount',
     'free', 'gett', 'ing', 'ledger', 'meta', 'nickel', 'notion',
     'orange', 'poste', 'slack', 'square', 'total', 'walla', 'wise', 'zoom',
 ]);
+
+/**
+ * Liste effective des libellés de marque ambigus, modifications utilisateur
+ * comprises.
+ * @returns {Set<string>}
+ */
+function getMarquesAmbigues_() {
+    return getListeEffective_('marquesAmbigues');
+}
 
 /**
  * Noms usuels d'organismes qui ne correspondent pas à leur nom de domaine.
@@ -348,7 +362,7 @@ function getIndexMarques_() {
         // Forme compacte : « pole-emploi » → « poleemploi »
         const compacte = normaliserEnFormeCompacte(nom);
         if (compacte.length >= LONGUEUR_MIN_COMPACTE &&
-            !MARQUES_AMBIGUES.has(nom) &&
+            !getMarquesAmbigues_().has(nom) &&
             !_indexMarques.parCompacte.has(compacte)) {
             _indexMarques.parCompacte.set(compacte, domaine);
         }
@@ -447,7 +461,7 @@ function trouverMarqueUsurpee(nomAffichageNormalise) {
                 ? nomAffichageNormalise[pos + nom.length] : ' ';
             const estDelimiteur = (ch) => /[^a-z0-9]/.test(ch);
             if (estDelimiteur(avant) && estDelimiteur(apres)) {
-                return { domaine: domaine, nomMarque: nom, ambigu: MARQUES_AMBIGUES.has(nom) };
+                return { domaine: domaine, nomMarque: nom, ambigu: getMarquesAmbigues_().has(nom) };
             }
         }
     }
@@ -559,7 +573,7 @@ function verifierTyposquatting(racineExpediteur) {
     //    « paypal.co » ou « ameli.co » ne coûtent presque rien à l'attaquant et
     //    échappent à la distance de Levenshtein, qui ne compare que le libellé.
     const entreeExacte = index.parNom.get(nomExpediteur);
-    if (entreeExacte && !MARQUES_AMBIGUES.has(nomExpediteur)) {
+    if (entreeExacte && !getMarquesAmbigues_().has(nomExpediteur)) {
         const racineMarque = extraireDomaineRacine(entreeExacte);
         if (racineMarque === racineExpediteur ||
             estUnDomaineMarqueLie(racineMarque, racineExpediteur)) {

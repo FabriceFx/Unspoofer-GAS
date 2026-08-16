@@ -4,15 +4,63 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ## [Non publié]
 
-Introduction d'un banc de test exécutable et correction des défauts qu'il a
-révélés. Sur le corpus de référence (63 cas), le taux de détection passe de
-**68,8 % à 100 %** et la précision de **66,7 % à 100 %** — voir
-[`tests/README.md`](tests/README.md) pour la portée exacte de cette mesure.
+> **Fatigué de voir vos newsletters légitimes et vos alertes de compte finir
+> en « tentative d'usurpation » ?**
+>
+> Un filtre qui crie au loup trop souvent, on cesse de l'écouter — et le jour
+> où il a raison, on clique quand même. C'est le pire échec possible pour un
+> détecteur de phishing.
+>
+> Nous avons donc mis le moteur sur le banc d'essai, littéralement. Le verdict
+> était sans appel : **une alerte sur trois était fausse**, et près d'un
+> message frauduleux sur trois passait au travers. Pire, *aucune* banque
+> française au nom en plusieurs mots — Crédit Agricole, Société Générale,
+> La Banque Postale — n'était reconnue depuis le nom d'affichage. Le vecteur
+> d'arnaque le plus courant en France était un angle mort.
+>
+> Cette version corrige tout cela. Le détecteur reconnaît désormais les
+> plateformes d'envoi professionnelles (Brevo, SendGrid, Mailjet, Substack…)
+> et ne s'affole plus quand votre association vous répond depuis une autre
+> adresse. Il fait la différence entre « L'Orange Bleue », votre salle de
+> sport, et une véritable usurpation de l'opérateur. Il sait que « Square
+> Habitat » n'est pas `square.com`, et que « Dr.Martin » n'est pas un nom de
+> domaine.
+>
+> Sur notre corpus de référence de 63 messages, les fausses alertes passent de
+> **11 à 0**, et les messages frauduleux manqués de **10 à 0**. Le détecteur
+> redevient un outil qu'on écoute.
+>
+> Et parce qu'aucune liste ne reste juste éternellement : **les listes de
+> référence se modifient maintenant depuis le tableau de bord**. Une nouvelle
+> plateforme d'emailing, un homonyme qui vous concerne ? Deux clics, effet
+> immédiat, aucun redéploiement.
+
+*Mise en garde honnête : ce corpus a été écrit à partir de l'audit du moteur.
+Il mesure une non-régression et un écart avant/après, pas une performance en
+conditions réelles. Voir [`tests/README.md`](tests/README.md).*
 
 ### Ajouté
 
+- **Listes de référence modifiables sans redéploiement** (`Listes.gs`). Les
+  plateformes d'envoi tierces et les libellés de marque ambigus se gèrent
+  depuis le tableau de bord, avec effet immédiat. Chaque liste superpose trois
+  couches : les valeurs livrées, les ajouts de l'utilisateur, puis ses retraits,
+  qui l'emportent. Les retraits sont stockés explicitement, faute de quoi une
+  valeur par défaut neutralisée reviendrait silencieusement à la prochaine mise
+  à jour du code. Points d'accès : `getListesModifiables()`,
+  `ajouterEntreeListe()`, `retirerEntreeListe()`, `reinitialiserListe()`.
+  Les listes sont exposées au tableau de bord via `getDashboardData()`, chaque
+  entrée indiquant son origine (`defaut`, `ajout`, `defaut_desactive`) pour que
+  l'interface puisse les distinguer visuellement.
+- Enrichissement des plateformes d'envoi tierces : **SendGrid** (absent, alors
+  qu'il est l'un des plus répandus), Mailgun, Postmark, Amazon SES, SparkPost,
+  Mandrill, Klaviyo, ActiveCampaign, GetResponse, Constant Contact, MailerLite,
+  Substack, beehiiv, Calendly, DocuSign, Yousign.
 - Banc de test `tests/` : exécute les fichiers `.gs` du dépôt hors Apps Script,
   sur un corpus étiqueté, avec matrice de confusion et comparaison avant/après.
+- `tests/listes.js` : 20 vérifications du mécanisme de listes — ajout, retrait,
+  neutralisation d'un défaut, réinitialisation, validation des saisies et
+  résistance à un stockage corrompu.
 - Correspondance des marques par **forme compacte** : « Crédit Agricole »,
   « Société Générale » ou « La Banque Postale » sont désormais rapprochés de
   leur domaine. Auparavant, aucune marque française en plusieurs mots n'était
@@ -70,6 +118,11 @@ révélés. Sur le corpus de référence (63 cas), le taux de détection passe d
   sévérité des messages légitimes.
 - `verifierEcartsLiensHtml_()` réutilise `estMemeAutoriteEtatique()` au lieu de
   redéclarer sa propre liste de suffixes étatiques.
+- `PLATEFORMES_ENVOI_TIERS` et `MARQUES_AMBIGUES` deviennent
+  `PLATEFORMES_ENVOI_TIERS_DEFAUT` et `MARQUES_AMBIGUES_DEFAUT` : ce sont
+  désormais les valeurs par défaut d'une liste modifiable, lues au travers de
+  `getPlateformesTierces_()` et `getMarquesAmbigues_()`. Le nom dit ce qu'elles
+  sont, et le moteur ne consulte plus jamais la constante directement.
 
 ### Connu / non traité
 
@@ -81,3 +134,11 @@ révélés. Sur le corpus de référence (63 cas), le taux de détection passe d
   assumé de la suppression des faux positifs sur les homonymes.
 - Les numéros de version des en-têtes de fichiers (`2.1.0`) et de
   `CONFIG.VERSION` sont désynchronisés de l'historique Git (jalon `v2.3`).
+- Le mécanisme de listes modifiables ne couvre pour l'instant que les
+  ensembles de valeurs. La table d'alias `ALIAS_MARQUES` et les mots-clés
+  `MOTS_CLES_PHISHING` restent figés dans le code : la première est un
+  dictionnaire (clé → domaine) et demande une forme de saisie différente. Le
+  registre `LISTES_MODIFIABLES` est prévu pour les accueillir.
+- `Dashboard.html` n'a pas encore d'écran de gestion de ces listes. Les données
+  et les points d'accès sont en place côté serveur ; il reste à câbler
+  l'interface.

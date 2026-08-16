@@ -51,6 +51,8 @@ function getDashboardData() {
     },
     whitelist: listeBlanche,
     customBrands: customBrands,
+    // Listes de référence modifiables depuis l'interface (voir Listes.gs)
+    listesModifiables: getListesModifiables(),
     userEmail: getEmailProprietaire_(),
     lang: getLangueUtilisateur_()
   };

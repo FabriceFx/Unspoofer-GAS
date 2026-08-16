@@ -24,6 +24,7 @@ const RACINE = path.resolve(__dirname, '..');
 const FICHIERS_MOTEUR = [
     'Config.gs',
     'Utils.gs',
+    'Listes.gs',
     'Homoglyphes.gs',
     'Marque.gs',
     'DetecteurUsurpation.gs',
@@ -94,7 +95,10 @@ class FauxMessage {
 function construireBouchons(cas, options) {
     const proprietaire = options.proprietaire || 'utilisateur@exemple.fr';
 
-    const proprietes = {};
+    // `stockage` permet de partager les ScriptProperties entre plusieurs appels,
+    // comme en production : l'état de module repart à zéro à chaque exécution,
+    // mais les propriétés du script, elles, persistent.
+    const proprietes = options.stockage || {};
     if (options.listeBlanche && options.listeBlanche.length) {
         proprietes.senderWhitelist = JSON.stringify(options.listeBlanche);
     }
@@ -211,4 +215,20 @@ function identifierMotif(raison) {
     return '?';
 }
 
-module.exports = { analyser, identifierMotif, FICHIERS_MOTEUR, CLES_MOTIFS };
+/**
+ * Évalue une expression dans un contexte moteur neuf.
+ * Sert à appeler les points d'accès du tableau de bord (gestion des listes)
+ * en partageant le même stockage qu'une analyse ultérieure.
+ *
+ * @param {string} expression - Code à évaluer (ex. "ajouterEntreeListe('a','b')")
+ * @param {object} [options] - { proprietaire, stockage }
+ * @returns {*} Valeur de l'expression
+ */
+function executer(expression, options = {}) {
+    const bouchons = construireBouchons({}, options);
+    const contexte = vm.createContext(bouchons.globales);
+    vm.runInContext(SOURCE, contexte, { filename: 'unspoofer-moteur.js' });
+    return vm.runInContext(expression, contexte, { filename: 'unspoofer-expression.js' });
+}
+
+module.exports = { analyser, executer, identifierMotif, FICHIERS_MOTEUR, CLES_MOTIFS };

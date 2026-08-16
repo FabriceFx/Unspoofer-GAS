@@ -250,6 +250,10 @@ const UI_TRANSLATIONS = {
     msgBrandRemoved: "Marque personnalisée supprimée.",
     msgFillBoth: "Veuillez remplir les deux champs.",
     msgLangChanged: "Langue de l'interface modifiée.",
+    healthTitle: "Vos alertes sont introuvables dans Gmail.",
+    healthBodyNoLabel: "L'étiquette <code>ALERTE-USURPATION</code> a été supprimée depuis Gmail, ce qui l'a retirée de tous les messages qui la portaient. Les messages eux-mêmes sont intacts. Lancez un scan : l'étiquette sera recréée et les messages ré-analysés.",
+    healthBodyNoThread: "L'étiquette existe mais aucun message ne la porte actuellement. Les messages signalés ont probablement été supprimés ou archivés depuis. Le compteur, lui, est cumulatif depuis l'installation.",
+    healthBtn: "Lancer un scan de reprise",
     msgError: "Une erreur est survenue : {n}"
   },
 
@@ -365,6 +369,10 @@ const UI_TRANSLATIONS = {
     msgBrandRemoved: "Custom brand removed.",
     msgFillBoth: "Please fill in both fields.",
     msgLangChanged: "Interface language changed.",
+    healthTitle: "Your alerts cannot be found in Gmail.",
+    healthBodyNoLabel: "The <code>ALERTE-USURPATION</code> label was deleted from Gmail, which removed it from every message that carried it. The messages themselves are untouched. Run a scan: the label will be recreated and the messages re-analysed.",
+    healthBodyNoThread: "The label exists but no message currently carries it. The flagged messages have most likely been deleted or archived since. The counter, however, is cumulative since installation.",
+    healthBtn: "Run a recovery scan",
     msgError: "An error occurred: {n}"
   }
 };

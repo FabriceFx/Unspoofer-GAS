@@ -21,16 +21,30 @@ const TAILLE_PAGE = 100;
 // Les fonctions utilitaires de configuration, d'e-mail du propriétaire et de nettoyage HTML ont été déportées dans Utils.gs pour plus de clarté.
 
 /**
+ * Retourne l'étiquette d'alerte, en la recréant si elle a disparu.
+ *
+ * Une étiquette supprimée depuis Gmail est retirée de tous les messages qui la
+ * portaient. Sans cette reprise, l'analyse programmée abandonnait à chaque
+ * exécution tandis que le tableau de bord continuait d'afficher « surveillance
+ * active » : une protection en panne qui se présentait comme opérationnelle.
+ *
+ * @returns {{etiquette: GmailLabel, recreee: boolean}}
+ */
+function obtenirOuCreerEtiquette_() {
+    const existante = GmailApp.getUserLabelByName(NOM_ETIQUETTE);
+    if (existante) return { etiquette: existante, recreee: false };
+
+    Logger.log('Étiquette « ' + NOM_ETIQUETTE + ' » absente — recréation.');
+    return { etiquette: GmailApp.createLabel(NOM_ETIQUETTE), recreee: true };
+}
+
+/**
  * Crée l'étiquette ALERTE-USURPATION (idempotent) et configure les déclencheurs.
  */
 function configurer() {
-    let etiquette = GmailApp.getUserLabelByName(NOM_ETIQUETTE);
-    if (!etiquette) {
-        etiquette = GmailApp.createLabel(NOM_ETIQUETTE);
-        Logger.log('Étiquette créée : ' + NOM_ETIQUETTE);
-    } else {
-        Logger.log('L\'étiquette existe déjà : ' + NOM_ETIQUETTE);
-    }
+    const { recreee } = obtenirOuCreerEtiquette_();
+    Logger.log(recreee ? 'Étiquette créée : ' + NOM_ETIQUETTE
+                       : 'L\'étiquette existe déjà : ' + NOM_ETIQUETTE);
 
     const declencheurs = ScriptApp.getProjectTriggers();
     for (const declencheur of declencheurs) {
@@ -63,10 +77,16 @@ function configurer() {
  */
 function analyserBoiteReception() {
     const tempsDebut = Date.now();
-    const etiquette = GmailApp.getUserLabelByName(NOM_ETIQUETTE);
-    if (!etiquette) {
-        Logger.log('Étiquette ALERTE-USURPATION introuvable. Exécutez configurer() d\'abord.');
-        return;
+
+    // L'étiquette est recréée si elle a été supprimée : abandonner l'analyse
+    // laissait la surveillance inopérante sans que rien ne le signale.
+    const { etiquette, recreee } = obtenirOuCreerEtiquette_();
+    if (recreee) {
+        // Les messages déjà analysés ont perdu leur étiquette en même temps que
+        // celle-ci. Vider le cache les rend éligibles à un nouvel étiquetage.
+        effacerCacheTraite();
+        Logger.log('Étiquette recréée et cache vidé : les messages déjà analysés ' +
+                   'seront réexaminés pour retrouver leur étiquetage.');
     }
 
     let nombreUsurpations = 0;

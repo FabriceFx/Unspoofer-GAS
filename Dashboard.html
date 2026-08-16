@@ -680,6 +680,11 @@
     .callout-body strong { display: block; margin-bottom: 3px; }
     .callout-body p { color: var(--text-muted); margin: 0; }
     .callout .btn { margin-top: 10px; }
+    .callout-alerte {
+      background: var(--color-danger-glow);
+      border-color: rgba(234, 67, 53, 0.45);
+    }
+    .callout-alerte svg { fill: var(--color-danger); }
 
     .aide {
       font-size: 13px;
@@ -912,6 +917,18 @@
 
     <!-- ONGLET 1 : STATUT & KPIS -->
     <div id="tab-dashboard" class="tab-content active">
+
+      <!-- Alerte de cohérence : compteur positif mais rien de consultable dans Gmail -->
+      <div class="callout callout-alerte" id="alerteSante" style="display: none;">
+        <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+        <div class="callout-body">
+          <strong data-i18n="healthTitle">Vos alertes sont introuvables dans Gmail.</strong>
+          <p id="alerteSanteTexte"></p>
+          <button class="btn btn-secondary" onclick="triggerManualScan()">
+            <span data-i18n="healthBtn">Lancer un scan de reprise</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Encart de première utilisation : masqué dès qu'une analyse a eu lieu -->
       <div class="callout" id="premierDemarrage" style="display: none;">
@@ -1425,6 +1442,20 @@
       const encart = document.getElementById('premierDemarrage');
       if (encart) {
         encart.style.display = (data.stats.totalAnalyses > 0) ? 'none' : 'flex';
+      }
+
+      // Alerte de cohérence : le compteur annonce des menaces, mais rien n'est
+      // consultable dans Gmail. Sans ce contrôle, l'outil affichait un total
+      // rassurant alors que la protection ne produisait plus rien.
+      const sante = data.sante || {};
+      const alerte = document.getElementById('alerteSante');
+      if (alerte) {
+        const incoherent = (data.stats.totalUsurpations > 0) && !sante.alertesVisibles;
+        alerte.style.display = incoherent ? 'flex' : 'none';
+        if (incoherent) {
+          document.getElementById('alerteSanteTexte').innerHTML =
+            sante.etiquetteExiste ? T('healthBodyNoThread') : T('healthBodyNoLabel');
+        }
       }
       
       // Triggers & Status

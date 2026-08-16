@@ -44,8 +44,21 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
   les dix derniers messages signalés et la recherche Gmail à utiliser.
 
+- **Contrôle de cohérence au tableau de bord.** Si le compteur annonce des
+  usurpations alors qu'aucun message ne porte l'étiquette dans Gmail, un
+  bandeau l'explique et propose un scan de reprise. Le diagnostic distingue
+  l'étiquette supprimée des messages effacés depuis.
+
 ### Corrigé
 
+- **Panne silencieuse quand l'étiquette est supprimée.** Supprimer
+  `ALERTE-USURPATION` depuis Gmail la retire de tous les messages qui la
+  portaient. `analyserBoiteReception()` abandonnait alors à chaque exécution :
+  le déclencheur tournait toutes les 10 minutes sans rien faire, pendant que le
+  tableau de bord affichait « surveillance active » et un total rassurant. Une
+  protection en panne se présentait comme opérationnelle. L'étiquette est
+  désormais recréée automatiquement, et le cache des messages traités est vidé
+  dans la foulée pour que les messages concernés retrouvent leur étiquetage.
 - **Compteur d'usurpations surévalué sur les fils à plusieurs messages.** La
   déduplication reposait sur `fil.getLabels()`, dont l'instantané ne reflète pas
   l'étiquette posée quelques lignes plus haut dans la même exécution. Un fil

@@ -57,11 +57,39 @@ function getDashboardData() {
     customBrands: customBrands,
     // Listes de référence modifiables depuis l'interface (voir Listes.gs)
     listesModifiables: getListesModifiables(),
+    // Contrôle de cohérence : un compteur positif sans aucune alerte visible
+    // dans Gmail signifie que la protection ne fait plus ce qu'elle annonce.
+    sante: verifierCoherenceEtiquette_(),
     userEmail: getEmailProprietaire_(),
     lang: langue,
     // Dictionnaire de l'interface, appliqué côté client via data-i18n
     i18n: UI_TRANSLATIONS[langue] || UI_TRANSLATIONS.fr
   };
+}
+
+/**
+ * Vérifie que les alertes annoncées par les compteurs sont bien retrouvables
+ * dans Gmail.
+ *
+ * Deux incidents observés en usage réel : l'étiquette supprimée depuis Gmail
+ * (ce qui la retire de tous les messages) et les messages signalés effacés
+ * depuis. Dans les deux cas, le tableau de bord affichait un total rassurant
+ * sans que rien ne soit consultable.
+ *
+ * @returns {{etiquetteExiste: boolean, alertesVisibles: boolean}}
+ */
+function verifierCoherenceEtiquette_() {
+  try {
+    const etiquette = GmailApp.getUserLabelByName(NOM_ETIQUETTE);
+    if (!etiquette) return { etiquetteExiste: false, alertesVisibles: false };
+    // Recherche volontairement limitée à un résultat : on veut savoir s'il en
+    // existe au moins un, pas les dénombrer.
+    const trouve = GmailApp.search('label:' + NOM_ETIQUETTE, 0, 1);
+    return { etiquetteExiste: true, alertesVisibles: trouve.length > 0 };
+  } catch (e) {
+    Logger.log('Contrôle de cohérence impossible : ' + e.message);
+    return { etiquetteExiste: true, alertesVisibles: true };
+  }
 }
 
 /**

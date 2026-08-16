@@ -3,7 +3,7 @@
  *  DÉTECTEUR PHISHING - Config.gs
  * ============================================================================
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
- *  Projet      : FF Labs - Détecteur Phishing
+ *  Projet      : Détecteur Phishing
  *  Rôle        : Centralisation des constantes globales, des variables d'environnement et de configuration.
  *  Version     : 2.4.0
  * ============================================================================

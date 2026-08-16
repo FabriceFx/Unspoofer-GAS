@@ -3,7 +3,7 @@
  *  DÉTECTEUR PHISHING - Listes.gs
  * ============================================================================
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
- *  Projet      : FF Labs - Détecteur Phishing
+ *  Projet      : Détecteur Phishing
  *  Rôle        : Listes de référence modifiables sans redéploiement du code.
  *  Version     : 2.4.0
  * ============================================================================

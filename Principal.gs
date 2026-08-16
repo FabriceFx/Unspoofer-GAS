@@ -3,7 +3,7 @@
  *  DÉTECTEUR PHISHING - Principal.gs
  * ============================================================================
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
- *  Projet      : FF Labs - Détecteur Phishing
+ *  Projet      : Détecteur Phishing
  *  Rôle        : Contrôleur et orchestrateur d'exécution des tâches d'analyse en arrière-plan.
  *  Version     : 2.4.0
  * ============================================================================
@@ -272,8 +272,6 @@ function envoyerAlerteUsurpation_(usurpations) {
       '<div style="text-align: center; margin-top: 20px; font-size: 11px; color: ' + CONFIG.COLORS.SECONDARY + '; line-height: 1.4;">' +
         '<p style="margin: 0 0 10px 0;">' + dict.footerTextAlert + '</p>' +
         '<p style="margin: 14px 0 0; font-size: 10px; color: ' + CONFIG.COLORS.SECONDARY + ';">' +
-          '<span style="font-weight: bold; display: inline-block; vertical-align: middle;">⚡ FF Labs</span>' +
-          '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
           '<a href="https://faucheux.bzh" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.authorSignature + '</a>' +
           '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
           '<a href="https://github.com/FabriceFx/Unspoofer-GAS" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.helpLinkText + '</a>' +
@@ -353,8 +351,6 @@ function envoyerRapportHebdomadaire_() {
       '<div style="text-align: center; margin-top: 20px; font-size: 11px; color: ' + CONFIG.COLORS.SECONDARY + '; line-height: 1.4;">' +
         '<p style="margin: 0 0 10px 0;">' + dict.footerTextReport + '</p>' +
         '<p style="margin: 14px 0 0; font-size: 10px; color: ' + CONFIG.COLORS.SECONDARY + ';">' +
-          '<span style="font-weight: bold; display: inline-block; vertical-align: middle;">⚡ FF Labs</span>' +
-          '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
           '<a href="https://faucheux.bzh" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.authorSignature + '</a>' +
           '<span style="color: #e3e3e3; margin: 0 8px; display: inline-block; vertical-align: middle;">|</span>' +
           '<a href="https://github.com/FabriceFx/Unspoofer-GAS" target="_blank" style="color: ' + CONFIG.COLORS.PRIMARY + '; text-decoration: none; font-weight: 600; display: inline-block; vertical-align: middle;">' + dict.helpLinkText + '</a>' +

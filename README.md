@@ -77,7 +77,7 @@
 
 ### 👤 Auteur
 
-- **[Fabrice Faucheux](https://faucheux.bzh)** (FF Labs) - [GitHub](https://github.com/FabriceFx)
+- **[Fabrice Faucheux](https://faucheux.bzh)** - [GitHub](https://github.com/FabriceFx)
 
 ---
 
@@ -160,7 +160,7 @@ Ce projet est disponible sous licence **MIT**. Pour plus d'informations, veuille
 
 ### 👤 Author
 
-- **[Fabrice Faucheux](https://faucheux.bzh)** (FF Labs) - [GitHub](https://github.com/FabriceFx)
+- **[Fabrice Faucheux](https://faucheux.bzh)** - [GitHub](https://github.com/FabriceFx)
 
 ---
 

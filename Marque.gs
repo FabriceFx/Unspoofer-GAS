@@ -3,7 +3,7 @@
  *  DÉTECTEUR PHISHING - Marque.gs
  * ============================================================================
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
- *  Projet      : FF Labs - Détecteur Phishing
+ *  Projet      : Détecteur Phishing
  *  Rôle        : Base des marques surveillées (domaines, groupes liés, alias, libellés
  *                ambigus), correspondance de marque et détection de typosquatting.
  *  Version     : 2.4.0

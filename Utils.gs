@@ -3,7 +3,7 @@
  *  DÉTECTEUR PHISHING - Utils.gs
  * ============================================================================
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
- *  Projet      : FF Labs - Détecteur Phishing
+ *  Projet      : Détecteur Phishing
  *  Rôle        : Utilitaires généraux côté serveur (helpers d'inclusion HTML, formatage, etc.).
  *  Version     : 2.4.0
  * ============================================================================

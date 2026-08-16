@@ -26,9 +26,9 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 > Habitat » n'est pas `square.com`, et que « Dr.Martin » n'est pas un nom de
 > domaine.
 >
-> Sur notre corpus de référence de 63 messages, les fausses alertes passent de
-> **11 à 0**, et les messages frauduleux manqués de **10 à 0**. Le détecteur
-> redevient un outil qu'on écoute.
+> Sur notre corpus de référence — 64 cas, dont 63 comptés dans les indicateurs —
+> les fausses alertes passent de **11 à 0**, et les messages frauduleux manqués
+> de **10 à 0**. Le détecteur redevient un outil qu'on écoute.
 >
 > Et parce qu'aucune liste ne reste juste éternellement : **les listes de
 > référence se modifient maintenant depuis le tableau de bord**. Une nouvelle
@@ -109,6 +109,10 @@ conditions réelles. Voir [`tests/README.md`](tests/README.md).*
   usurpation.
 - Restauration du `README.md`, dont les séparateurs de tableaux avaient été
   corrompus par un script d'harmonisation externe.
+- **Chiffres périmés du `README.md`.** Il annonçait « plus de 80 marques »
+  alors que la base en compte 191, et son plan de code omettait `Config.gs`,
+  `Utils.gs` et `Listes.gs`. Les deux versions linguistiques sont réalignées
+  sur le contenu réel du dépôt.
 
 ### Modifié
 

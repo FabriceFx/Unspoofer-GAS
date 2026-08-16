@@ -1334,6 +1334,8 @@
        ==================================================================== */
 
     let DICO = {};
+    /** Langue courante de l'interface ('fr' ou 'en'), pour le formatage des dates. */
+    let LANGUE = 'fr';
 
     /**
      * Retourne la traduction d'une clé, marqueurs {n} remplacés.
@@ -1376,6 +1378,27 @@
         const v = DICO[el.getAttribute('data-i18n-title')];
         if (v !== undefined) el.title = v;
       });
+    }
+
+    /**
+     * Met en forme la date de dernière analyse dans la langue et le fuseau du
+     * lecteur. Le serveur transmet une date ISO brute : affichée telle quelle,
+     * elle donnait « 2026-08-16T15:32:23.754Z » à l'utilisateur.
+     * @param {string} iso - Date ISO, ou chaîne vide si aucune analyse
+     * @returns {string}
+     */
+    function formaterDerniereAnalyse(iso) {
+      if (!iso) return T('ctlLastScanNone');
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return T('ctlLastScanNone');
+        const locale = (LANGUE === 'en') ? 'en-GB' : 'fr-FR';
+      try {
+        return T('ctlLastScanPrefix') + d.toLocaleString(locale, {
+          dateStyle: 'medium', timeStyle: 'short'
+        });
+      } catch (e) {
+        return T('ctlLastScanPrefix') + d.toLocaleString();
+      }
     }
 
     /**
@@ -1458,6 +1481,7 @@
       // Le dictionnaire doit être posé avant tout texte dérivé (dates, compteurs)
       if (data.i18n) appliquerTraductions(data.i18n);
       if (data.lang) {
+        LANGUE = data.lang;
         document.documentElement.lang = data.lang;
         const sel = document.getElementById('selecteurLangue');
         if (sel) sel.value = data.lang;
@@ -1495,7 +1519,7 @@
       
       // Triggers & Status
       document.getElementById('toggleTriggerBtn').checked = data.triggers.active;
-      document.getElementById('lastScanTime').innerText = T('ctlLastScanPrefix') + data.stats.derniereAnalyse;
+      document.getElementById('lastScanTime').innerText = formaterDerniereAnalyse(data.stats.derniereAnalyse);
       
       const indicator = document.getElementById('statusIndicator');
       if (data.triggers.active) {

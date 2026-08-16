@@ -89,6 +89,13 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   au lieu d'une fois par fil. La déduplication passe par un `Set` d'identifiants
   de fils tenu pendant l'exécution. L'étiquetage, lui, était correct : seul le
   chiffre affiché était faux.
+- **Date de dernière analyse illisible.** Le tableau de bord affichait la date
+  ISO brute transmise par le serveur : « Dernier passage :
+  2026-08-16T15:32:23.754Z ». Le serveur renvoie désormais la valeur brute sans
+  y mêler de texte, et le client la met en forme dans la langue et le fuseau du
+  lecteur — « 16 août 2026, 17:32 » ou « 16 Aug 2026, 17:32 ». Au passage, le
+  repli « Aucune analyse effectuée » était codé en français côté serveur et
+  restait donc français en anglais.
 - **Le sélecteur de langue restait sans effet.** `changerLangue()` appelait
   `showLoader()` alors que la fonction s'appelle `setLoader()`. L'exception
   survenait à la première ligne, avant tout appel au serveur : le menu changeait
@@ -108,8 +115,8 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
 
 - `tests/dashboard.js` : contrôles statiques du tableau de bord — compilation du
   script client, existence de toute fonction appelée (y compris depuis les
-  `onclick`), parité et complétude des dictionnaires, appariement des onglets,
-  équilibre du balisage.
+  `onclick`) **et de toute constante référencée**, parité et complétude des
+  dictionnaires, appariement des onglets, équilibre du balisage.
 
 ### Connu / non traité
 

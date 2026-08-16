@@ -45,7 +45,9 @@ function getDashboardData() {
       totalAnalyses: stats.totalAnalyses || 0,
       totalUsurpations: stats.totalUsurpations || 0,
       totalExecutions: stats.totalExecutions || 0,
-      derniereAnalyse: stats.derniereAnalyse || 'Aucune analyse effectuée',
+      // Date ISO brute : la mise en forme et la traduction reviennent au client,
+      // qui connaît la langue et le fuseau de l'utilisateur.
+      derniereAnalyse: stats.derniereAnalyse || '',
       tauxDetection: stats.totalAnalyses > 0 ? ((stats.totalUsurpations / stats.totalAnalyses) * 100).toFixed(1) + '%' : '0%'
     },
     triggers: {

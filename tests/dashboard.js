@@ -104,6 +104,31 @@ const inconnues = [...appeles]
 verifier('toute fonction appelée est définie', inconnues.length === 0,
     inconnues.length ? 'introuvable(s) : ' + inconnues.join(', ') : '');
 
+// ─── 2b. Toute CONSTANTE en majuscules référencée existe ───────────────────
+//
+// Le contrôle précédent ne voyait que les appels `nom(`. Une variable
+// simplement lue — `DICO === UI_EN_MARQUEUR` — lui échappait, et l'exception
+// ne survenait qu'à l'exécution. Les identifiants tout en majuscules sont, par
+// convention dans ce fichier, des constantes du script : leur absence est
+// toujours une faute de frappe.
+
+// Les chaînes littérales sont retirées : « 'RÉUSSI' » se lisait comme une
+// référence à USSI, l'accent n'étant pas un caractère de mot ASCII.
+const scriptSansTextes = scriptNu
+    .replace(/'(?:[^'\\\n]|\\.)*'/g, "''")
+    .replace(/"(?:[^"\\\n]|\\.)*"/g, '""');
+
+const constantesUtilisees = new Set();
+for (const m of scriptSansTextes.matchAll(/(?<![\p{L}\p{N}_$.])([A-Z][A-Z0-9_]{2,})\b/gu)) {
+    constantesUtilisees.add(m[1]);
+}
+const constantesInconnues = [...constantesUtilisees]
+    .filter((n) => !declarees.has(n) && !GLOBALES_CONNUES.has(n))
+    .sort();
+
+verifier('toute constante référencée est définie', constantesInconnues.length === 0,
+    constantesInconnues.length ? 'introuvable(s) : ' + constantesInconnues.join(', ') : '');
+
 // ─── 3. Les fonctions référencées dans le HTML existent ────────────────────
 
 /** Gestionnaires inline : onclick="maFonction(...)", onchange=… */

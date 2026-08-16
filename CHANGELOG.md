@@ -44,6 +44,15 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
   les dix derniers messages signalés et la recherche Gmail à utiliser.
 
+- **Icônes Material Symbols à la place des emoji.** Les titres de panneau
+  portaient des emoji (🛡️, 📜, 🧪…) : Google n'en emploie jamais dans son
+  interface, et c'était le signal le plus visible d'un habillage qui n'est pas
+  celui de Workspace. Ils sont remplacés par des symboles Material Rounded,
+  chargés depuis Google Fonts.
+- **Journal d'activité traduit.** Les messages de la console restaient en
+  français quelle que soit la langue : dix-huit chaînes passent par le
+  dictionnaire (`logLoaded`, `logNav`, `logScanDone`…). L'interface était
+  bilingue, son journal ne l'était pas.
 - **Habillage Google Workspace / Material Design 3.** Le tableau de bord
   reprend la charte des applications Workspace : clair par défaut, bleu `#0b57d0`,
   Google Sans avec repli Roboto, boutons pilule, onglets en pastille tonale,
@@ -89,6 +98,13 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   au lieu d'une fois par fil. La déduplication passe par un `Set` d'identifiants
   de fils tenu pendant l'exécution. L'étiquetage, lui, était correct : seul le
   chiffre affiché était faux.
+- Traitement des indicateurs assagi : chiffres dans la couleur du texte plutôt
+  qu'en vert ou rose, étiquettes en casse normale au lieu de capitales espacées,
+  et accent coloré déplacé sur le liseré latéral. Workspace réserve la couleur
+  au signal, pas à la donnée. Le journal quitte le fond noir « terminal » pour
+  une surface du thème.
+- **Titres de panneau écartelés** par un `justify-content: space-between` hérité :
+  l'icône partait à gauche, le libellé à droite.
 - **Date de dernière analyse illisible.** Le tableau de bord affichait la date
   ISO brute transmise par le serveur : « Dernier passage :
   2026-08-16T15:32:23.754Z ». Le serveur renvoie désormais la valeur brute sans

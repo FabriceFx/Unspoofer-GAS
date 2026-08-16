@@ -318,6 +318,9 @@ const UI_TRANSLATIONS = {
     mtResetBody: "Efface les statistiques cumulées. Ne touche ni aux messages, ni aux étiquettes, ni aux listes.",
     mtResetBtn: "Remettre les compteurs à zéro",
     mtResetConfirm: "Effacer définitivement les statistiques cumulées ?",
+    confirmTitle: "Confirmer l'opération",
+    confirmYes: "Confirmer",
+    confirmNo: "Annuler",
     mtResetDone: "Compteurs remis à zéro."
   },
 
@@ -501,6 +504,9 @@ const UI_TRANSLATIONS = {
     mtResetBody: "Clears the cumulative statistics. Touches neither messages, nor labels, nor lists.",
     mtResetBtn: "Reset the counters",
     mtResetConfirm: "Permanently clear the cumulative statistics?",
+    confirmTitle: "Confirm the operation",
+    confirmYes: "Confirm",
+    confirmNo: "Cancel",
     mtResetDone: "Counters reset."
   }
 };

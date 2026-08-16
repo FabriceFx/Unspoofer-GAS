@@ -761,6 +761,30 @@
     }
     .diag-ligne .material-symbols-rounded { font-size: 18px; flex: none; }
 
+    .modale-fond {
+      position: fixed; inset: 0; z-index: 10001;
+      background: rgba(0, 0, 0, .5);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modale {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-raised);
+      padding: 28px;
+      max-width: 420px; width: 100%;
+    }
+    .modale-titre {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--font-title); font-size: 18px; font-weight: 500;
+      margin: 0 0 12px 0;
+    }
+    .modale-titre .material-symbols-rounded { color: var(--color-primary); }
+    .modale-corps { font-size: 14px; line-height: 1.55; color: var(--text-muted); margin: 0; }
+    .modale-actions {
+      display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px;
+    }
+
     .log-vide {
       color: var(--text-dark);
       font-family: var(--font-body);
@@ -971,6 +995,28 @@
       <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
     </div>
     <div id="toastText" class="toast-text"></div>
+  </div>
+
+  <!-- Modale de confirmation.
+       confirm() natif affiche « Une page intégrée à l'adresse …
+       googleusercontent.com indique », ce qui expose l'URL interne d'Apps
+       Script et rompt l'habillage de l'application. -->
+  <div class="modale-fond" id="modaleConfirmation" style="display:none">
+    <div class="modale">
+      <h3 class="modale-titre">
+        <span class="material-symbols-rounded">help</span>
+        <span data-i18n="confirmTitle">Confirmer l'opération</span>
+      </h3>
+      <p class="modale-corps" id="modaleTexte"></p>
+      <div class="modale-actions">
+        <button class="btn btn-secondary" onclick="repondreConfirmation(false)">
+          <span data-i18n="confirmNo">Annuler</span>
+        </button>
+        <button class="btn btn-danger" onclick="repondreConfirmation(true)">
+          <span data-i18n="confirmYes">Confirmer</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="app-container">
@@ -1634,6 +1680,38 @@
     }
 
     /* ====================================================================
+       CONFIRMATION
+       ==================================================================== */
+
+    /** Fonction à rappeler une fois la modale tranchée. */
+    let _suiteConfirmation = null;
+
+    /**
+     * Demande confirmation dans une modale interne, plutôt qu'avec confirm().
+     * Le dialogue natif affiche l'URL googleusercontent.com de la webapp, ce
+     * qui expose un détail d'implémentation et rompt l'habillage.
+     *
+     * @param {string} texte - Question posée
+     * @param {Function} siConfirme - Appelée seulement si l'utilisateur confirme
+     */
+    function demanderConfirmation(texte, siConfirme) {
+      document.getElementById('modaleTexte').textContent = texte;
+      document.getElementById('modaleConfirmation').style.display = 'flex';
+      _suiteConfirmation = siConfirme;
+    }
+
+    /**
+     * Ferme la modale et exécute la suite si l'utilisateur a confirmé.
+     * @param {boolean} confirme
+     */
+    function repondreConfirmation(confirme) {
+      document.getElementById('modaleConfirmation').style.display = 'none';
+      const suite = _suiteConfirmation;
+      _suiteConfirmation = null;
+      if (confirme && suite) suite();
+    }
+
+    /* ====================================================================
        MAINTENANCE
        ==================================================================== */
 
@@ -1691,7 +1769,11 @@
 
     /** Remet les compteurs à zéro, après confirmation. */
     function remettreCompteursAZero() {
-      if (!confirm(T('mtResetConfirm'))) return;
+      demanderConfirmation(T('mtResetConfirm'), executerRemiseAZero_);
+    }
+
+    /** Remise à zéro effective, une fois la confirmation obtenue. */
+    function executerRemiseAZero_() {
       setLoader(true);
       google.script.run
         .withSuccessHandler(function (donnees) {

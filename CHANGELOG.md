@@ -44,6 +44,14 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
   les dix derniers messages signalés et la recherche Gmail à utiliser.
 
+- **Filtre du journal d'activité.** Chaque changement d'onglet produisait une
+  ligne, noyant les évènements utiles. Les entrées sont désormais typées —
+  `SYSTEM`, `ACTION`, `NAV`, `ERROR` — et un sélecteur propose trois vues :
+  « Actions et erreurs » (par défaut, la navigation est masquée), « Tout » et
+  « Erreurs seules ». Le paramètre `type` de `log()` existait déjà mais n'était
+  jamais exploité pour filtrer.
+- Le journal conserve au plus 200 lignes : une session longue accumulait sans
+  limite des nœuds dans le DOM.
 - **Icônes Material Symbols à la place des emoji.** Les titres de panneau
   portaient des emoji (🛡️, 📜, 🧪…) : Google n'en emploie jamais dans son
   interface, et c'était le signal le plus visible d'un habillage qui n'est pas

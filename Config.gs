@@ -266,7 +266,12 @@ const UI_TRANSLATIONS = {
     logWlRemoved: "Retiré de la liste blanche : {n}",
     logBrandAdded: "Marque ajoutée à la surveillance : {n}",
     logBrandRemoved: "Marque retirée de la surveillance : {n}",
-    logFailure: "Échec : {n}"
+    logFailure: "Échec : {n}",
+    logFilterLabel: "Filtrer le journal",
+    logFilterAll: "Tout",
+    logFilterActions: "Actions et erreurs",
+    logFilterErrors: "Erreurs seules",
+    logEmptyFiltered: "Aucune entrée ne correspond à ce filtre."
   },
 
   en: {
@@ -397,6 +402,11 @@ const UI_TRANSLATIONS = {
     logWlRemoved: "Removed from the allow list: {n}",
     logBrandAdded: "Brand added to monitoring: {n}",
     logBrandRemoved: "Brand removed from monitoring: {n}",
-    logFailure: "Failed: {n}"
+    logFailure: "Failed: {n}",
+    logFilterLabel: "Filter the log",
+    logFilterAll: "Everything",
+    logFilterActions: "Actions and errors",
+    logFilterErrors: "Errors only",
+    logEmptyFiltered: "No entry matches this filter."
   }
 };

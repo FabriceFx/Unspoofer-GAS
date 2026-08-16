@@ -720,6 +720,20 @@
     }
     .lang-select:hover { border-color: var(--border-color-active); }
 
+    /* Filtre du journal : poussé à droite du titre, discret au repos. */
+    .filtre-journal {
+      margin-left: auto;
+      margin-right: 0;
+      font-size: 11px;
+      padding: 4px 8px;
+    }
+    .log-vide {
+      color: var(--text-dark);
+      font-family: var(--font-body);
+      font-size: 13px;
+      padding: 8px 2px;
+    }
+
     /* ── Éléments explicatifs ─────────────────────────────────────────────
        Encarts, étapes numérotées et légendes destinés à guider un utilisateur
        qui découvre l'outil. */
@@ -1069,12 +1083,24 @@
 
         <!-- PANNEAU CONSOLE LOGS -->
         <div class="panel">
-          <h2 class="panel-title"><span class="material-symbols-rounded">history</span><span data-i18n="logTitle">Historique d'activité</span></h2>
+          <h2 class="panel-title">
+            <span class="material-symbols-rounded">history</span>
+            <span data-i18n="logTitle">Historique d'activité</span>
+            <select id="filtreJournal" class="lang-select filtre-journal"
+                    onchange="appliquerFiltreJournal(this.value)"
+                    data-i18n-title="logFilterLabel" title="Filtrer le journal">
+              <option value="actions" data-i18n="logFilterActions">Actions et erreurs</option>
+              <option value="tout" data-i18n="logFilterAll">Tout</option>
+              <option value="erreurs" data-i18n="logFilterErrors">Erreurs seules</option>
+            </select>
+          </h2>
           <div class="log-console" id="logConsole">
-            <div class="log-line">
+            <div class="log-line" data-type="SYSTEM">
               <span class="log-timestamp">[SYSTEM]</span>
               <span class="log-text" data-i18n="logConnected">Tableau de bord de sécurité Unspoofer connecté.</span>
             </div>
+            <div class="log-vide" id="journalVide" data-i18n="logEmptyFiltered"
+                 style="display:none">Aucune entrée ne correspond à ce filtre.</div>
           </div>
         </div>
 
@@ -1436,7 +1462,7 @@
           populateDashboard(data);   // applique déjà le dictionnaire et la langue
           setLoader(false);
           showToast(T('msgLangChanged'));
-          log(T('logLang', { n: data.lang.toUpperCase() }));
+          log(T('logLang', { n: data.lang.toUpperCase() }), 'ACTION');
         })
         .withFailureHandler(err => {
           setLoader(false);
@@ -1459,7 +1485,7 @@
       if (tabContent) tabContent.classList.add('active');
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      log(T('logNav', { n: tabName.toUpperCase() }));
+      log(T('logNav', { n: tabName.toUpperCase() }), 'NAV');
     }
 
     // Gestion du Loader
@@ -1486,13 +1512,70 @@
     }
 
     // Console Logging local
+    /**
+     * Filtre courant du journal. « actions » masque la navigation, qui noyait
+     * les évènements utiles sous une ligne par changement d'onglet.
+     * @type {'tout'|'actions'|'erreurs'}
+     */
+    let FILTRE_JOURNAL = 'actions';
+
+    /** Types d'entrée retenus pour chaque filtre. */
+    const TYPES_PAR_FILTRE = {
+      tout: ['SYSTEM', 'ACTION', 'NAV', 'ERROR'],
+      actions: ['SYSTEM', 'ACTION', 'ERROR'],
+      erreurs: ['ERROR'],
+    };
+
+    /** Nombre de lignes conservées : au-delà, les plus anciennes sont retirées. */
+    const MAX_LIGNES_JOURNAL = 200;
+
+    /**
+     * Applique le filtre à une ligne du journal.
+     * @param {HTMLElement} ligne
+     */
+    function filtrerLigneJournal_(ligne) {
+      const types = TYPES_PAR_FILTRE[FILTRE_JOURNAL] || TYPES_PAR_FILTRE.tout;
+      const type = ligne.getAttribute('data-type') || 'SYSTEM';
+      ligne.style.display = types.indexOf(type) !== -1 ? '' : 'none';
+    }
+
+    /**
+     * Change le filtre et le réapplique à tout l'historique déjà affiché.
+     * @param {string} valeur
+     */
+    function appliquerFiltreJournal(valeur) {
+      FILTRE_JOURNAL = valeur;
+      const consoleEl = document.getElementById('logConsole');
+      const lignes = consoleEl.querySelectorAll('.log-line');
+      lignes.forEach(filtrerLigneJournal_);
+
+      // Message d'état lorsque le filtre ne laisse rien passer
+      const visibles = [...lignes].filter((l) => l.style.display !== 'none').length;
+      const vide = document.getElementById('journalVide');
+      if (vide) vide.style.display = visibles === 0 ? '' : 'none';
+    }
+
+    /**
+     * Ajoute une entrée au journal d'activité.
+     * @param {string} message
+     * @param {'SYSTEM'|'ACTION'|'NAV'|'ERROR'} [type=SYSTEM]
+     */
     function log(message, type = 'SYSTEM') {
       const consoleEl = document.getElementById('logConsole');
       const time = new Date().toLocaleTimeString();
       const line = document.createElement('div');
       line.className = 'log-line';
+      line.setAttribute('data-type', type);
       line.innerHTML = `<span class="log-timestamp">[${time} - ${type}]</span><span class="log-text">${escapeHtml(message)}</span>`;
       consoleEl.appendChild(line);
+
+      // Purge des plus anciennes : sans plafond, une session longue accumule
+      // des milliers de nœuds dans le DOM.
+      const lignes = consoleEl.querySelectorAll('.log-line');
+      for (let i = 0; i < lignes.length - MAX_LIGNES_JOURNAL; i++) lignes[i].remove();
+
+      filtrerLigneJournal_(line);
+      appliquerFiltreJournal(FILTRE_JOURNAL);
       consoleEl.scrollTop = consoleEl.scrollHeight;
     }
 
@@ -1628,7 +1711,7 @@
         .withSuccessHandler(function(statut) {
           setLoader(false);
           showToast(statut ? T('msgTriggersOn') : T('msgTriggersOff'));
-          log(statut ? T('logTriggersOn') : T('logTriggersOff'));
+          log(statut ? T('logTriggersOn') : T('logTriggersOff'), 'ACTION');
           
           const indicator = document.getElementById('statusIndicator');
           indicator.style.backgroundColor = statut ? 'var(--color-success)' : 'var(--text-dark)';
@@ -1649,7 +1732,7 @@
           populateDashboard(data);
           setLoader(false);
           showToast(T('msgScanDone'));
-          log(T('logScanDone', { n: data.stats.totalUsurpations }));
+          log(T('logScanDone', { n: data.stats.totalUsurpations }), 'ACTION');
         })
         .withFailureHandler(function(err) {
           setLoader(false);
@@ -1665,7 +1748,7 @@
         .withSuccessHandler(function(rapport) {
           setLoader(false);
           showToast(T('msgTestsDone', { n: rapport.reussis }));
-          log(T('logTestsDone', { a: rapport.reussis, b: rapport.echoues }));
+          log(T('logTestsDone', { a: rapport.reussis, b: rapport.echoues }), 'ACTION');
           
           // Affichage du bandeau de résumé
           const sBadge = document.getElementById('testResultSuccess');
@@ -1719,7 +1802,7 @@
           setLoader(false);
           input.value = '';
           showToast(T('msgWlAdded'));
-          log(T('logWlAdded', { n: val }));
+          log(T('logWlAdded', { n: val }), 'ACTION');
         })
         .withFailureHandler(function(err) {
           setLoader(false);
@@ -1736,7 +1819,7 @@
           renderWhitelist(newList);
           setLoader(false);
           showToast(T('msgWlRemoved'));
-          log(T('logWlRemoved', { n: entree }));
+          log(T('logWlRemoved', { n: entree }), 'ACTION');
         })
         .withFailureHandler(function(err) {
           setLoader(false);
@@ -1765,7 +1848,7 @@
           nameInput.value = '';
           domainInput.value = '';
           showToast(T('msgBrandAdded'));
-          log(T('logBrandAdded', { n: name + ' (' + domain + ')' }));
+          log(T('logBrandAdded', { n: name + ' (' + domain + ')' }), 'ACTION');
         })
         .withFailureHandler(function(err) {
           setLoader(false);
@@ -1782,7 +1865,7 @@
           renderCustomBrands(newList);
           setLoader(false);
           showToast(T('msgBrandRemoved'));
-          log(T('logBrandRemoved', { n: domaine }));
+          log(T('logBrandRemoved', { n: domaine }), 'ACTION');
         })
         .withFailureHandler(function(err) {
           setLoader(false);

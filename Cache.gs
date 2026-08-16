@@ -56,7 +56,7 @@ function chargerCache_() {
  * @param {string} id
  * @returns {boolean}
  */
-function estTraite(id) {
+function estTraite_(id) {
     // 1. Couche mémoire de l'exécution actuelle (O(1))
     if (_ensembleTraite !== null && _ensembleTraite.has(id)) {
         return true;
@@ -89,7 +89,7 @@ function estTraite(id) {
  * Marque un ID de message comme traité (RAM + CacheService + file d'attente d'écriture).
  * @param {string} id
  */
-function marquerCommeTraite(id) {
+function marquerCommeTraite_(id) {
     chargerCache_();
     if (!_ensembleTraite.has(id)) {
         _ensembleTraite.add(id);
@@ -108,7 +108,7 @@ function marquerCommeTraite(id) {
 /**
  * Écrit le cache compacté dans les ScriptProperties à la fin de l'analyse.
  */
-function persisterCache() {
+function persisterCache_() {
     if (!_cacheModifie || !_listeTraite) return;
 
     if (_listeTraite.length > MAX_IDS_CACHES) {
@@ -120,7 +120,7 @@ function persisterCache() {
         PropertiesService.getScriptProperties().setProperty(CLE_CACHE, _listeTraite.join(','));
         _cacheModifie = false;
     } catch (e) {
-        Logger.log('ERREUR persisterCache : ' + e.message);
+        Logger.log('ERREUR persisterCache_ : ' + e.message);
         // Tentative de repli d'urgence
         _listeTraite = _listeTraite.slice(_listeTraite.length - Math.floor(MAX_IDS_CACHES / 2));
         _ensembleTraite = new Set(_listeTraite);
@@ -128,7 +128,7 @@ function persisterCache() {
             PropertiesService.getScriptProperties().setProperty(CLE_CACHE, _listeTraite.join(','));
             _cacheModifie = false;
         } catch (e2) {
-            Logger.log('ERREUR critique persisterCache (repli) : ' + e2.message);
+            Logger.log('ERREUR critique persisterCache_ (repli) : ' + e2.message);
         }
     }
 }
@@ -152,7 +152,7 @@ function effacerCacheTraite() {
  */
 function incrementerStatistiques_(analyses, usurpations) {
     try {
-        const stats = getStatistiques();
+        const stats = getStatistiques_();
         stats.totalAnalyses += analyses;
         stats.totalUsurpations += usurpations;
         stats.totalExecutions += 1;
@@ -168,7 +168,7 @@ function incrementerStatistiques_(analyses, usurpations) {
  * Point 8 : Ajout du snapshot hebdomadaire.
  * @returns {{totalAnalyses: number, totalUsurpations: number, totalExecutions: number, derniereAnalyse: string, snapshotHebdo: {analyses: number, usurpations: number, date: string}}}
  */
-function getStatistiques() {
+function getStatistiques_() {
     let stats = {
         totalAnalyses: 0,
         totalUsurpations: 0,
@@ -192,7 +192,7 @@ function getStatistiques() {
  */
 function sauvegarderSnapshotHebdo_() {
     try {
-        const stats = getStatistiques();
+        const stats = getStatistiques_();
         stats.snapshotHebdo = {
             analyses: stats.totalAnalyses,
             usurpations: stats.totalUsurpations,
@@ -208,7 +208,7 @@ function sauvegarderSnapshotHebdo_() {
  * Affiche les statistiques cumulées dans le journal d'exécution.
  */
 function afficherStatistiques() {
-    const stats = getStatistiques();
+    const stats = getStatistiques_();
     Logger.log('=== Statistiques Unspoofer ===');
     Logger.log('Total messages analysés : ' + stats.totalAnalyses);
     Logger.log('Total usurpations détectées : ' + stats.totalUsurpations);

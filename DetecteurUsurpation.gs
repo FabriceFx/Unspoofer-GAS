@@ -106,7 +106,7 @@ function extraireEnTetes_(contenuBrut) {
  * @param {string} domaineEmail
  * @returns {string|null} La plateforme correspondante ou null
  */
-function estUnePlateformeSuspecte(domaineEmail) {
+function estUnePlateformeSuspecte_(domaineEmail) {
     if (!domaineEmail) return null;
     const domaine = domaineEmail.toLowerCase();
     for (const plateforme of PLATEFORMES_SUSPECTES) {
@@ -183,7 +183,7 @@ function getDomaineProprietaire_() {
         const email = (Session.getEffectiveUser().getEmail() ||
             Session.getActiveUser().getEmail() || '').toLowerCase();
         const domaine = email.split('@')[1] || '';
-        _cacheDomaineProprietaire = domaine ? extraireDomaineRacine(domaine) : '';
+        _cacheDomaineProprietaire = domaine ? extraireDomaineRacine_(domaine) : '';
     } catch (e) {
         _cacheDomaineProprietaire = '';
     }
@@ -210,14 +210,14 @@ function getListeBlanche_() {
  * @param {string} email
  * @returns {boolean}
  */
-function estExpediteurEnListeBlanche(email) {
+function estExpediteurEnListeBlanche_(email) {
     if (!email) return false;
     const listeBlanche = getListeBlanche_();
     if (listeBlanche.length === 0) return false;
 
     const domaine = email.split('@')[1];
     if (!domaine) return false;
-    const racine = extraireDomaineRacine(domaine);
+    const racine = extraireDomaineRacine_(domaine);
 
     for (const entree of listeBlanche) {
         if (entree === email || entree === domaine || entree === racine) return true;
@@ -233,7 +233,7 @@ function estExpediteurEnListeBlanche(email) {
  * @param {string} chaineDe
  * @returns {{nomAffichage: string, email: string}}
  */
-function analyserExpediteur(chaineDe) {
+function analyserExpediteur_(chaineDe) {
     if (!chaineDe) return { nomAffichage: '', email: '' };
 
     // Cherche d'abord <email> n'importe où
@@ -261,7 +261,7 @@ const TLD_COMPOSES = new Set([
  * @param {string} domaine
  * @returns {string}
  */
-function extraireDomaineRacine(domaine) {
+function extraireDomaineRacine_(domaine) {
     if (!domaine) return '';
     const d = domaine.toLowerCase();
     const parties = d.split('.');
@@ -305,10 +305,10 @@ const TLD_CONNUS = new Set([
  * @param {string} nomAffichage
  * @returns {string|null}
  */
-function extraireDomaineDuNomAffichage(nomAffichage) {
+function extraireDomaineDuNomAffichage_(nomAffichage) {
     if (!nomAffichage) return null;
 
-    const normalise = normaliserEnAscii(nomAffichage);
+    const normalise = normaliserEnAscii_(nomAffichage);
     const motifDomaine = /([a-z0-9][-a-z0-9]*\.)+[a-z]{2,}/g;
     const correspondances = normalise.match(motifDomaine);
     if (!correspondances) return null;
@@ -361,8 +361,8 @@ function verifierLiensSuspects_(corps) {
                 // Extraire le domaine de l'URL
                 const matchDomaine = url.match(/https?:\/\/([^/:\s]+)/i);
                 if (matchDomaine) {
-                    const domaine = extraireDomaineRacine(matchDomaine[1]);
-                    const typo = verifierTyposquatting(domaine);
+                    const domaine = extraireDomaineRacine_(matchDomaine[1]);
+                    const typo = verifierTyposquatting_(domaine);
                     if (typo) return { suspect: true, url: url, marque: typo.nomMarque };
                 }
             } catch (e) { /* URL malformée */ }
@@ -394,26 +394,26 @@ function verifierEcartsLiensHtml_(html) {
             const texteAffiche = match[2].replace(/<[^>]*>/g, '').trim();
             
             // Chercher si le texte affiché contient un domaine ou ressemble à un domaine
-            const domaineAffiche = extraireDomaineDuNomAffichage(texteAffiche);
+            const domaineAffiche = extraireDomaineDuNomAffichage_(texteAffiche);
             if (domaineAffiche) {
-                const racineAffichee = extraireDomaineRacine(domaineAffiche);
+                const racineAffichee = extraireDomaineRacine_(domaineAffiche);
                 
                 // Extraire le domaine de l'URL réelle du href
                 const matchUrlReelle = urlReelle.match(/https?:\/\/([^/:\s]+)/i);
                 if (matchUrlReelle) {
                     const domaineReel = matchUrlReelle[1];
-                    const racineReelle = extraireDomaineRacine(domaineReel);
+                    const racineReelle = extraireDomaineRacine_(domaineReel);
                     
                     // Si le domaine affiché correspond à une marque connue ET que l'URL réelle pointe ailleurs
-                    const marqueAffichee = trouverMarqueUsurpee(normaliserEnAscii(domaineAffiche));
+                    const marqueAffichee = trouverMarqueUsurpee_(normaliserEnAscii_(domaineAffiche));
                     if (marqueAffichee) {
-                        const racineMarque = extraireDomaineRacine(marqueAffichee.domaine);
+                        const racineMarque = extraireDomaineRacine_(marqueAffichee.domaine);
                         
                         // Exemption : pas d'usurpation possible entre domaines
                         // restreints d'une même autorité publique (cf. Marque.gs)
-                        const estExempte = estMemeAutoriteEtatique(racineMarque, racineReelle);
+                        const estExempte = estMemeAutoriteEtatique_(racineMarque, racineReelle);
 
-                        if (!estExempte && racineReelle !== racineMarque && !estUnDomaineMarqueLie(racineMarque, racineReelle)) {
+                        if (!estExempte && racineReelle !== racineMarque && !estUnDomaineMarqueLie_(racineMarque, racineReelle)) {
                             return {
                                 suspect: true,
                                 texteAffiche: domaineAffiche,
@@ -459,7 +459,7 @@ function verifierPiecesJointes_(message) {
  * @param {GmailMessage} message
  * @returns {{estUsurpation: boolean, raison: string, marque: string, details: string, severite: string}}
  */
-function verifierUsurpation(message) {
+function verifierUsurpation_(message) {
     const de = message.getFrom();
     // analysePartielle : un contrôle a été sauté faute de quota d'appels Gmail.
     // L'appelant ne doit alors PAS mémoriser le message comme définitivement
@@ -513,7 +513,7 @@ function verifierUsurpation(message) {
     };
 
     // 1. Analyser l'expéditeur
-    const expediteur = analyserExpediteur(de);
+    const expediteur = analyserExpediteur_(de);
     if (!expediteur.email) return resultat;
 
     // 1b. Ignorer les e-mails d'alerte et de rapports générés par Unspoofer lui-même pour éviter les faux positifs en boucle
@@ -529,11 +529,11 @@ function verifierUsurpation(message) {
     }
 
     // 2. Vérifier la liste blanche
-    if (estExpediteurEnListeBlanche(expediteur.email)) return resultat;
+    if (estExpediteurEnListeBlanche_(expediteur.email)) return resultat;
 
     // 3. Vérifier plateforme suspecte (pas d'appel API)
     const domaineExpediteur = expediteur.email.split('@')[1];
-    const plateformeSuspecte = estUnePlateformeSuspecte(domaineExpediteur);
+    const plateformeSuspecte = estUnePlateformeSuspecte_(domaineExpediteur);
     if (plateformeSuspecte) {
         resultat.estUsurpation = true;
         resultat.marque = plateformeSuspecte;
@@ -549,19 +549,19 @@ function verifierUsurpation(message) {
     //     en alerte moyenne.)
 
     // 5. Normaliser le nom d'affichage et chercher une correspondance de marque
-    const nomNormalise = expediteur.nomAffichage ? normaliserEnAscii(expediteur.nomAffichage) : '';
-    const homoglyphesPresents = expediteur.nomAffichage ? contientHomoglyphes(expediteur.nomAffichage) : false;
-    let correspondanceMarque = trouverMarqueUsurpee(nomNormalise);
+    const nomNormalise = expediteur.nomAffichage ? normaliserEnAscii_(expediteur.nomAffichage) : '';
+    const homoglyphesPresents = expediteur.nomAffichage ? contientHomoglyphes_(expediteur.nomAffichage) : false;
+    let correspondanceMarque = trouverMarqueUsurpee_(nomNormalise);
 
     // 5b. Vérifier la partie locale de l'email
     if (!correspondanceMarque) {
         const partieLocale = expediteur.email.split('@')[0].replace(/[._+-]/g, ' ');
-        correspondanceMarque = trouverMarqueUsurpee(partieLocale);
+        correspondanceMarque = trouverMarqueUsurpee_(partieLocale);
     }
 
     // 6. Extraire le domaine racine de l'expéditeur
     if (!domaineExpediteur) return resultat;
-    const racineActuelle = extraireDomaineRacine(domaineExpediteur);
+    const racineActuelle = extraireDomaineRacine_(domaineExpediteur);
 
     // 7. Évaluation de la correspondance de marque
     //
@@ -571,21 +571,21 @@ function verifierUsurpation(message) {
     // pièce jointe dangereuse. Ces cas sortaient auparavant par un return
     // immédiat, sans jamais atteindre les contrôles suivants.
     if (correspondanceMarque) {
-        const racineMarque = extraireDomaineRacine(correspondanceMarque.domaine);
+        const racineMarque = extraireDomaineRacine_(correspondanceMarque.domaine);
         const memeMarque = racineActuelle === racineMarque ||
-            estUnDomaineMarqueLie(racineMarque, racineActuelle) ||
+            estUnDomaineMarqueLie_(racineMarque, racineActuelle) ||
             // Deux domaines d'une même autorité publique ne peuvent pas
             // s'usurper : leur enregistrement est contrôlé.
-            estMemeAutoriteEtatique(racineMarque, racineActuelle);
+            estMemeAutoriteEtatique_(racineMarque, racineActuelle);
 
         if (memeMarque) correspondanceMarque = null;
     }
 
     if (correspondanceMarque) {
-        const racineMarque = extraireDomaineRacine(correspondanceMarque.domaine);
-        const domaineImplicite = extraireDomaineDuNomAffichage(expediteur.nomAffichage);
+        const racineMarque = extraireDomaineRacine_(correspondanceMarque.domaine);
+        const domaineImplicite = extraireDomaineDuNomAffichage_(expediteur.nomAffichage);
         if (domaineImplicite) {
-            const racineImplicite = extraireDomaineRacine(domaineImplicite);
+            const racineImplicite = extraireDomaineRacine_(domaineImplicite);
             if (racineImplicite === racineActuelle) return resultat;
         }
 
@@ -595,7 +595,7 @@ function verifierUsurpation(message) {
         // Libellé de marque qui est aussi un mot courant : sans corroboration,
         // on refuse de conclure (« Square Habitat », « April Formation »).
         if (correspondanceMarque.ambigu &&
-            !corroboreMarqueAmbigue(correspondanceMarque.nomMarque, nomNormalise,
+            !corroboreMarqueAmbigue_(correspondanceMarque.nomMarque, nomNormalise,
                 racineActuelle, homoglyphesPresents, estAuthEchouee_(authEmail))) {
             correspondanceMarque = null;
         } else {
@@ -614,13 +614,13 @@ function verifierUsurpation(message) {
     }
 
     // 8. Vérification générique : domaine dans le nom d'affichage
-    const domaineImplicite = extraireDomaineDuNomAffichage(expediteur.nomAffichage);
+    const domaineImplicite = extraireDomaineDuNomAffichage_(expediteur.nomAffichage);
     if (domaineImplicite) {
-        const racineImplicite = extraireDomaineRacine(domaineImplicite);
+        const racineImplicite = extraireDomaineRacine_(domaineImplicite);
         const domaineProprietaire = getDomaineProprietaire_();
         if (domaineProprietaire && racineImplicite === domaineProprietaire) {
             // C'est le propre domaine du destinataire (service de formulaire) — OK
-        } else if (racineImplicite !== racineActuelle && !estUnDomaineMarqueLie(racineImplicite, racineActuelle)) {
+        } else if (racineImplicite !== racineActuelle && !estUnDomaineMarqueLie_(racineImplicite, racineActuelle)) {
             resultat.estUsurpation = true;
             resultat.marque = racineImplicite.split('.')[0];
             resultat.raison = dict.reasonGenericDomain
@@ -634,7 +634,7 @@ function verifierUsurpation(message) {
     }
 
     // 9. Vérification du typosquatting sur le domaine de l'expéditeur
-    const typosquatting = verifierTyposquatting(racineActuelle);
+    const typosquatting = verifierTyposquatting_(racineActuelle);
     if (typosquatting) {
         resultat.estUsurpation = true;
         resultat.marque = typosquatting.nomMarque;
@@ -652,10 +652,10 @@ function verifierUsurpation(message) {
     try {
         const replyTo = message.getReplyTo ? message.getReplyTo() : '';
         if (replyTo) {
-            const analyseReply = analyserExpediteur(replyTo);
-            const replyDomaine = extraireDomaineRacine(analyseReply.email.split('@')[1] || '');
+            const analyseReply = analyserExpediteur_(replyTo);
+            const replyDomaine = extraireDomaineRacine_(analyseReply.email.split('@')[1] || '');
             if (replyDomaine && racineActuelle && replyDomaine !== racineActuelle &&
-                !estUnDomaineMarqueLie(racineActuelle, replyDomaine) &&
+                !estUnDomaineMarqueLie_(racineActuelle, replyDomaine) &&
                 !getPlateformesTierces_().has(racineActuelle)) {
                 resultat.estUsurpation = true;
                 resultat.marque = '';

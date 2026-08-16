@@ -38,7 +38,7 @@ const SOURCE = FICHIERS_MOTEUR
 // ─── Faux message Gmail ────────────────────────────────────────────────────
 
 /**
- * Reproduit la surface de GmailMessage utilisée par verifierUsurpation().
+ * Reproduit la surface de GmailMessage utilisée par verifierUsurpation_().
  */
 class FauxMessage {
     /**
@@ -152,7 +152,7 @@ function analyser(cas, options = {}) {
     const message = new FauxMessage(cas);
     contexte.__message = message;
 
-    const resultat = vm.runInContext('verifierUsurpation(__message)', contexte, {
+    const resultat = vm.runInContext('verifierUsurpation_(__message)', contexte, {
         filename: 'unspoofer-appel.js',
     });
 

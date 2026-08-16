@@ -219,7 +219,7 @@ const SUFFIXES_ETATIQUES = ['.gouv.fr', '.gov', '.gov.uk', '.gc.ca', '.edu', '.m
  * @param {string} racineB
  * @returns {boolean}
  */
-function estMemeAutoriteEtatique(racineA, racineB) {
+function estMemeAutoriteEtatique_(racineA, racineB) {
     if (!racineA || !racineB) return false;
     const a = racineA.toLowerCase();
     const b = racineB.toLowerCase();
@@ -232,7 +232,7 @@ function estMemeAutoriteEtatique(racineA, racineB) {
  * « Square Habitat », « L'Orange Bleue » ou « April Formation » sont des
  * entreprises réelles sans rapport avec square.com, orange.fr ou april.fr.
  *
- * Ces marques exigent une corroboration (voir verifierUsurpation).
+ * Ces marques exigent une corroboration (voir verifierUsurpation_).
  *
  * Valeurs par défaut : la liste effective est obtenue via
  * getMarquesAmbigues_(), qui y applique les ajouts et retraits de
@@ -358,12 +358,12 @@ function getIndexMarques_() {
 
     for (const domaine of toutesLesMarques) {
         _indexMarques.parDomaine.push(domaine);
-        const nom = extraireNomMarque(domaine);
+        const nom = extraireNomMarque_(domaine);
         if (nom.length >= 3 && !_indexMarques.parNom.has(nom)) {
             _indexMarques.parNom.set(nom, domaine);
         }
         // Forme compacte : « pole-emploi » → « poleemploi »
-        const compacte = normaliserEnFormeCompacte(nom);
+        const compacte = normaliserEnFormeCompacte_(nom);
         if (compacte.length >= LONGUEUR_MIN_COMPACTE &&
             !getMarquesAmbigues_().has(nom) &&
             !_indexMarques.parCompacte.has(compacte)) {
@@ -389,11 +389,11 @@ let _cacheDomaineLie = null;
  * @param {string} racineExpediteur
  * @returns {boolean}
  */
-function estUnDomaineMarqueLie(racineMarque, racineExpediteur) {
+function estUnDomaineMarqueLie_(racineMarque, racineExpediteur) {
     if (!_cacheDomaineLie) {
         _cacheDomaineLie = {};
         for (const groupe of GROUPES_MARQUES) {
-            const racines = groupe.map(d => extraireDomaineRacine(d));
+            const racines = groupe.map(d => extraireDomaineRacine_(d));
             for (const racine of racines) {
                 // Fusion, et non remplacement : un domaine peut figurer dans
                 // plusieurs groupes (edf.fr appartient au groupe historique EDF
@@ -417,7 +417,7 @@ function estUnDomaineMarqueLie(racineMarque, racineExpediteur) {
  * @param {string} domaine
  * @returns {string}
  */
-function extraireNomMarque(domaine) {
+function extraireNomMarque_(domaine) {
     return domaine.split('.')[0];
 }
 
@@ -432,7 +432,7 @@ function extraireNomMarque(domaine) {
  * @param {string} nomAffichageNormalise - Déjà normalisé (ASCII, minuscules)
  * @returns {{domaine: string, nomMarque: string, ambigu: boolean}|null}
  */
-function trouverMarqueUsurpee(nomAffichageNormalise) {
+function trouverMarqueUsurpee_(nomAffichageNormalise) {
     if (!nomAffichageNormalise) return null;
 
     const index = getIndexMarques_();
@@ -440,17 +440,17 @@ function trouverMarqueUsurpee(nomAffichageNormalise) {
     // Premier passage : domaine complet cité dans le nom affiché (« paypal.com »)
     for (const domaine of index.parDomaine) {
         if (nomAffichageNormalise.includes(domaine)) {
-            return { domaine: domaine, nomMarque: extraireNomMarque(domaine), ambigu: false };
+            return { domaine: domaine, nomMarque: extraireNomMarque_(domaine), ambigu: false };
         }
     }
 
     // Deuxième passage : forme compacte, pour les raisons sociales en plusieurs
     // mots et les noms usuels (« Crédit Agricole », « Assurance Maladie »)
-    const compacte = normaliserEnFormeCompacte(nomAffichageNormalise);
+    const compacte = normaliserEnFormeCompacte_(nomAffichageNormalise);
     if (compacte) {
         for (const [cle, domaine] of index.parCompacte.entries()) {
             if (compacte.includes(cle)) {
-                return { domaine: domaine, nomMarque: extraireNomMarque(domaine), ambigu: false };
+                return { domaine: domaine, nomMarque: extraireNomMarque_(domaine), ambigu: false };
             }
         }
     }
@@ -491,12 +491,12 @@ function trouverMarqueUsurpee(nomAffichageNormalise) {
  * @param {boolean} authEchouee
  * @returns {boolean}
  */
-function corroboreMarqueAmbigue(nomMarque, nomAffichageNormalise, racineExpediteur,
+function corroboreMarqueAmbigue_(nomMarque, nomAffichageNormalise, racineExpediteur,
     homoglyphesPresents, authEchouee) {
     if (homoglyphesPresents || authEchouee) return true;
 
-    const affiche = normaliserEnFormeCompacte(nomAffichageNormalise);
-    if (affiche === normaliserEnFormeCompacte(nomMarque)) return true;
+    const affiche = normaliserEnFormeCompacte_(nomAffichageNormalise);
+    if (affiche === normaliserEnFormeCompacte_(nomMarque)) return true;
 
     const label = (racineExpediteur || '').split('.')[0];
     if (label.includes(nomMarque)) {
@@ -517,7 +517,7 @@ function corroboreMarqueAmbigue(nomMarque, nomAffichageNormalise, racineExpedite
  * @param {string} b
  * @returns {number}
  */
-function distanceLevenshtein(a, b) {
+function distanceLevenshtein_(a, b) {
     if (a === b) return 0;
     if (!a) return b.length;
     if (!b) return a.length;
@@ -553,7 +553,7 @@ const MOTS_CLES_PHISHING = [
  * @param {string} racineExpediteur - Domaine racine de l'expéditeur (ex : "paypa1.com")
  * @returns {{domaine: string, nomMarque: string}|null}
  */
-function verifierTyposquatting(racineExpediteur) {
+function verifierTyposquatting_(racineExpediteur) {
     if (!racineExpediteur) return null;
 
     // Éviter les faux positifs sur les domaines gouvernementaux et académiques hautement restreints (ex: finances.gouv.fr)
@@ -577,9 +577,9 @@ function verifierTyposquatting(racineExpediteur) {
     //    échappent à la distance de Levenshtein, qui ne compare que le libellé.
     const entreeExacte = index.parNom.get(nomExpediteur);
     if (entreeExacte && !getMarquesAmbigues_().has(nomExpediteur)) {
-        const racineMarque = extraireDomaineRacine(entreeExacte);
+        const racineMarque = extraireDomaineRacine_(entreeExacte);
         if (racineMarque === racineExpediteur ||
-            estUnDomaineMarqueLie(racineMarque, racineExpediteur)) {
+            estUnDomaineMarqueLie_(racineMarque, racineExpediteur)) {
             return null;   // domaine officiel de la marque
         }
         return { domaine: entreeExacte, nomMarque: nomExpediteur };
@@ -617,7 +617,7 @@ function verifierTyposquatting(racineExpediteur) {
         const diffLongueur = Math.abs(nomExpediteur.length - nomMarque.length);
         if (diffLongueur > seuilMax) continue;
 
-        const distance = distanceLevenshtein(nomExpediteur, nomMarque);
+        const distance = distanceLevenshtein_(nomExpediteur, nomMarque);
         if (distance > 0 && distance <= seuilMax) {
             return { domaine: domaine, nomMarque: nomMarque };
         }

@@ -123,14 +123,14 @@ function analyserBoiteReception() {
                 for (const message of messages) {
                     const idMsg = message.getId();
 
-                    if (estTraite(idMsg)) {
+                    if (estTraite_(idMsg)) {
                         nombreIgnores++;
                         continue;
                     }
 
                     // Entourer l'analyse unitaire pour éviter de marquer traité en cas d'erreur
                     try {
-                        const resultat = verifierUsurpation(message);
+                        const resultat = verifierUsurpation_(message);
 
                         if (resultat.estUsurpation) {
                             // Déduplication des alertes.
@@ -149,7 +149,7 @@ function analyserBoiteReception() {
                             message.star();
 
                             if (!dejaSignale) {
-                                const expediteur = analyserExpediteur(message.getFrom());
+                                const expediteur = analyserExpediteur_(message.getFrom());
                                 detailsUsurpations.push({
                                     objet: message.getSubject(),
                                     email: expediteur.email,
@@ -173,7 +173,7 @@ function analyserBoiteReception() {
                         if (resultat.analysePartielle) {
                             nombrePartiels++;
                         } else {
-                            marquerCommeTraite(idMsg);
+                            marquerCommeTraite_(idMsg);
                         }
                         nombreAnalyses++; // Déplacé ici (Point 7)
                     } catch (e) {
@@ -187,7 +187,7 @@ function analyserBoiteReception() {
         } while (fils.length === TAILLE_PAGE && !limiteAtteinte);
 
     } finally {
-        persisterCache();
+        persisterCache_();
     }
 
     // Statistiques persistantes (#11)
@@ -338,7 +338,7 @@ function envoyerAlerteUsurpation_(usurpations) {
  * S'adapte de façon asynchrone à la langue de l'utilisateur final.
  */
 function envoyerRapportHebdomadaire_() {
-  const stats = getStatistiques();
+  const stats = getStatistiques_();
   const destinataire = getEmailProprietaire_();
   if (!destinataire || stats.totalAnalyses === 0) return;
 
@@ -516,7 +516,7 @@ function testerDetection(retournerResultats = false) {
                 ? ct.domaineProprietaire : '';
 
             // Le message simulé doit couvrir TOUTE la surface de GmailMessage
-            // utilisée par verifierUsurpation(). Il manquait getSubject(),
+            // utilisée par verifierUsurpation_(). Il manquait getSubject(),
             // appelé depuis le garde-fou anti-boucle d'auto-alerte : la suite
             // levait une exception dès le premier cas et n'affichait donc
             // jamais le moindre résultat.
@@ -531,7 +531,7 @@ function testerDetection(retournerResultats = false) {
                 getId: () => 'test-' + ct.nom,
             };
 
-            const resultat = verifierUsurpation(messageSimule);
+            const resultat = verifierUsurpation_(messageSimule);
             const statut = (resultat.estUsurpation === ct.usurpationAttendue) ? 'RÉUSSI' : 'ÉCHEC';
             if (statut === 'RÉUSSI') { reussis++; } else { echoues++; }
 
@@ -591,7 +591,7 @@ function deboguerMessage() {
     const lignes = ['De : ' + de, ''];
 
     try {
-        const resultat = verifierUsurpation(message);
+        const resultat = verifierUsurpation_(message);
         lignes.push('estUsurpation=' + resultat.estUsurpation);
         lignes.push('severite=' + resultat.severite);
         lignes.push('raison=' + resultat.raison);
@@ -671,7 +671,7 @@ function diagnostiquerAlertes() {
     Logger.log('→ Fils portant l\'étiquette dans Gmail : ' + rapport.filsEtiquetes);
 
     // 3. Que dit le compteur ?
-    const stats = getStatistiques();
+    const stats = getStatistiques_();
     rapport.statUsurpations = stats.totalUsurpations || 0;
     rapport.ecart = rapport.statUsurpations - rapport.filsEtiquetes;
     Logger.log('→ Compteur « usurpations bloquées » : ' + rapport.statUsurpations);
@@ -723,8 +723,8 @@ function analyserMarquesNonDetectees() {
     for (const fil of fils) {
         const messages = fil.getMessages();
         const dernierMsg = messages[messages.length - 1]; // On prend le dernier du fil
-        const exp = analyserExpediteur(dernierMsg.getFrom());
-        const domaineAffiche = extraireDomaineDuNomAffichage(exp.nomAffichage);
+        const exp = analyserExpediteur_(dernierMsg.getFrom());
+        const domaineAffiche = extraireDomaineDuNomAffichage_(exp.nomAffichage);
 
         if (domaineAffiche) {
             frequences[domaineAffiche] = (frequences[domaineAffiche] || 0) + 1;
@@ -763,7 +763,7 @@ function deboguerMessageById(idMessage) {
     }
     try {
         const message = GmailApp.getMessageById(idMessage);
-        const resultat = verifierUsurpation(message);
+        const resultat = verifierUsurpation_(message);
         Logger.log('--- Diagnostic Message ---');
         Logger.log('De : ' + message.getFrom());
         Logger.log('Sujet : ' + message.getSubject());

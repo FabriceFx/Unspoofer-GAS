@@ -30,7 +30,7 @@ function doGet(e) {
  */
 function getDashboardData() {
   const langue = getLangueUtilisateur_();
-  const stats = getStatistiques();
+  const stats = getStatistiques_();
   const listeBlanche = getListeBlanche_();
   const customBrands = getCustomBrands_();
   const triggers = ScriptApp.getProjectTriggers();

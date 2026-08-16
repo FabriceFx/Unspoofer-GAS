@@ -112,7 +112,7 @@ const CARTE_HOMOGLYPHES = {
  * @param {string} str - Chaîne d'entrée pouvant contenir des homoglyphes
  * @returns {string} Chaîne normalisée en minuscules ASCII
  */
-function normaliserEnAscii(str) {
+function normaliserEnAscii_(str) {
     if (!str) return '';
     let resultat = '';
     for (let i = 0; i < str.length; i++) {
@@ -128,7 +128,7 @@ function normaliserEnAscii(str) {
  * @param {string} chaine
  * @returns {boolean}
  */
-function contientHomoglyphes(chaine) {
+function contientHomoglyphes_(chaine) {
     if (!chaine) return false;
     for (let i = 0; i < chaine.length; i++) {
         if (CARTE_HOMOGLYPHES[chaine[i]]) return true;
@@ -161,7 +161,7 @@ const CARTE_ACCENTS = {
  * @param {string} str
  * @returns {string}
  */
-function replierAccents(str) {
+function replierAccents_(str) {
     if (!str) return '';
     let resultat = '';
     for (let i = 0; i < str.length; i++) {
@@ -183,7 +183,7 @@ function replierAccents(str) {
  * @param {string} str
  * @returns {string}
  */
-function normaliserEnFormeCompacte(str) {
+function normaliserEnFormeCompacte_(str) {
     if (!str) return '';
-    return replierAccents(normaliserEnAscii(str)).replace(/[^a-z0-9]/g, '');
+    return replierAccents_(normaliserEnAscii_(str)).replace(/[^a-z0-9]/g, '');
 }

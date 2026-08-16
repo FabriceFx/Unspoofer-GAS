@@ -82,6 +82,14 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (« Menace attendue » / « Légitime attendu », puis « Conforme » ou « Écart »).
   L'ancien affichage ne montrait que le type détecté, sans permettre de
   comprendre pourquoi un cas légitime non signalé était un succès.
+- **Assainissement de la surface publique.** Vingt et un auxiliaires internes
+  (`extraireDomaineRacine`, `distanceLevenshtein`, `normaliserEnAscii`,
+  `verifierUsurpation`, `estTraite`…) ne portaient pas le trait de soulignement
+  final de la convention du projet. Ils encombraient le menu « Exécuter » de
+  l'éditeur Apps Script et, surtout, **toute fonction publique est appelable
+  depuis le client** via `google.script.run`. La surface publique passe de 53 à
+  32 fonctions, toutes des points d'entrée assumés — 13 exposées au tableau de
+  bord, les autres réservées à l'éditeur ou aux déclencheurs.
 - **Onglet « Listes de référence ».** Le mécanisme construit en 2.4.0 était
   complet côté serveur, testé, documenté — et inutilisable pour qui ne lit pas
   le code. Les plateformes d'envoi tierces et les libellés de marque ambigus se

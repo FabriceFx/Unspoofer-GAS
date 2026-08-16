@@ -646,6 +646,21 @@
     .badge-danger { background-color: var(--color-danger); color: white; }
     .badge-secondary { background-color: rgba(255,255,255,0.1); color: var(--text-muted); }
 
+    .lang-select {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: var(--transition-fast);
+    }
+    .lang-select:hover { border-color: var(--border-color-active); }
+
     /* ── Éléments explicatifs ─────────────────────────────────────────────
        Encarts, étapes numérotées et légendes destinés à guider un utilisateur
        qui découvre l'outil. */
@@ -834,7 +849,7 @@
   <!-- Overlay de chargement global -->
   <div id="loader" class="loader-overlay">
     <div class="spinner"></div>
-    <div id="loaderText" class="loader-text">Chargement des données de sécurité...</div>
+    <div id="loaderText" class="loader-text" data-i18n="loading">Chargement des données de sécurité...</div>
   </div>
 
   <!-- Toast de notification -->
@@ -842,7 +857,7 @@
     <div class="toast-icon">
       <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
     </div>
-    <div id="toastText" class="toast-text">Opération effectuée avec succès !</div>
+    <div id="toastText" class="toast-text"></div>
   </div>
 
   <div class="app-container">
@@ -857,11 +872,16 @@
         </div>
         <div class="brand-name">
           <h1 id="appName">Unspoofer</h1>
-          <p id="appVer">Gmail Impersonation Shield</p>
+          <p id="appVer" data-i18n="appSubtitle">Bouclier anti-usurpation Gmail</p>
         </div>
       </div>
       <div class="user-profile">
-        <span id="userEmail">chargement...</span>
+        <select id="selecteurLangue" class="lang-select" onchange="changerLangue(this.value)"
+                data-i18n-title="langLabel" title="Langue de l'interface">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+        </select>
+        <span id="userEmail">—</span>
         <div class="user-avatar" id="userAvatar">U</div>
       </div>
     </header>
@@ -870,23 +890,23 @@
     <nav class="nav-tabs">
       <button class="nav-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">
         <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-        Statut & KPIs
+        <span data-i18n="navStatus">Statut & KPIs</span>
       </button>
       <button class="nav-tab" data-tab="whitelist" onclick="switchTab('whitelist')">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
-        Liste blanche
+        <span data-i18n="navWhitelist">Liste blanche</span>
       </button>
       <button class="nav-tab" data-tab="brands" onclick="switchTab('brands')">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-        Marques perso
+        <span data-i18n="navBrands">Marques perso</span>
       </button>
       <button class="nav-tab" data-tab="tests" onclick="switchTab('tests')">
         <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-        Suite de tests
+        <span data-i18n="navTests">Suite de tests</span>
       </button>
       <button class="nav-tab" data-tab="guide" onclick="switchTab('guide')">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
-        Guide
+        <span data-i18n="navGuide">Guide</span>
       </button>
     </nav>
 
@@ -897,14 +917,14 @@
       <div class="callout" id="premierDemarrage" style="display: none;">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
         <div class="callout-body">
-          <strong>Aucune analyse n'a encore été effectuée.</strong>
-          <p>
+          <strong data-i18n="firstRunTitle">Aucune analyse n'a encore été effectuée.</strong>
+          <p data-i18n="firstRunBody">
             Activez la surveillance automatique ci-dessous, ou lancez un premier scan
             manuel. Unspoofer examinera les messages reçus dans votre boîte de
             réception au cours des 7 derniers jours.
           </p>
           <button class="btn btn-secondary" onclick="switchTab('guide')">
-            Lire le guide de démarrage
+            <span data-i18n="firstRunBtn">Lire le guide de démarrage</span>
           </button>
         </div>
       </div>
@@ -912,24 +932,24 @@
       <!-- KPI GRID -->
       <div class="kpi-grid">
         <div class="kpi-card success">
-          <div class="kpi-title">Messages analysés</div>
+          <div class="kpi-title" data-i18n="kpiAnalyzed">Messages analysés</div>
           <div class="kpi-value" id="kpiAnalyzed">-</div>
-          <div class="kpi-desc">Total cumulé dans la boîte</div>
+          <div class="kpi-desc" data-i18n="kpiAnalyzedDesc">Total cumulé dans la boîte</div>
         </div>
         <div class="kpi-card danger">
-          <div class="kpi-title">Usurpations bloquées</div>
+          <div class="kpi-title" data-i18n="kpiBlocked">Usurpations bloquées</div>
           <div class="kpi-value" id="kpiBlocked">-</div>
-          <div class="kpi-desc">Menaces réelles identifiées</div>
+          <div class="kpi-desc" data-i18n="kpiBlockedDesc">Menaces réelles identifiées</div>
         </div>
         <div class="kpi-card warning">
-          <div class="kpi-title">Taux de phishing</div>
+          <div class="kpi-title" data-i18n="kpiRate">Taux de phishing</div>
           <div class="kpi-value" id="kpiRate">-</div>
-          <div class="kpi-desc">Proportion d'emails hostiles</div>
+          <div class="kpi-desc" data-i18n="kpiRateDesc">Proportion d'emails hostiles</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-title">Exécutions totales</div>
+          <div class="kpi-title" data-i18n="kpiExecutions">Exécutions totales</div>
           <div class="kpi-value" id="kpiExecutions">-</div>
-          <div class="kpi-desc">Cycles de surveillance automatiques</div>
+          <div class="kpi-desc" data-i18n="kpiExecutionsDesc">Cycles de surveillance automatiques</div>
         </div>
       </div>
 
@@ -937,13 +957,13 @@
         
         <!-- PANNEAU CONFIGURATION -->
         <div class="panel">
-          <h2 class="panel-title">🛡️ Contrôle du détecteur</h2>
+          <h2 class="panel-title" data-i18n="ctlTitle">🛡️ Contrôle du détecteur</h2>
           
           <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px;">
               <div>
-                <strong style="font-size: 14px;">Surveillance automatique</strong>
-                <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Analyse en arrière-plan toutes les 10 minutes</p>
+                <strong style="font-size: 14px;" data-i18n="ctlAuto">Surveillance automatique</strong>
+                <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" data-i18n="ctlAutoDesc">Analyse en arrière-plan toutes les 10 minutes</p>
               </div>
               <div class="switch-container">
                 <label class="switch">
@@ -954,17 +974,17 @@
             </div>
 
             <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px;">
-              <strong style="font-size: 14px; display: block; margin-bottom: 4px;">Dernière analyse réseau</strong>
+              <strong style="font-size: 14px; display: block; margin-bottom: 4px;" data-i18n="ctlLastScan">Dernière analyse</strong>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--color-success);" id="statusIndicator"></div>
-                <span style="font-size: 13px;" id="lastScanTime">aucune</span>
+                <span style="font-size: 13px;" id="lastScanTime" data-i18n="ctlLastScanNone">aucune</span>
               </div>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 10px;">
               <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="triggerManualScan()">
                 <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/></svg>
-                Lancer un scan immédiat
+                <span data-i18n="ctlScanNow">Lancer un scan immédiat</span>
               </button>
             </div>
           </div>
@@ -972,11 +992,11 @@
 
         <!-- PANNEAU CONSOLE LOGS -->
         <div class="panel">
-          <h2 class="panel-title">📜 Historique d'activité</h2>
+          <h2 class="panel-title" data-i18n="logTitle">📜 Historique d'activité</h2>
           <div class="log-console" id="logConsole">
             <div class="log-line">
               <span class="log-timestamp">[SYSTEM]</span>
-              <span class="log-text">Tableau de bord de sécurité Unspoofer connecté.</span>
+              <span class="log-text" data-i18n="logConnected">Tableau de bord de sécurité Unspoofer connecté.</span>
             </div>
           </div>
         </div>
@@ -987,17 +1007,17 @@
     <!-- ONGLET 2 : LISTE BLANCHE -->
     <div id="tab-whitelist" class="tab-content">
       <div class="panel" style="max-width: 800px; margin: 0 auto;">
-        <h2 class="panel-title">🛡️ Gestion de la liste blanche</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-          Ajoutez des adresses e-mail complètes (ex: `finance@paypal.com`) ou des domaines de confiance (ex: `laposte.fr`) pour désactiver l'analyse et éviter les fausses alertes sur ces émetteurs sécurisés.
+        <h2 class="panel-title" data-i18n="wlTitle">🛡️ Gestion de la liste blanche</h2>
+        <p class="aide" data-i18n-html="wlIntro">
+          Ajoutez des adresses e-mail complètes (ex : <code>finance@paypal.com</code>) ou des domaines de confiance (ex : <code>laposte.fr</code>) pour désactiver l'analyse et éviter les fausses alertes sur ces émetteurs sécurisés.
         </p>
 
         <!-- Formulaire d'ajout -->
         <div class="form-group">
-          <input type="text" id="whitelistInput" class="input-control" placeholder="Ex: ameli.fr ou contact@societegenerale.fr" onkeydown="if(event.key === 'Enter') addWhitelist()">
+          <input type="text" id="whitelistInput" class="input-control" placeholder="Ex : ameli.fr ou contact@societegenerale.fr" data-i18n-placeholder="wlPlaceholder" onkeydown="if(event.key === 'Enter') addWhitelist()">
           <button class="btn btn-primary" onclick="addWhitelist()">
             <svg class="btn-svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            Approuver l'expéditeur
+            <span data-i18n="wlAdd">Approuver l'expéditeur</span>
           </button>
         </div>
 
@@ -1006,8 +1026,8 @@
           <table class="premium-table" id="whitelistTable">
             <thead>
               <tr>
-                <th>Domaine ou adresse approuvée</th>
-                <th style="width: 80px; text-align: center;">Actions</th>
+                <th data-i18n="wlColEntry">Domaine ou adresse approuvée</th>
+                <th style="width: 80px; text-align: center;" data-i18n="wlColActions">Actions</th>
               </tr>
             </thead>
             <tbody id="whitelistBody">
@@ -1021,15 +1041,15 @@
     <!-- ONGLET 3 : MARQUES SURVEILLÉES -->
     <div id="tab-brands" class="tab-content">
       <div class="panel" style="max-width: 800px; margin: 0 auto;">
-        <h2 class="panel-title">🏷️ Surveillance de marques personnalisées</h2>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        <h2 class="panel-title" data-i18n="brTitle">🏷️ Surveillance de marques personnalisées</h2>
+        <p class="aide" data-i18n-html="brIntro">
           Unspoofer surveille <strong>191 domaines de marques</strong> en standard : banques,
           services publics, télécoms, énergie, assurance, e-commerce, transport, crypto.
           Ajoutez ici les domaines qui vous concernent en propre — votre entreprise, vos
           partenaires, vos clients — pour être averti si quelqu'un tente de se faire passer
           pour eux.
         </p>
-        <p class="aide">
+        <p class="aide" data-i18n-html="brIntro2">
           <strong>Le nom sert à la reconnaissance, le domaine à la vérification.</strong>
           Si un message affiche votre nom de marque sans provenir du domaine déclaré,
           il sera signalé. Déclarez donc bien le domaine <em>légitime</em>, celui d'où
@@ -1038,11 +1058,11 @@
 
         <!-- Formulaire d'ajout -->
         <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px;">
-          <input type="text" id="brandNameInput" class="input-control" placeholder="Nom de marque (ex: MonEntreprise)">
-          <input type="text" id="brandDomainInput" class="input-control" placeholder="Domaine légitime (ex: monentreprise.com)">
+          <input type="text" id="brandNameInput" class="input-control" placeholder="Nom de marque (ex : MonEntreprise)" data-i18n-placeholder="brNamePlaceholder">
+          <input type="text" id="brandDomainInput" class="input-control" placeholder="Domaine légitime (ex : monentreprise.com)" data-i18n-placeholder="brDomainPlaceholder">
           <button class="btn btn-primary" onclick="addCustomBrand()">
             <svg class="btn-svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            Ajouter la marque
+            <span data-i18n="brAdd">Ajouter la marque</span>
           </button>
         </div>
 
@@ -1051,9 +1071,9 @@
           <table class="premium-table" id="brandsTable">
             <thead>
               <tr>
-                <th>Nom de la marque</th>
-                <th>Domaine de confiance légitime</th>
-                <th style="width: 80px; text-align: center;">Actions</th>
+                <th data-i18n="brColName">Nom de la marque</th>
+                <th data-i18n="brColDomain">Domaine de confiance légitime</th>
+                <th style="width: 80px; text-align: center;" data-i18n="brColActions">Actions</th>
               </tr>
             </thead>
             <tbody id="brandsBody">
@@ -1069,8 +1089,8 @@
       <div class="panel">
         <div class="test-suite-header">
           <div>
-            <h2 class="panel-title" style="margin-bottom: 4px;">🧪 Banc d'essais et tests unitaires</h2>
-            <p style="font-size: 13px; color: var(--text-muted);">
+            <h2 class="panel-title" style="margin-bottom: 4px;" data-i18n="tsTitle">🧪 Banc d'essais et tests unitaires</h2>
+            <p class="aide" style="margin-bottom:0" data-i18n-html="tsIntro">
               Vingt faux messages d'usurpation, fabriqués pour l'occasion, sont soumis au
               moteur de détection. <strong>Aucun de vos e-mails n'est lu</strong> : ces cas
               sont écrits dans le code. Le test sert à vérifier que le détecteur fonctionne
@@ -1079,25 +1099,25 @@
           </div>
           <button class="btn btn-primary" onclick="runUnitTests()">
             <svg class="btn-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            Lancer les 20 tests
+            <span data-i18n="tsRun">Lancer les 20 tests</span>
           </button>
         </div>
 
         <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: center;">
           <div class="test-summary-badge success" id="testResultSuccess" style="display: none;">
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-            <span id="testSuccessCount">0</span>/20 tests validés avec succès
+            <span id="testSuccessLabel">0/20 tests validés avec succès</span>
           </div>
           <div class="test-summary-badge failed" id="testResultFailed" style="display: none;">
             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-            <span id="testFailedCount">0</span> tests en échec
+            <span id="testFailedLabel">0 tests en échec</span>
           </div>
         </div>
 
         <!-- Grille des cartes de tests -->
         <div class="test-grid" id="testGrid">
-          <div class="empty-state" style="grid-column: 1 / -1;">
-            Cliquez sur "Lancer les 20 tests" pour observer les résultats de l'analyse heuristique simulée.
+          <div class="empty-state" style="grid-column: 1 / -1;" data-i18n="tsEmpty">
+            Cliquez sur « Lancer les 20 tests » pour observer les résultats de l'analyse heuristique simulée.
           </div>
         </div>
       </div>
@@ -1107,8 +1127,8 @@
     <div id="tab-guide" class="tab-content">
 
       <div class="panel" style="margin-bottom: 24px;">
-        <h2 class="panel-title">❓ À quoi sert Unspoofer</h2>
-        <p class="aide" style="margin-bottom: 0;">
+        <h2 class="panel-title" data-i18n="gdWhatTitle">❓ À quoi sert Unspoofer</h2>
+        <p class="aide" style="margin-bottom: 0;" data-i18n-html="gdWhatBody">
           Gmail bloque déjà très bien le spam, les pièces jointes malveillantes et les
           adresses dont l'authentification échoue. Mais un escroc peut acheter un domaine,
           le configurer correctement, et écrire <strong>« Crédit Agricole »</strong> dans
@@ -1121,25 +1141,25 @@
       </div>
 
       <div class="panel" style="margin-bottom: 24px;">
-        <h2 class="panel-title">🚀 Démarrer en trois étapes</h2>
+        <h2 class="panel-title" data-i18n="gdStartTitle">🚀 Démarrer en trois étapes</h2>
         <ol class="etapes">
           <li>
-            <strong>Activez la surveillance automatique</strong>
-            Onglet <em>Statut &amp; KPIs</em>, interrupteur « Surveillance automatique ».
+            <strong data-i18n="gdStep1">Activez la surveillance automatique</strong>
+            <span data-i18n-html="gdStep1Body">Onglet <em>Statut &amp; KPIs</em>, interrupteur « Surveillance automatique ».
             Une analyse se lancera toutes les 10 minutes, et un rapport récapitulatif
-            vous sera envoyé chaque lundi matin.
+            vous sera envoyé chaque lundi matin.</span>
           </li>
           <li>
-            <strong>Lancez un premier scan manuel</strong>
-            Sans attendre le prochain cycle, le bouton « Lancer un scan immédiat »
+            <strong data-i18n="gdStep2">Lancez un premier scan manuel</strong>
+            <span data-i18n-html="gdStep2Body">Sans attendre le prochain cycle, le bouton « Lancer un scan immédiat »
             examine les messages des 7 derniers jours. C'est le moyen le plus rapide
-            de voir l'outil à l'œuvre.
+            de voir l'outil à l'œuvre.</span>
           </li>
           <li>
-            <strong>Consultez vos alertes dans Gmail</strong>
-            Les messages suspects reçoivent l'étiquette <code>ALERTE-USURPATION</code>
+            <strong data-i18n="gdStep3">Consultez vos alertes dans Gmail</strong>
+            <span data-i18n-html="gdStep3Body">Les messages suspects reçoivent l'étiquette <code>ALERTE-USURPATION</code>
             et sont suivis d'une étoile. Un e-mail récapitulatif vous est adressé.
-            Ouvrez cette étiquette dans Gmail pour les retrouver toutes.
+            Ouvrez cette étiquette dans Gmail pour les retrouver toutes.</span>
           </li>
         </ol>
       </div>
@@ -1147,39 +1167,39 @@
       <div class="guide-grille">
 
         <div class="panel">
-          <h2 class="panel-title">🔎 Ce qui se passe en cas de détection</h2>
-          <p class="aide">
+          <h2 class="panel-title" data-i18n="gdDetectTitle">🔎 Ce qui se passe en cas de détection</h2>
+          <p class="aide" data-i18n-html="gdDetectIntro">
             Unspoofer <strong>ne supprime jamais rien</strong> et ne déplace aucun message.
             Il se contente de trois actions réversibles :
           </p>
           <ul class="aide" style="padding-left: 18px; margin-bottom: 0;">
-            <li>l'étiquette <code>ALERTE-USURPATION</code> est posée sur la conversation ;</li>
-            <li>le message est suivi d'une étoile pour le repérer d'un coup d'œil ;</li>
-            <li>un e-mail d'alerte vous est envoyé, à vous seul, avec le motif retenu.</li>
+            <li data-i18n-html="gdDetect1">l'étiquette <code>ALERTE-USURPATION</code> est posée sur la conversation ;</li>
+            <li data-i18n-html="gdDetect2">le message est suivi d'une étoile pour le repérer d'un coup d'œil ;</li>
+            <li data-i18n-html="gdDetect3">un e-mail d'alerte vous est envoyé, à vous seul, avec le motif retenu.</li>
           </ul>
           <p class="aide" style="margin-top: 14px; margin-bottom: 0;">
-            Une alerte injustifiée ne coûte donc qu'une étiquette à retirer.
+            <span data-i18n="gdDetectOutro">Une alerte injustifiée ne coûte donc qu'une étiquette à retirer.</span>
           </p>
         </div>
 
         <div class="panel">
-          <h2 class="panel-title">🚦 Les trois niveaux de sévérité</h2>
+          <h2 class="panel-title" data-i18n="gdSevTitle">🚦 Les trois niveaux de sévérité</h2>
           <div class="legende">
             <div class="legende-ligne">
               <span class="legende-pastille" style="background: var(--color-danger);"></span>
-              <span><strong>Critique</strong> — usurpation d'une marque financière avec
+              <span data-i18n-html="gdSevCritical"><strong>Critique</strong> — usurpation d'une marque financière avec
                 caractères trompeurs, échec d'authentification, ou lien dont le texte
                 ment sur sa destination. À traiter en priorité.</span>
             </div>
             <div class="legende-ligne">
               <span class="legende-pastille" style="background: var(--color-warning);"></span>
-              <span><strong>Élevée</strong> — usurpation d'une marque connue,
+              <span data-i18n-html="gdSevHigh"><strong>Élevée</strong> — usurpation d'une marque connue,
                 typosquatting, pièce jointe à extension risquée, envoi depuis une
                 plateforme d'hébergement détournée.</span>
             </div>
             <div class="legende-ligne">
               <span class="legende-pastille" style="background: var(--text-muted);"></span>
-              <span><strong>Moyenne</strong> — signaux plus faibles : adresse de réponse
+              <span data-i18n-html="gdSevMedium"><strong>Moyenne</strong> — signaux plus faibles : adresse de réponse
                 divergente, domaine annoncé dans le nom d'affichage qui ne correspond pas
                 à l'expéditeur réel.</span>
             </div>
@@ -1187,45 +1207,45 @@
         </div>
 
         <div class="panel">
-          <h2 class="panel-title">🙋 Un message légitime a été signalé</h2>
-          <p class="aide">
+          <h2 class="panel-title" data-i18n="gdFpTitle">🙋 Un message légitime a été signalé</h2>
+          <p class="aide" data-i18n-html="gdFpIntro">
             C'est le cas le plus fréquent, et il se règle en quelques secondes.
             Deux possibilités selon la situation :
           </p>
           <ul class="aide" style="padding-left: 18px; margin-bottom: 0;">
-            <li><strong>Un expéditeur précis</strong> — ajoutez son adresse ou son
+            <li data-i18n-html="gdFp1"><strong>Un expéditeur précis</strong> — ajoutez son adresse ou son
               domaine dans l'onglet <em>Liste blanche</em>. Il ne sera plus jamais analysé.</li>
-            <li><strong>Votre propre entreprise ou un partenaire</strong> — déclarez-la
+            <li data-i18n-html="gdFp2"><strong>Votre propre entreprise ou un partenaire</strong> — déclarez-la
               dans l'onglet <em>Marques perso</em> : elle sera surveillée, et ses vrais
               domaines cesseront de déclencher des alertes.</li>
           </ul>
           <p class="aide" style="margin-top: 14px; margin-bottom: 0;">
-            Retirer une étiquette dans Gmail ne suffit pas : sans liste blanche, le
-            message pourrait être re-signalé lors d'une prochaine analyse approfondie.
+            <span data-i18n-html="gdFpOutro">Retirer une étiquette dans Gmail ne suffit pas : sans liste blanche, le
+            message pourrait être re-signalé lors d'une prochaine analyse approfondie.</span>
           </p>
         </div>
 
         <div class="panel">
-          <h2 class="panel-title">📊 Comprendre les indicateurs</h2>
+          <h2 class="panel-title" data-i18n="gdKpiTitle">📊 Comprendre les indicateurs</h2>
           <div class="legende">
             <div class="legende-ligne">
               <span class="legende-pastille" style="background: var(--color-success);"></span>
-              <span><strong>Messages analysés</strong> — total cumulé depuis
+              <span data-i18n-html="gdKpi1"><strong>Messages analysés</strong> — total cumulé depuis
                 l'installation. Un message déjà vu n'est pas recompté.</span>
             </div>
             <div class="legende-ligne">
               <span class="legende-pastille" style="background: var(--color-danger);"></span>
-              <span><strong>Usurpations bloquées</strong> — nombre de messages ayant
+              <span data-i18n-html="gdKpi2"><strong>Usurpations bloquées</strong> — nombre de messages ayant
                 reçu l'étiquette d'alerte.</span>
             </div>
             <div class="legende-ligne">
               <span class="legende-pastille" style="background: var(--color-warning);"></span>
-              <span><strong>Taux de phishing</strong> — part des messages analysés qui
+              <span data-i18n-html="gdKpi3"><strong>Taux de phishing</strong> — part des messages analysés qui
                 ont été signalés. Sur une boîte saine, quelques pourcents au plus.</span>
             </div>
             <div class="legende-ligne">
               <span class="legende-pastille" style="background: var(--color-primary);"></span>
-              <span><strong>Exécutions totales</strong> — nombre de cycles de
+              <span data-i18n-html="gdKpi4"><strong>Exécutions totales</strong> — nombre de cycles de
                 surveillance déclenchés depuis l'activation.</span>
             </div>
           </div>
@@ -1234,8 +1254,8 @@
       </div>
 
       <div class="panel" style="margin-top: 24px;">
-        <h2 class="panel-title">🔒 Confidentialité</h2>
-        <p class="aide" style="margin-bottom: 0;">
+        <h2 class="panel-title" data-i18n="gdPrivacyTitle">🔒 Confidentialité</h2>
+        <p class="aide" style="margin-bottom: 0;" data-i18n-html="gdPrivacyBody">
           Unspoofer s'exécute <strong>entièrement dans votre propre compte Google</strong>.
           Le script n'effectue aucun appel vers un serveur externe : le contenu de vos
           messages ne quitte jamais votre environnement, et les e-mails d'alerte ne sont
@@ -1252,6 +1272,79 @@
     /* ========================================================================
        LOGIQUE D'INTERACTION CÔTÉ CLIENT (JAVASCRIPT)
        ======================================================================== */
+
+    /* ====================================================================
+       INTERNATIONALISATION
+       Le dictionnaire est fourni par le serveur (UI_TRANSLATIONS, Config.gs)
+       et appliqué au DOM via les attributs data-i18n. Le texte français reste
+       écrit dans le HTML : il sert de repli si une clé venait à manquer.
+       ==================================================================== */
+
+    let DICO = {};
+
+    /**
+     * Retourne la traduction d'une clé, marqueurs {n} remplacés.
+     * @param {string} cle
+     * @param {Object} [params] - Valeurs de substitution, ex. { n: 3 }
+     * @returns {string}
+     */
+    function T(cle, params) {
+      let texte = DICO[cle];
+      if (texte === undefined) return cle;
+      if (params) {
+        Object.keys(params).forEach(k => {
+          texte = texte.split('{' + k + '}').join(params[k]);
+        });
+      }
+      return texte;
+    }
+
+    /**
+     * Applique le dictionnaire à l'ensemble du document.
+     * data-i18n          → texte brut
+     * data-i18n-html     → contenu riche (balisage simple autorisé)
+     * data-i18n-placeholder / data-i18n-title → attributs
+     */
+    function appliquerTraductions(dico) {
+      DICO = dico || {};
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = DICO[el.getAttribute('data-i18n')];
+        if (v !== undefined) el.textContent = v;
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const v = DICO[el.getAttribute('data-i18n-html')];
+        if (v !== undefined) el.innerHTML = v;
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const v = DICO[el.getAttribute('data-i18n-placeholder')];
+        if (v !== undefined) el.placeholder = v;
+      });
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const v = DICO[el.getAttribute('data-i18n-title')];
+        if (v !== undefined) el.title = v;
+      });
+    }
+
+    /**
+     * Change la langue de l'interface et recharge l'état depuis le serveur.
+     * @param {string} langue - 'fr' ou 'en'
+     */
+    function changerLangue(langue) {
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(data => {
+          appliquerTraductions(data.i18n);
+          populateDashboard(data);
+          document.documentElement.lang = data.lang;
+          showLoader(false);
+          showToast(T('msgLangChanged'));
+        })
+        .withFailureHandler(err => {
+          showLoader(false);
+          showToast(T('msgError', { n: err.message }));
+        })
+        .setLangue(langue);
+    }
 
     // Changement d'onglet.
     // L'onglet actif est retrouvé par son attribut data-tab : le repérage par
@@ -1310,7 +1403,15 @@
 
     // Remplissage de l'interface avec les données serveur
     function populateDashboard(data) {
-      document.getElementById('userEmail').innerText = data.userEmail || 'Utilisateur Gmail';
+      // Le dictionnaire doit être posé avant tout texte dérivé (dates, compteurs)
+      if (data.i18n) appliquerTraductions(data.i18n);
+      if (data.lang) {
+        document.documentElement.lang = data.lang;
+        const sel = document.getElementById('selecteurLangue');
+        if (sel) sel.value = data.lang;
+      }
+
+      document.getElementById('userEmail').innerText = data.userEmail || '—';
       document.getElementById('userAvatar').innerText = (data.userEmail || 'U')[0].toUpperCase();
       
       // KPIs
@@ -1328,7 +1429,7 @@
       
       // Triggers & Status
       document.getElementById('toggleTriggerBtn').checked = data.triggers.active;
-      document.getElementById('lastScanTime').innerText = 'Dernier passage : ' + data.stats.derniereAnalyse;
+      document.getElementById('lastScanTime').innerText = T('ctlLastScanPrefix') + data.stats.derniereAnalyse;
       
       const indicator = document.getElementById('statusIndicator');
       if (data.triggers.active) {
@@ -1348,7 +1449,7 @@
     function renderWhitelist(list) {
       const tbody = document.getElementById('whitelistBody');
       if (!list || list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" class="empty-state">Aucun expéditeur en liste blanche. Les alertes sont actives pour tout le monde.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" class="empty-state">${T('wlEmpty')}</td></tr>`;
         return;
       }
       
@@ -1356,7 +1457,7 @@
         <tr>
           <td style="font-weight: 500;">${escapeHtml(item)}</td>
           <td style="text-align: center;">
-            <button class="btn btn-danger btn-icon-only" onclick="removeWhitelist('${item}')" title="Supprimer de la liste blanche">
+            <button class="btn btn-danger btn-icon-only" onclick="removeWhitelist('${item}')" title="${T('wlRemoveTitle')}">
               <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             </button>
           </td>
@@ -1368,7 +1469,7 @@
     function renderCustomBrands(list) {
       const tbody = document.getElementById('brandsBody');
       if (!list || list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">Aucune marque personnalisée configurée.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">${T('brEmpty')}</td></tr>`;
         return;
       }
       
@@ -1377,7 +1478,7 @@
           <td style="font-weight: 600; color: var(--color-primary);">${escapeHtml(item.nomMarque)}</td>
           <td style="font-family: var(--font-mono);">${escapeHtml(item.domaine)}</td>
           <td style="text-align: center;">
-            <button class="btn btn-danger btn-icon-only" onclick="removeCustomBrand('${item.domaine}')" title="Supprimer la marque">
+            <button class="btn btn-danger btn-icon-only" onclick="removeCustomBrand('${item.domaine}')" title="${T('brRemoveTitle')}">
               <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             </button>
           </td>
@@ -1412,7 +1513,7 @@
       google.script.run
         .withSuccessHandler(function(statut) {
           setLoader(false);
-          showToast(statut ? 'Déclencheurs activés (scan 10 min & rapport hebdo) !' : 'Déclencheurs arrêtés.');
+          showToast(statut ? T('msgTriggersOn') : T('msgTriggersOff'));
           log(statut ? 'Déclencheurs temporels configurés.' : 'Déclencheurs temporels supprimés du système.');
           
           const indicator = document.getElementById('statusIndicator');
@@ -1433,7 +1534,7 @@
         .withSuccessHandler(function(data) {
           populateDashboard(data);
           setLoader(false);
-          showToast('Scan manuel terminé avec succès !');
+          showToast(T('msgScanDone'));
           log('Scan manuel terminé. Total usurpations trouvées : ' + data.stats.totalUsurpations);
         })
         .withFailureHandler(function(err) {
@@ -1449,15 +1550,15 @@
       google.script.run
         .withSuccessHandler(function(rapport) {
           setLoader(false);
-          showToast('Banc d\'essais exécuté (' + rapport.reussis + ' réussis) !');
+          showToast(T('msgTestsDone', { n: rapport.reussis }));
           log('Tests unitaires terminés. Réussis : ' + rapport.reussis + ' | Échoués : ' + rapport.echoues);
           
           // Affichage du bandeau de résumé
           const sBadge = document.getElementById('testResultSuccess');
           const fBadge = document.getElementById('testResultFailed');
           
-          document.getElementById('testSuccessCount').innerText = rapport.reussis;
-          document.getElementById('testFailedCount').innerText = rapport.echoues;
+          document.getElementById('testSuccessLabel').innerText = T('tsPassed', { n: rapport.reussis });
+          document.getElementById('testFailedLabel').innerText = T('tsFailedCount', { n: rapport.echoues });
           
           sBadge.style.display = 'inline-flex';
           if (rapport.echoues > 0) {
@@ -1503,7 +1604,7 @@
           renderWhitelist(newList);
           setLoader(false);
           input.value = '';
-          showToast('Élément ajouté à la liste blanche avec succès !');
+          showToast(T('msgWlAdded'));
           log('Ajouté en liste blanche : ' + val);
         })
         .withFailureHandler(function(err) {
@@ -1520,7 +1621,7 @@
         .withSuccessHandler(function(newList) {
           renderWhitelist(newList);
           setLoader(false);
-          showToast('Élément retiré de la liste blanche.');
+          showToast(T('msgWlRemoved'));
           log('Retiré de la liste blanche : ' + entree);
         })
         .withFailureHandler(function(err) {
@@ -1538,7 +1639,7 @@
       const domain = domainInput.value.trim();
       
       if (!name || !domain) {
-        showToast('Veuillez remplir les deux champs.');
+        showToast(T('msgFillBoth'));
         return;
       }
       
@@ -1549,7 +1650,7 @@
           setLoader(false);
           nameInput.value = '';
           domainInput.value = '';
-          showToast('Marque personnalisée ajoutée avec succès !');
+          showToast(T('msgBrandAdded'));
           log('Marque ajoutée à la base de surveillance : ' + name + ' (' + domain + ')');
         })
         .withFailureHandler(function(err) {
@@ -1566,7 +1667,7 @@
         .withSuccessHandler(function(newList) {
           renderCustomBrands(newList);
           setLoader(false);
-          showToast('Marque retirée de la surveillance.');
+          showToast(T('msgBrandRemoved'));
           log('Marque personnalisée supprimée : ' + domaine);
         })
         .withFailureHandler(function(err) {

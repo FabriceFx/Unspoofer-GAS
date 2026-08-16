@@ -30,15 +30,36 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   bouton. Le repérage passe par un attribut `data-tab` : l'ancienne heuristique
   aurait mal réagi à l'ajout d'un cinquième onglet.
 
+- **Interface web bilingue.** Le tableau de bord existe désormais en français et
+  en anglais, avec un sélecteur dans l'en-tête. Dictionnaire `UI_TRANSLATIONS`
+  (95 clés, parité vérifiée) dans `Config.gs`, aux côtés d'`EMAIL_TRANSLATIONS` ;
+  application au DOM via les attributs `data-i18n`, `data-i18n-html`,
+  `data-i18n-placeholder` et `data-i18n-title`. Le texte français reste écrit
+  dans le HTML et sert de repli si une clé venait à manquer.
+- `setLangue()` : point d'accès de changement de langue, la préférence étant
+  conservée dans les propriétés du script.
+
+### Corrigé
+
+- **La détection automatique de langue ne s'est jamais déclenchée.**
+  `getLangueUtilisateur_()` testait `if (CONFIG.LANGUAGE)` avant de consulter la
+  langue du compte Google — or `CONFIG.LANGUAGE` valait `"fr"`, toujours vrai.
+  Les branches suivantes étaient donc du code mort, et la moitié anglaise
+  d'`EMAIL_TRANSLATIONS` n'a jamais servi : **les alertes et rapports partaient
+  en français à tout le monde**, y compris aux comptes anglophones. La valeur
+  par défaut passe à `"auto"` et l'ordre de priorité devient explicite :
+  préférence utilisateur, puis `CONFIG.LANGUAGE` si elle impose une langue,
+  puis le compte Google, puis le français.
+
 ### Connu / non traité
 
-- Le tableau de bord reste **uniquement en français**, alors que
-  `getDashboardData()` renvoie déjà `lang` — valeur que l'interface ignore. Les
-  alertes et rapports par e-mail sont bilingues, pas l'interface web.
 - Les listes de référence introduites en 2.4.0 (plateformes d'envoi, libellés
   ambigus) n'ont toujours pas d'écran dédié. Les points d'accès serveur sont en
   place ; le guide oriente pour l'instant vers la liste blanche et les marques
   personnalisées.
+- L'étiquette Gmail reste nommée `ALERTE-USURPATION` quelle que soit la langue.
+  La renommer casserait les filtres et recherches déjà en place chez les
+  utilisateurs existants.
 
 ---
 

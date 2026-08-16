@@ -29,6 +29,7 @@ function doGet(e) {
  * @returns {Object} Données d'état du Dashboard
  */
 function getDashboardData() {
+  const langue = getLangueUtilisateur_();
   const stats = getStatistiques();
   const listeBlanche = getListeBlanche_();
   const customBrands = getCustomBrands_();
@@ -57,8 +58,22 @@ function getDashboardData() {
     // Listes de référence modifiables depuis l'interface (voir Listes.gs)
     listesModifiables: getListesModifiables(),
     userEmail: getEmailProprietaire_(),
-    lang: getLangueUtilisateur_()
+    lang: langue,
+    // Dictionnaire de l'interface, appliqué côté client via data-i18n
+    i18n: UI_TRANSLATIONS[langue] || UI_TRANSLATIONS.fr
   };
+}
+
+/**
+ * Change la langue de l'interface et renvoie l'état complet du tableau de bord
+ * dans la nouvelle langue.
+ * @param {string} langue - 'fr', 'en', ou 'auto' pour suivre le compte Google.
+ * @returns {Object} Données du tableau de bord, dictionnaire compris.
+ */
+function setLangue(langue) {
+  const appliquee = definirLangueUtilisateur_(langue);
+  Logger.log('Langue de l\'interface : ' + appliquee);
+  return getDashboardData();
 }
 
 /**

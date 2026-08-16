@@ -352,3 +352,15 @@ function modifierListeReference(operation, nomListe, valeur) {
     donnees: getDashboardData(),
   };
 }
+
+/**
+ * Remise à zéro complète depuis le tableau de bord.
+ * @returns {Object} État du tableau de bord après reconstruction
+ */
+function runFullReset() {
+  Logger.log('Remise à zéro complète lancée depuis le tableau de bord');
+  const bilan = repartirDeZero();
+  const donnees = getDashboardData();
+  donnees.filsDesetiquetes = bilan.filsDesetiquetes;
+  return donnees;
+}

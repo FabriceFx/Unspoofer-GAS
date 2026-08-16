@@ -1375,6 +1375,17 @@
             <span data-i18n="mtResetBtn">Remettre les compteurs à zéro</span>
           </button>
         </div>
+
+        <div class="panel">
+          <h2 class="panel-title">
+            <span class="material-symbols-rounded">mop</span>
+            <span data-i18n="mtFullTitle">Repartir de zéro</span>
+          </h2>
+          <p class="aide" data-i18n="mtFullBody">Efface compteurs, cache et étiquetage, puis relance une analyse.</p>
+          <button class="btn btn-danger" onclick="repartirDeZeroUI()">
+            <span data-i18n="mtFullBtn">Repartir de zéro</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1765,6 +1776,30 @@
           showToast(T('msgError', { n: err.message }));
         })
         .runFullRescan();
+    }
+
+    /** Remise à zéro complète : compteurs, cache et étiquetage, puis analyse. */
+    function repartirDeZeroUI() {
+      demanderConfirmation(T('mtFullConfirm'), executerRemiseAZeroComplete_);
+    }
+
+    /** Remise à zéro complète effective, une fois la confirmation obtenue. */
+    function executerRemiseAZeroComplete_() {
+      setLoader(true);
+      google.script.run
+        .withSuccessHandler(function (donnees) {
+          setLoader(false);
+          populateDashboard(donnees);
+          const message = T('mtFullDone', { n: donnees.filsDesetiquetes });
+          showToast(message);
+          log(message, 'ACTION');
+        })
+        .withFailureHandler(function (err) {
+          setLoader(false);
+          showToast(T('msgError', { n: err.message }));
+          log(T('logFailure', { n: err.message }), 'ERROR');
+        })
+        .runFullReset();
     }
 
     /** Remet les compteurs à zéro, après confirmation. */

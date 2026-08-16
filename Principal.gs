@@ -711,6 +711,61 @@ function diagnostiquerAlertes() {
 }
 
 /**
+ * Retire l'étiquette d'alerte de tous les fils qui la portent.
+ *
+ * Étape indispensable d'une remise à zéro : la déduplication considère qu'un
+ * fil déjà étiqueté a déjà été signalé et ne le recompte pas. Sans ce retrait,
+ * une ré-analyse après remise à zéro laisserait les compteurs à zéro tout en
+ * ayant réexaminé les messages.
+ *
+ * Aucun message n'est supprimé ni déplacé : seule l'étiquette est retirée, et
+ * l'analyse qui suit la repose sur les messages toujours jugés frauduleux.
+ *
+ * @returns {number} Nombre de fils désétiquetés
+ */
+function retirerEtiquetteDeTous_() {
+    const etiquette = GmailApp.getUserLabelByName(NOM_ETIQUETTE);
+    if (!etiquette) return 0;
+
+    let total = 0;
+    const PAS = 100;   // GmailApp traite au plus 100 fils par appel
+    let lot;
+    do {
+        lot = GmailApp.search('label:' + NOM_ETIQUETTE, 0, PAS);
+        if (lot.length) {
+            etiquette.removeFromThreads(lot);
+            total += lot.length;
+        }
+        // La recherche est relancée depuis le début : les fils traités ne
+        // portent plus l'étiquette et sortent donc du résultat.
+    } while (lot.length === PAS);
+
+    Logger.log('Étiquette retirée de ' + total + ' fil(s).');
+    return total;
+}
+
+/**
+ * Remise à zéro complète : compteurs, cache des messages examinés et
+ * étiquetage, suivie d'une nouvelle analyse.
+ *
+ * C'est la seule séquence qui reconstruit des compteurs justes. Vider le cache
+ * sans retirer l'étiquette laisserait la déduplication écarter les fils déjà
+ * signalés, et les compteurs resteraient à zéro.
+ *
+ * @returns {{filsDesetiquetes: number}}
+ */
+function repartirDeZero() {
+    Logger.log('════════ REMISE À ZÉRO COMPLÈTE ════════');
+    const filsDesetiquetes = retirerEtiquetteDeTous_();
+    effacerCacheTraite();
+    reinitialiserStatistiques();
+    Logger.log('Compteurs, cache et étiquetage effacés. Nouvelle analyse...');
+    analyserBoiteReception();
+    Logger.log('════════════════════════════════════════');
+    return { filsDesetiquetes: filsDesetiquetes };
+}
+
+/**
  * Analyse les messages déjà étiquetés ALERTE-USURPATION pour identifier des domaines fréquents.
  * Utile pour découvrir de nouvelles marques à surveiller ou des faux positifs à whitelister.
  */

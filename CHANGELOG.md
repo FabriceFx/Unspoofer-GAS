@@ -96,6 +96,14 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   gèrent enfin depuis l'interface : ajout, retrait, réactivation d'une valeur
   livrée neutralisée, et retour aux valeurs d'origine. L'origine de chaque
   entrée est affichée (livrée, ajoutée, désactivée).
+- **Bouton « Repartir de zéro ».** Efface les compteurs, la mémoire des messages
+  examinés **et l'étiquetage**, puis relance une analyse. Le retrait de
+  l'étiquette n'est pas cosmétique : la déduplication considère qu'un fil déjà
+  étiqueté a déjà été signalé et ne le recompte pas. Vider le cache seul
+  laisserait donc les compteurs à zéro après une ré-analyse complète — vérifié
+  par `tests/remise-a-zero.js`, qui compare les deux séquences. Aucun message
+  n'est supprimé ni déplacé : l'étiquette est reposée sur ceux toujours jugés
+  frauduleux.
 - **Modale de confirmation interne.** `confirm()` natif affiche, dans une webapp
   Apps Script, « Une page intégrée à l'adresse …googleusercontent.com indique » —
   l'URL interne du déploiement s'étale à l'écran et l'habillage de l'application

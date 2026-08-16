@@ -30,11 +30,23 @@ Et la suite de vingt cas intégrée au produit, celle qu'expose l'onglet
 node tests/suite-integree.js
 ```
 
-Enfin, le plafond de stockage des listes saisies par l'utilisateur :
+Le plafond de stockage des listes saisies par l'utilisateur :
 
 ```bash
 node tests/stockage.js
 ```
+
+Et la remise à zéro complète :
+
+```bash
+node tests/remise-a-zero.js
+```
+
+Ce dernier fige un comportement contre-intuitif : la déduplication considère
+qu'un fil déjà étiqueté a déjà été signalé et ne le recompte pas. Vider le
+cache et relancer une analyse ne suffit donc pas à reconstruire les compteurs —
+il faut aussi retirer l'étiquette. Le test vérifie les deux séquences, la
+fausse et la bonne.
 
 Cette suite construit un faux `GmailMessage` à la main. Dès que le moteur
 appelle une méthode absente de ce faux message, elle lève une exception au

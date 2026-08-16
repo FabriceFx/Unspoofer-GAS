@@ -44,6 +44,55 @@ function getFenetreAnalyse_() {
 const CLE_PROPRIETE_LANGUE = 'languePreferee';
 
 /**
+ * Plafond retenu pour une valeur de propriété de script.
+ *
+ * Apps Script limite chaque valeur à 9 Ko. On s'arrête un peu avant : dépasser
+ * la limite lève une exception que le code appelant avalait dans un `catch`,
+ * de sorte qu'un ajout échouait sans que rien ne l'indique à l'utilisateur.
+ */
+const MAX_OCTETS_PROPRIETE = 9000;
+
+/**
+ * Taille d'une chaîne en octets UTF-8.
+ *
+ * Calculée à la main plutôt que via Utilities.newBlob() : la fonction reste
+ * ainsi exécutable hors Apps Script, donc testable.
+ *
+ * @param {string} chaine
+ * @returns {number}
+ */
+function tailleOctets_(chaine) {
+  let octets = 0;
+  for (let i = 0; i < chaine.length; i++) {
+    const code = chaine.charCodeAt(i);
+    if (code < 0x80) octets += 1;
+    else if (code < 0x800) octets += 2;
+    else if (code >= 0xD800 && code <= 0xDBFF) { octets += 4; i++; }  // paire de substitution
+    else octets += 3;
+  }
+  return octets;
+}
+
+/**
+ * Écrit une propriété de script après avoir vérifié qu'elle tient dans le
+ * plafond. Retourne un compte rendu au lieu de laisser échouer l'écriture.
+ *
+ * @param {string} cle
+ * @param {string} valeur - Contenu sérialisé
+ * @returns {{ok: boolean, taille: number, limite: number}}
+ */
+function ecrireProprieteLimitee_(cle, valeur) {
+  const taille = tailleOctets_(valeur);
+  if (taille > MAX_OCTETS_PROPRIETE) {
+    Logger.log('Écriture refusée pour « ' + cle + ' » : ' + taille +
+               ' octets pour un plafond de ' + MAX_OCTETS_PROPRIETE + '.');
+    return { ok: false, taille: taille, limite: MAX_OCTETS_PROPRIETE };
+  }
+  PropertiesService.getScriptProperties().setProperty(cle, valeur);
+  return { ok: true, taille: taille, limite: MAX_OCTETS_PROPRIETE };
+}
+
+/**
  * Détermine la langue à utiliser (FR ou EN), par ordre de priorité :
  *
  *   1. la préférence choisie explicitement dans le tableau de bord ;

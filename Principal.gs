@@ -443,13 +443,23 @@ function ajouterALaListeBlanche(domaineOuEmail) {
     const listeBlanche = getListeBlanche_();
     if (listeBlanche.includes(entree)) {
         Logger.log('Déjà en liste blanche : ' + entree);
-        return;
+        return { ok: true, motif: 'doublon' };
     }
-    listeBlanche.push(entree);
-    PropertiesService.getScriptProperties().setProperty(
-        CLE_PROPRIETE_LISTE_BLANCHE, JSON.stringify(listeBlanche)
+
+    // La liste candidate est construite à part : en cas de refus d'écriture,
+    // la liste en mémoire ne doit pas diverger de celle réellement stockée.
+    const candidate = listeBlanche.concat([entree]);
+    const ecriture = ecrireProprieteLimitee_(
+        CLE_PROPRIETE_LISTE_BLANCHE, JSON.stringify(candidate)
     );
+    if (!ecriture.ok) {
+        Logger.log('Liste blanche pleine — « ' + entree + ' » non ajouté.');
+        return { ok: false, motif: 'plafond', taille: ecriture.taille, limite: ecriture.limite };
+    }
+
+    _cacheListeBlanche = candidate;
     Logger.log('Ajouté à la liste blanche : ' + entree);
+    return { ok: true, motif: 'ajout' };
 }
 
 /**

@@ -166,13 +166,17 @@ function runUnitTests() {
 /**
  * Ajoute un domaine ou une adresse e-mail à la liste blanche.
  * @param {string} entree
- * @returns {string[]} Liste blanche mise à jour
+ * @returns {{ok: boolean, motif: string, liste: string[]}} Compte rendu et
+ *   liste blanche à jour. `motif` vaut 'ajout', 'doublon', 'vide' ou 'plafond'.
  */
 function addWhitelistEntry(entree) {
-  if (!entree) return getListeBlanche_();
-  const nettoye = entree.trim().toLowerCase();
-  ajouterALaListeBlanche(nettoye);
-  return getListeBlanche_();
+  if (!entree) return { ok: false, motif: 'vide', liste: getListeBlanche_() };
+  const resultat = ajouterALaListeBlanche(entree.trim().toLowerCase());
+  return {
+    ok: resultat.ok,
+    motif: resultat.motif,
+    liste: getListeBlanche_(),
+  };
 }
 
 /**
@@ -216,10 +220,11 @@ function getCustomBrands_() {
  * Ajoute une marque personnalisée à surveiller dynamiquement.
  * @param {string} nomMarque - Nom de la marque (ex: 'MonEntreprise')
  * @param {string} domaine - Domaine racine légitime (ex: 'monentreprise.fr')
- * @returns {Array<{nomMarque: string, domaine: string}>} Liste mise à jour
+ * @returns {{ok: boolean, motif: string, marques: Array<Object>}} Compte rendu
+ *   et liste à jour. `motif` vaut 'ajout', 'doublon' ou 'plafond'.
  */
 function addCustomBrand(nomMarque, domaine) {
-  if (!nomMarque || !domaine) return getCustomBrands_();
+  if (!nomMarque || !domaine) return { ok: false, motif: 'vide', marques: getCustomBrands_() };
   
   const nomNettoye = nomMarque.trim();
   const domaineNettoye = domaine.trim().toLowerCase();
@@ -227,16 +232,21 @@ function addCustomBrand(nomMarque, domaine) {
   const customBrands = getCustomBrands_();
   const existe = customBrands.some(cb => cb.domaine === domaineNettoye);
   
-  if (!existe) {
-    customBrands.push({ nomMarque: nomNettoye, domaine: domaineNettoye });
-    PropertiesService.getScriptProperties().setProperty(
-      'customBrands', JSON.stringify(customBrands)
-    );
-    // Invalider l'index mémoire des marques pour forcer la reconstruction
-    _indexMarques = null;
-    Logger.log('Marque personnalisée ajoutée : ' + nomNettoye + ' (' + domaineNettoye + ')');
+  if (existe) return { ok: true, motif: 'doublon', marques: customBrands };
+
+  // Liste candidate construite à part : si l'écriture est refusée, l'état
+  // en mémoire ne doit pas diverger de celui réellement stocké.
+  const candidate = customBrands.concat([{ nomMarque: nomNettoye, domaine: domaineNettoye }]);
+  const ecriture = ecrireProprieteLimitee_('customBrands', JSON.stringify(candidate));
+  if (!ecriture.ok) {
+    Logger.log('Marques personnalisées pleines — « ' + nomNettoye + ' » non ajouté.');
+    return { ok: false, motif: 'plafond', marques: customBrands };
   }
-  return customBrands;
+
+  // Invalider l'index mémoire des marques pour forcer la reconstruction
+  _indexMarques = null;
+  Logger.log('Marque personnalisée ajoutée : ' + nomNettoye + ' (' + domaineNettoye + ')');
+  return { ok: true, motif: 'ajout', marques: candidate };
 }
 
 /**

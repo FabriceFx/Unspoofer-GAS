@@ -44,6 +44,14 @@ fallait faire ni de ce qui se passe une fois une menace détectée.
   (étiquette supprimée, messages effacés depuis, compteur cumulatif). Affiche
   les dix derniers messages signalés et la recherche Gmail à utiliser.
 
+- **Aucun plafond sur la liste blanche ni sur les marques personnalisées.** Une
+  valeur de propriété Apps Script est limitée à 9 Ko. Au-delà, l'écriture lève
+  une exception qui était avalée : l'ajout échouait, l'interface annonçait un
+  succès, et l'entrée disparaissait au rechargement. `ecrireProprieteLimitee_()`
+  mesure désormais la taille UTF-8 avant d'écrire et refuse proprement ; le
+  tableau de bord affiche un message explicite et **conserve la saisie** pour
+  qu'elle ne soit pas perdue avec l'ajout. En pratique : environ 249 entrées de
+  liste blanche et 115 marques personnalisées.
 - **La suite de tests intégrée ne s'exécutait plus du tout.** Le faux
   `GmailMessage` qu'elle construit ne fournissait pas `getSubject()`, appelé par
   le moteur depuis le garde-fou anti-boucle d'auto-alerte introduit en mai. La

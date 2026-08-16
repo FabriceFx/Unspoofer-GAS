@@ -1805,12 +1805,19 @@
       
       setLoader(true, 'Ajout de ' + val + ' à la liste blanche...');
       google.script.run
-        .withSuccessHandler(function(newList) {
-          renderWhitelist(newList);
+        .withSuccessHandler(function(rep) {
+          renderWhitelist(rep.liste);
           setLoader(false);
+          if (rep.motif === 'plafond') {
+            // L'écriture a été refusée : conserver la saisie pour que
+            // l'utilisateur ne la reperde pas en même temps que l'ajout.
+            showToast(T('msgStorageFull'));
+            log(T('msgStorageFull'), 'ERROR');
+            return;
+          }
           input.value = '';
-          showToast(T('msgWlAdded'));
-          log(T('logWlAdded', { n: val }), 'ACTION');
+          showToast(rep.motif === 'doublon' ? T('msgWlDuplicate') : T('msgWlAdded'));
+          if (rep.motif === 'ajout') log(T('logWlAdded', { n: val }), 'ACTION');
         })
         .withFailureHandler(function(err) {
           setLoader(false);
@@ -1850,13 +1857,18 @@
       
       setLoader(true, 'Ajout de la marque ' + name + '...');
       google.script.run
-        .withSuccessHandler(function(newList) {
-          renderCustomBrands(newList);
+        .withSuccessHandler(function(rep) {
+          renderCustomBrands(rep.marques);
           setLoader(false);
+          if (rep.motif === 'plafond') {
+            showToast(T('msgStorageFull'));
+            log(T('msgStorageFull'), 'ERROR');
+            return;
+          }
           nameInput.value = '';
           domainInput.value = '';
-          showToast(T('msgBrandAdded'));
-          log(T('logBrandAdded', { n: name + ' (' + domain + ')' }), 'ACTION');
+          showToast(rep.motif === 'doublon' ? T('msgBrandDuplicate') : T('msgBrandAdded'));
+          if (rep.motif === 'ajout') log(T('logBrandAdded', { n: name + ' (' + domain + ')' }), 'ACTION');
         })
         .withFailureHandler(function(err) {
           setLoader(false);

@@ -30,6 +30,12 @@ Et la suite de vingt cas intégrée au produit, celle qu'expose l'onglet
 node tests/suite-integree.js
 ```
 
+Enfin, le plafond de stockage des listes saisies par l'utilisateur :
+
+```bash
+node tests/stockage.js
+```
+
 Cette suite construit un faux `GmailMessage` à la main. Dès que le moteur
 appelle une méthode absente de ce faux message, elle lève une exception au
 premier cas et l'onglet reste vide, sans message d'erreur — ce qui s'est

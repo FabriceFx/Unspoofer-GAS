@@ -2,6 +2,43 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [Non publié]
+
+Un rapport d'alerte réel a signalé cinq messages, dont deux en « critique ».
+Les cinq étaient des faux positifs. Cette version corrige les quatre causes.
+
+### Corrigé
+
+- **Une marque qui renvoie vers son propre domaine frère n'usurpe personne.**
+  Doctolib émet depuis `doctolib.fr` et renvoie vers `doctolib.com` : le
+  contrôle des liens du corps lisait ce changement d'extension comme un
+  typosquat et sortait en sévérité « critique ». `verifierLiensSuspects_()`
+  reçoit désormais le domaine de l'expéditeur et écarte le cas où celui-ci
+  *est* la marque visée. L'exemption reste étroite : un lien vers
+  `paypal.co` depuis un tiers est toujours signalé.
+- **Groupe de domaines Doctolib** ajouté à `GROUPES_MARQUES`
+  (`.fr`, `.com`, `.de`, `.it`), qui manquait à la base.
+- **Seuil de Levenshtein calé sur le plus court des deux libellés.** Se caler
+  sur la seule longueur de la marque autorisait deux substitutions sur un
+  libellé de quatre lettres : `qare.fr` (téléconsultation) était à distance 2
+  de `square` et déclenchait une alerte « élevée ». Un libellé de marque
+  ambigu (`orange`, `square`, `free`) exige en outre une quasi-collision,
+  conformément à la politique déjà appliquée ailleurs.
+- **Reply-To divergent : deux exemptions.** L'adresse de réponse égale à celle
+  du titulaire de la boîte n'alerte plus — il n'y a personne à usurper. Les
+  notificateurs de partage de documents (Google, Dropbox, SharePoint, Box)
+  rejoignent les plateformes d'envoi tierces : ils placent le partageur en
+  Reply-To, la divergence est de conception.
+- **Tableau du rapport tronqué à l'impression.** Sans défilement horizontal,
+  l'export PDF coupait la colonne « Raison » en plein mot. Largeurs de
+  colonnes fixes et repli du texte dans les cellules.
+
+### Ajouté
+
+- Cinq cas de non-régression au corpus de test, dont un contrôle de garde
+  vérifiant que l'exemption « lien vers sa propre marque » ne couvre pas un
+  expéditeur tiers.
+
 ## [2.5.0] — 2026-08-16
 
 Une version d'usage réel. Elle part d'un constat d'utilisateur — « l'interface

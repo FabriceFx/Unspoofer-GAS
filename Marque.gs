@@ -195,6 +195,10 @@ const GROUPES_MARQUES = [
     ['malakoffhumanis.com', 'malakoffmederic.com', 'humanis.com'],
     ['fnac.com', 'darty.com'],                      // Groupe Fnac-Darty
     ['totalenergies.fr', 'total.fr'],
+    // Doctolib émet depuis doctolib.fr mais renvoie vers son domaine corporate
+    // et ses déclinaisons nationales. Sans ce groupe, ses propres liens sont
+    // lus comme un changement de TLD, donc comme un typosquat de doctolib.fr.
+    ['doctolib.fr', 'doctolib.com', 'doctolib.de', 'doctolib.it'],
 
     // ── Administrations de l'État français ──
     // La DGFiP affiche la marque impots.gouv.fr mais émet depuis finances.gouv.fr
@@ -603,6 +607,7 @@ function verifierTyposquatting_(racineExpediteur) {
     }
 
     // 2. Détection par distance de Levenshtein classique
+    const marquesAmbigues = getMarquesAmbigues_();
     for (const [nomMarque, domaine] of index.parNom.entries()) {
         // Ignorer les noms trop courts — trop de faux positifs entre marques légitimes
         if (nomMarque.length < 4) continue;
@@ -610,8 +615,21 @@ function verifierTyposquatting_(racineExpediteur) {
         // Ne pas vérifier si les noms sont identiques (domaine légitime)
         if (nomExpediteur === nomMarque) continue;
 
-        // Seuil adaptatif : distance max 1 pour noms courts, 2 pour noms longs
-        const seuilMax = nomMarque.length >= 6 ? 2 : 1;
+        // Seuil adaptatif, calé sur le PLUS COURT des deux libellés.
+        //
+        // Se caler sur la seule longueur de la marque autorisait deux
+        // substitutions sur un libellé qui n'en compte que quatre :
+        // « qare » (qare.fr, plateforme de téléconsultation) était à distance 2
+        // de « square » et déclenchait une alerte. Un typosquat plausible
+        // reste proche en longueur de sa cible ; à 50 % du libellé, ce n'est
+        // plus une faute de frappe, c'est un autre mot.
+        const longueurComparee = Math.min(nomMarque.length, nomExpediteur.length);
+        let seuilMax = longueurComparee >= 6 ? 2 : 1;
+
+        // Un libellé de marque qui est aussi un mot courant (« orange »,
+        // « square », « free ») exige une quasi-collision : la seule
+        // ressemblance ne suffit pas à conclure (cf. MARQUES_AMBIGUES_DEFAUT).
+        if (marquesAmbigues.has(nomMarque)) seuilMax = 1;
 
         // Garde rapide sur la différence de longueur
         const diffLongueur = Math.abs(nomExpediteur.length - nomMarque.length);

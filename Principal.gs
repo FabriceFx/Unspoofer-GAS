@@ -238,6 +238,18 @@ function libelleSeverite_(severite, lang) {
  * S'adapte à la langue de l'utilisateur final et respecte la casse Sentence case.
  * @param {Array<{objet: string, email: string, nomAffichage: string, raison: string, severite: string}>} usurpations
  */
+/**
+ * Style des cellules du tableau d'alerte.
+ *
+ * Le conteneur du tableau défile horizontalement dans un client mail, mais à
+ * l'impression et à l'export PDF il n'y a pas de défilement : ce qui dépasse
+ * est coupé. La colonne « Raison » se retrouvait tronquée en plein mot
+ * (« Lien suspect déte… »). Les cellules replient donc leur contenu au lieu
+ * d'imposer leur largeur, y compris sur une adresse sans espace.
+ */
+const STYLE_CELLULE_REPLIABLE =
+  'word-break: break-word; overflow-wrap: anywhere; white-space: normal;';
+
 function envoyerAlerteUsurpation_(usurpations) {
   const destinataire = getEmailProprietaire_();
   if (!destinataire) {
@@ -269,10 +281,10 @@ function envoyerAlerteUsurpation_(usurpations) {
           libelleSeverite_(u.severite, lang) + 
         '</span>' +
       '</td>' +
-      '<td style="padding: 12px 10px; color: #1f1f1f;">' + echapHtml_(tronquerChaine_(u.objet, 100)) + '</td>' +
-      '<td style="padding: 12px 10px; color: #444746;">' + echapHtml_(u.email) + '</td>' +
-      '<td style="padding: 12px 10px; color: #444746;">' + echapHtml_(tronquerChaine_(u.nomAffichage, 80)) + '</td>' +
-      '<td style="padding: 12px 10px; color: ' + CONFIG.COLORS.CRITICAL + '; font-weight: 500;">' + echapHtml_(tronquerChaine_(u.raison, 150)) + '</td>' +
+      '<td style="padding: 12px 10px; color: #1f1f1f; ' + STYLE_CELLULE_REPLIABLE + '">' + echapHtml_(tronquerChaine_(u.objet, 100)) + '</td>' +
+      '<td style="padding: 12px 10px; color: #444746; ' + STYLE_CELLULE_REPLIABLE + '">' + echapHtml_(u.email) + '</td>' +
+      '<td style="padding: 12px 10px; color: #444746; ' + STYLE_CELLULE_REPLIABLE + '">' + echapHtml_(tronquerChaine_(u.nomAffichage, 80)) + '</td>' +
+      '<td style="padding: 12px 10px; color: ' + CONFIG.COLORS.CRITICAL + '; font-weight: 500; ' + STYLE_CELLULE_REPLIABLE + '">' + echapHtml_(tronquerChaine_(u.raison, 150)) + '</td>' +
       '</tr>';
   }).join('');
 
@@ -285,7 +297,7 @@ function envoyerAlerteUsurpation_(usurpations) {
   }
 
   // HTML complet au style officiel Google Workspace MD3 Flat
-  const html = '<meta charset="UTF-8">' +
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin: 0; padding: 0; background-color: ' + CONFIG.COLORS.BACKGROUND + ';">' +
     '<div style="background-color: ' + CONFIG.COLORS.BACKGROUND + '; padding: 24px; font-family: \'Open Sans\', \'Inter\', system-ui, -apple-system, sans-serif; color: #1f1f1f; max-width: 650px; margin: 0 auto; border-radius: 16px;">' +
       
       // Branding Header - Utilisation d'entité HTML pour éviter tout bug d'encodage
@@ -302,10 +314,14 @@ function envoyerAlerteUsurpation_(usurpations) {
         
         // Conteneur de tableau responsive
         '<div style="overflow-x: auto; border: 1px solid ' + CONFIG.COLORS.BORDER + '; border-radius: 8px; margin-bottom: 8px;">' +
-          '<table style="border-collapse: collapse; width: 100%; font-size: 12px; text-align: left; background-color: #ffffff;">' +
+          '<table style="border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 12px; text-align: left; background-color: #ffffff;">' +
+            '<colgroup>' +
+              '<col style="width: 14%;"><col style="width: 24%;"><col style="width: 22%;">' +
+              '<col style="width: 16%;"><col style="width: 24%;">' +
+            '</colgroup>' +
             '<thead>' +
               '<tr style="background-color: #f8f9fa; border-bottom: 1px solid ' + CONFIG.COLORS.BORDER + '; color: #1f1f1f; font-weight: 600;">' +
-                '<th style="padding: 10px; min-width: 75px;">' + dict.colSeverity + '</th>' +
+                '<th style="padding: 10px;">' + dict.colSeverity + '</th>' +
                 '<th style="padding: 10px;">' + dict.colSubject + '</th>' +
                 '<th style="padding: 10px;">' + dict.colEmail + '</th>' +
                 '<th style="padding: 10px;">' + dict.colDisplayName + '</th>' +
@@ -327,7 +343,7 @@ function envoyerAlerteUsurpation_(usurpations) {
         '</p>' +
       '</div>' +
       
-    '</div>';
+    '</div></body></html>';
 
   GmailApp.sendEmail(destinataire, sujetEmail, '', { htmlBody: html });
   Logger.log('Email d\'alerte envoyé à ' + destinataire + ' (' + lang.toUpperCase() + ')');
@@ -360,7 +376,7 @@ function envoyerRapportHebdomadaire_() {
     .replace('{blocked}', stats.totalUsurpations);
 
   // Construction du corps HTML au style officiel de Google Workspace MD3 Flat
-  const html = '<meta charset="UTF-8">' +
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin: 0; padding: 0; background-color: ' + CONFIG.COLORS.BACKGROUND + ';">' +
     '<div style="background-color: ' + CONFIG.COLORS.BACKGROUND + '; padding: 24px; font-family: \'Open Sans\', \'Inter\', system-ui, -apple-system, sans-serif; color: #1f1f1f; max-width: 550px; margin: 0 auto; border-radius: 16px;">' +
       
       // Header branding - Utilisation d'entité HTML pour éviter tout bug d'encodage
@@ -406,7 +422,7 @@ function envoyerRapportHebdomadaire_() {
         '</p>' +
       '</div>' +
       
-    '</div>';
+    '</div></body></html>';
 
   GmailApp.sendEmail(destinataire, dict.reportSubject, '', { htmlBody: html });
   Logger.log('Rapport hebdomadaire envoyé à ' + destinataire + ' (' + lang.toUpperCase() + ')');

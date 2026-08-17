@@ -49,6 +49,13 @@ const PLATEFORMES_ENVOI_TIERS_DEFAUT = new Set([
     // Relation client et productivité
     'hubspot.com', 'salesforce.com', 'intercom.com', 'zendesk.com',
     'typeform.com', 'calendly.com', 'docusign.net', 'yousign.com',
+    // Notificateurs de partage de documents : le message part du domaine de la
+    // plateforme, mais l'adresse de réponse est celle de la personne qui
+    // partage. Divergence par conception, sans rapport avec une usurpation.
+    // Ces domaines sont hors de portée d'un attaquant : leur courrier est
+    // authentifié par l'infrastructure de l'éditeur, pas par un compte client.
+    'google.com', 'googlemail.com', 'dropbox.com', 'dropboxmail.com',
+    'sharepoint.com', 'box.com',
 ]);
 
 /**
@@ -347,11 +354,20 @@ function determinerSeverite_(typeDetection, nomMarque, homoglyphesPresents, auth
 
 /**
  * Détecteur de liens suspects dans le corps du message (Point 4).
+ *
+ * Une marque qui exploite plusieurs extensions renvoie couramment vers ses
+ * autres domaines depuis ses propres messages : doctolib.fr vers doctolib.com,
+ * amazon.fr vers amazon.com. Comparé à la seule base des marques, ce lien passe
+ * pour un changement de TLD, donc pour un typosquat — et l'alerte part en
+ * « critique » alors que l'expéditeur EST la marque visée. Le domaine de
+ * l'expéditeur est donc désormais transmis, pour écarter ce cas.
+ *
  * @param {string|null} corps - Corps du message, ou null s'il n'a pas pu être lu
  *   (quota d'appels Gmail épuisé).
+ * @param {string} [racineExpediteur] - Domaine racine de l'expéditeur.
  * @returns {{suspect: boolean, url: string, marque: string}}
  */
-function verifierLiensSuspects_(corps) {
+function verifierLiensSuspects_(corps, racineExpediteur) {
     if (corps === null) return { suspect: false, url: '', marque: '', quotaEpuise: true };
     try {
         // Regex pour extraire les URLs
@@ -363,12 +379,33 @@ function verifierLiensSuspects_(corps) {
                 if (matchDomaine) {
                     const domaine = extraireDomaineRacine_(matchDomaine[1]);
                     const typo = verifierTyposquatting_(domaine);
-                    if (typo) return { suspect: true, url: url, marque: typo.nomMarque };
+                    if (typo && !estLienVersSaPropreMarque_(racineExpediteur, typo.domaine)) {
+                        return { suspect: true, url: url, marque: typo.nomMarque };
+                    }
                 }
             } catch (e) { /* URL malformée */ }
         }
     } catch (e) { /* ignore body errors */ }
     return { suspect: false, url: '', marque: '', quotaEpuise: false };
+}
+
+/**
+ * Indique qu'un lien vise la marque de l'expéditeur lui-même — cas d'un
+ * message parti du domaine officiel et renvoyant vers un domaine frère.
+ *
+ * L'exemption est volontairement étroite : elle exige que l'expéditeur soit le
+ * domaine de référence de la marque visée, ou un domaine du même groupe. Un
+ * message parti d'ailleurs et pointant vers « paypal.co » reste signalé.
+ *
+ * @param {string} racineExpediteur - Domaine racine de l'expéditeur.
+ * @param {string} domaineMarque - Domaine de référence de la marque visée par le lien.
+ * @returns {boolean}
+ */
+function estLienVersSaPropreMarque_(racineExpediteur, domaineMarque) {
+    if (!racineExpediteur || !domaineMarque) return false;
+    const racineMarque = extraireDomaineRacine_(domaineMarque);
+    return racineMarque === racineExpediteur ||
+        estUnDomaineMarqueLie_(racineMarque, racineExpediteur);
 }
 
 /**
@@ -654,7 +691,15 @@ function verifierUsurpation_(message) {
         if (replyTo) {
             const analyseReply = analyserExpediteur_(replyTo);
             const replyDomaine = extraireDomaineRacine_(analyseReply.email.split('@')[1] || '');
-            if (replyDomaine && racineActuelle && replyDomaine !== racineActuelle &&
+            // Adresse de réponse = le titulaire de la boîte lui-même : il n'y a
+            // personne à usurper. C'est le cas de tous les partages Drive,
+            // Docs ou Agenda que l'utilisateur a initiés — le notificateur
+            // Google place le partageur en Reply-To.
+            const proprietaire = getEmailProprietaire_().toLowerCase();
+            const repondAuProprietaire =
+                !!proprietaire && analyseReply.email === proprietaire;
+            if (!repondAuProprietaire &&
+                replyDomaine && racineActuelle && replyDomaine !== racineActuelle &&
                 !estUnDomaineMarqueLie_(racineActuelle, replyDomaine) &&
                 !getPlateformesTierces_().has(racineActuelle)) {
                 resultat.estUsurpation = true;
@@ -668,7 +713,7 @@ function verifierUsurpation_(message) {
     } catch (e) { /* ignore reply-to errors */ }
 
     // 10. Vérification des liens suspects dans le corps (Point 4)
-    const liensSuspects = verifierLiensSuspects_(getCorps());
+    const liensSuspects = verifierLiensSuspects_(getCorps(), racineActuelle);
     if (liensSuspects.quotaEpuise) resultat.analysePartielle = true;
     if (liensSuspects.suspect) {
         resultat.estUsurpation = true;

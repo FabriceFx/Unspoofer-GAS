@@ -96,6 +96,24 @@
       "de": "\"Service Public\" <noreply@service-public.fr>",
       "objet": "Votre démarche a été enregistrée"
     },
+    {
+      "id": "L35-marque-lien-domaine-frere",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"Doctolib\" <no-reply@doctolib.fr>",
+      "objet": "Votre rendez-vous est confirmé",
+      "corpsTexte": "Votre rendez-vous est confirmé. Gérer mes rendez-vous : https://www.doctolib.fr/account — À propos : https://about.doctolib.com/fr",
+      "note": "Une marque qui renvoie vers son propre domaine frère n'usurpe personne."
+    },
+    {
+      "id": "L36-libelle-court-proche-marque",
+      "categorie": "legitime_marque",
+      "attendu": "legitime",
+      "de": "\"L'équipe Qare\" <no-reply@news.qare.fr>",
+      "objet": "4 idées reçues à revoir",
+      "corpsTexte": "Notre lettre d'information du mois : https://www.qare.fr/sante/",
+      "note": "« qare » (4 lettres) était à distance 2 de « square » : trop loin pour une faute de frappe."
+    },
 
     {
       "id": "L13-dgfip-marque-affichee",
@@ -215,6 +233,24 @@
       "de": "\"Eventbrite\" <noreply@eventbrite.fr>",
       "replyTo": "organisateur@asso-exemple.fr",
       "objet": "Votre billet"
+    },
+    {
+      "id": "L33-drive-replyto-proprietaire",
+      "categorie": "legitime_plateforme",
+      "attendu": "legitime",
+      "de": "\"Utilisateur Exemple (via Google Apps Script)\" <drive-shares-dm-noreply@google.com>",
+      "replyTo": "utilisateur@exemple.fr",
+      "objet": "Élément partagé avec vous : \"Routeur JSM\"",
+      "note": "Partage initié par le titulaire lui-même : le Reply-To est sa propre adresse."
+    },
+    {
+      "id": "L34-drive-replyto-partageur",
+      "categorie": "legitime_plateforme",
+      "attendu": "legitime",
+      "de": "\"Camille Martin (via Google Docs)\" <drive-shares-dm-noreply@google.com>",
+      "replyTo": "camille.martin@exemple-partenaire.fr",
+      "objet": "Élément partagé avec vous : \"Budget 2026\"",
+      "note": "Le notificateur Google place le partageur en Reply-To : divergence par conception."
     },
     {
       "id": "L28-mailchimp-replyto",
@@ -542,6 +578,16 @@
       "motifAttendu": "reasonGenericDomain",
       "de": "\"secure-bank-exemple.fr\" <contact@autre-domaine-random.tk>",
       "objet": "Sécurisation de votre compte"
+    },
+    {
+      "id": "P33-lien-tld-detourne-depuis-tiers",
+      "categorie": "phishing_lien",
+      "attendu": "phishing",
+      "motifAttendu": "reasonBodyLink",
+      "de": "\"Support\" <alerte@securite-compte-random.tk>",
+      "objet": "Vérification requise",
+      "corpsTexte": "Confirmez votre identité ici : http://paypal.co/verify avant suspension.",
+      "note": "Contrôle de garde : l'exemption « lien vers sa propre marque » ne doit pas couvrir un tiers."
     }
   ]
 }

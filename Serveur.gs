@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Contrôleur Web App et points d'accès RPC pour le Dashboard interactif.
- *  Version     : 2.5.1
+ *  Version     : 2.5.2
  * ============================================================================
  */
 
@@ -96,13 +96,42 @@ function verifierCoherenceEtiquette_() {
 }
 
 /**
+ * Longueur au-delà de laquelle une saisie ne peut plus être un domaine ni une
+ * adresse e-mail valide (RFC 5321 : 254 caractères).
+ */
+const LONGUEUR_MAX_SAISIE = 254;
+
+/**
+ * Forme attendue d'un nom de domaine. Même motif que la validation des listes
+ * de référence (voir LISTES_MODIFIABLES dans Listes.gs) : au moins un point,
+ * pas d'espace, pas de schéma d'URL.
+ */
+const FORMAT_DOMAINE = /^[a-z0-9][-a-z0-9]*(\.[a-z0-9][-a-z0-9]*)+$/;
+
+/**
+ * Ramène un paramètre reçu de `google.script.run` à une chaîne exploitable.
+ *
+ * Le client n'est pas une source de confiance : rien n'empêche un appel de
+ * transmettre un nombre, un objet ou une chaîne de dix mille caractères. Les
+ * points d'accès appelaient `.trim()` directement, ce qui lève une exception
+ * sur tout ce qui n'est pas une chaîne.
+ *
+ * @param {*} valeur - Paramètre brut reçu du client.
+ * @returns {string} Chaîne nettoyée, vide si la valeur est inexploitable.
+ */
+function texteRecu_(valeur) {
+  if (typeof valeur !== 'string') return '';
+  return valeur.trim().slice(0, LONGUEUR_MAX_SAISIE);
+}
+
+/**
  * Change la langue de l'interface et renvoie l'état complet du tableau de bord
  * dans la nouvelle langue.
  * @param {string} langue - 'fr', 'en', ou 'auto' pour suivre le compte Google.
  * @returns {Object} Données du tableau de bord, dictionnaire compris.
  */
 function setLangue(langue) {
-  const appliquee = definirLangueUtilisateur_(langue);
+  const appliquee = definirLangueUtilisateur_(texteRecu_(langue));
   Logger.log('Langue de l\'interface : ' + appliquee);
   return getDashboardData();
 }
@@ -113,7 +142,7 @@ function setLangue(langue) {
  * @returns {Object} Données du tableau de bord
  */
 function setTheme(theme) {
-  const applique = definirThemeUtilisateur_(theme);
+  const applique = definirThemeUtilisateur_(texteRecu_(theme));
   Logger.log('Thème de l\'interface : ' + applique);
   return getDashboardData();
 }
@@ -124,34 +153,17 @@ function setTheme(theme) {
  * @returns {boolean} Statut final d'activité
  */
 function toggleTriggers(active) {
-  const declencheurs = ScriptApp.getProjectTriggers();
-  for (const declencheur of declencheurs) {
-    const handler = declencheur.getHandlerFunction();
-    if (handler === 'analyserBoiteReception' || handler === 'envoyerRapportHebdomadaire_') {
-      ScriptApp.deleteTrigger(declencheur);
-    }
+  // La cadence est définie une seule fois, dans Principal.gs.
+  try {
+    reinstallerDeclencheurs_(!!active);
+  } catch (e) {
+    Logger.log('ÉCHEC de toggleTriggers(' + active + ') : ' + e.message);
+    throw new Error('Impossible de modifier les déclencheurs : ' + e.message);
   }
 
-  if (active) {
-    // Configurer à nouveau (chaque 10 min et chaque lundi)
-    ScriptApp.newTrigger('analyserBoiteReception')
-      .timeBased()
-      .everyMinutes(10)
-      .create();
-
-    ScriptApp.newTrigger('envoyerRapportHebdomadaire_')
-      .timeBased()
-      .everyWeeks(1)
-      .onWeekDay(ScriptApp.WeekDay.MONDAY)
-      .atHour(9)
-      .create();
-    
-    Logger.log('Déclencheurs activés via le Dashboard');
-    return true;
-  } else {
-    Logger.log('Déclencheurs désactivés via le Dashboard');
-    return false;
-  }
+  Logger.log(active ? 'Déclencheurs activés via le Dashboard'
+                    : 'Déclencheurs désactivés via le Dashboard');
+  return !!active;
 }
 
 /**
@@ -182,8 +194,9 @@ function runUnitTests() {
  *   liste blanche à jour. `motif` vaut 'ajout', 'doublon', 'vide' ou 'plafond'.
  */
 function addWhitelistEntry(entree) {
-  if (!entree) return { ok: false, motif: 'vide', liste: getListeBlanche_() };
-  const resultat = ajouterALaListeBlanche(entree.trim().toLowerCase());
+  const saisie = texteRecu_(entree).toLowerCase();
+  if (!saisie) return { ok: false, motif: 'vide', liste: getListeBlanche_() };
+  const resultat = ajouterALaListeBlanche(saisie);
   return {
     ok: resultat.ok,
     motif: resultat.motif,
@@ -197,8 +210,8 @@ function addWhitelistEntry(entree) {
  * @returns {string[]} Liste blanche mise à jour
  */
 function removeWhitelistEntry(entree) {
-  if (!entree) return getListeBlanche_();
-  const cible = entree.trim().toLowerCase();
+  const cible = texteRecu_(entree).toLowerCase();
+  if (!cible) return getListeBlanche_();
   const liste = getListeBlanche_();
   const index = liste.indexOf(cible);
   if (index !== -1) {
@@ -236,10 +249,15 @@ function getCustomBrands_() {
  *   et liste à jour. `motif` vaut 'ajout', 'doublon' ou 'plafond'.
  */
 function addCustomBrand(nomMarque, domaine) {
-  if (!nomMarque || !domaine) return { ok: false, motif: 'vide', marques: getCustomBrands_() };
-  
-  const nomNettoye = nomMarque.trim();
-  const domaineNettoye = domaine.trim().toLowerCase();
+  const nomNettoye = texteRecu_(nomMarque);
+  const domaineNettoye = texteRecu_(domaine).toLowerCase();
+  if (!nomNettoye || !domaineNettoye) {
+    return { ok: false, motif: 'vide', marques: getCustomBrands_() };
+  }
+  if (!FORMAT_DOMAINE.test(domaineNettoye)) {
+    Logger.log('Domaine refusé (format) : ' + domaineNettoye);
+    return { ok: false, motif: 'format', marques: getCustomBrands_() };
+  }
   
   const customBrands = getCustomBrands_();
   const existe = customBrands.some(cb => cb.domaine === domaineNettoye);
@@ -267,9 +285,9 @@ function addCustomBrand(nomMarque, domaine) {
  * @returns {Array<{nomMarque: string, domaine: string}>} Liste mise à jour
  */
 function removeCustomBrand(domaine) {
-  if (!domaine) return getCustomBrands_();
+  const cible = texteRecu_(domaine).toLowerCase();
+  if (!cible) return getCustomBrands_();
   
-  const cible = domaine.trim().toLowerCase();
   let customBrands = getCustomBrands_();
   const tailleInitiale = customBrands.length;
   
@@ -352,11 +370,15 @@ function resetStats() {
  * @returns {{ok: boolean, message: string, donnees: Object}}
  */
 function modifierListeReference(operation, nomListe, valeur) {
+  const op = texteRecu_(operation);
+  const liste = texteRecu_(nomListe);
+  const val = texteRecu_(valeur);
+
   let resultat;
-  if (operation === 'ajouter') resultat = ajouterEntreeListe(nomListe, valeur);
-  else if (operation === 'retirer') resultat = retirerEntreeListe(nomListe, valeur);
-  else if (operation === 'reinitialiser') resultat = reinitialiserListe(nomListe);
-  else resultat = { ok: false, message: 'Opération inconnue : ' + operation };
+  if (op === 'ajouter') resultat = ajouterEntreeListe(liste, val);
+  else if (op === 'retirer') resultat = retirerEntreeListe(liste, val);
+  else if (op === 'reinitialiser') resultat = reinitialiserListe(liste);
+  else resultat = { ok: false, message: 'Opération inconnue : ' + op };
 
   return {
     ok: resultat.ok,

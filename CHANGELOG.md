@@ -2,6 +2,37 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [2.5.2] — 2026-08-17
+
+Suites d'un audit du code source. Les corrections portent sur la robustesse et
+la maintenabilité ; le moteur de détection n'est pas touché — le corpus de test
+donne les mêmes 33 détections sur 33 et zéro faux positif qu'en 2.5.1.
+
+### Corrigé
+
+- **Paramètres RPC revalidés côté serveur.** Les sept points d'accès exposés
+  par `google.script.run` appelaient `.trim()` directement sur ce que leur
+  transmettait le client : un nombre ou un objet levait une exception au lieu
+  d'un refus propre. `texteRecu_()` ramène toute valeur à une chaîne bornée à
+  254 caractères, et l'ajout d'une marque personnalisée vérifie désormais la
+  forme du domaine.
+- **Cadence des déclencheurs écrite en un seul endroit.** `configurer()` et
+  `toggleTriggers()` créaient les mêmes déclencheurs par copie du même code :
+  changer l'intervalle d'analyse à un endroit laissait l'autre inchangé. Les
+  deux délèguent à `reinstallerDeclencheurs_()`.
+- **`echapHtml_()` échappe les guillemets et les apostrophes.** Les appelants
+  actuels n'écrivent que dans du contenu textuel, où l'omission est sans effet ;
+  elle deviendrait une injection au premier appelant qui écrirait dans un
+  attribut.
+- **`configurer()`, `desinstaller()` et `toggleTriggers()` capturent leurs
+  erreurs** et renvoient un message explicite au lieu d'une trace d'exécution.
+- **Appel Gmail dupliqué** dans `diagnostiquerAlertes()` : `fil.getMessages()`
+  était invoqué deux fois dans la même expression, doublant la consommation
+  d'API sur chaque fil examiné.
+- **`testerDetection()` remet à zéro les compteurs de quota Gmail.** Enchaîner
+  un scan puis les tests depuis l'éditeur les exécutait en analyse partielle
+  sur un quota déjà consommé.
+
 ## [2.5.1] — 2026-08-17
 
 Un rapport d'alerte réel a signalé cinq messages, dont deux en « critique ».

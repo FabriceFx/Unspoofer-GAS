@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Contrôleur et orchestrateur d'exécution des tâches d'analyse en arrière-plan.
- *  Version     : 2.5.1
+ *  Version     : 2.5.2
  * ============================================================================
  */
 
@@ -38,14 +38,21 @@ function obtenirOuCreerEtiquette_() {
     return { etiquette: GmailApp.createLabel(NOM_ETIQUETTE), recreee: true };
 }
 
-/**
- * Crée l'étiquette ALERTE-USURPATION (idempotent) et configure les déclencheurs.
- */
-function configurer() {
-    const { recreee } = obtenirOuCreerEtiquette_();
-    Logger.log(recreee ? 'Étiquette créée : ' + NOM_ETIQUETTE
-                       : 'L\'étiquette existe déjà : ' + NOM_ETIQUETTE);
+/** Cadence des déclencheurs temporels. */
+const INTERVALLE_ANALYSE_MINUTES = 10;
+const JOUR_RAPPORT_HEBDO = () => ScriptApp.WeekDay.MONDAY;
+const HEURE_RAPPORT_HEBDO = 9;
 
+/**
+ * Supprime les déclencheurs d'Unspoofer, puis les recrée à la cadence courante.
+ *
+ * Seul endroit où cette cadence est écrite. Elle l'était en double —
+ * ici et dans toggleTriggers() côté tableau de bord — si bien qu'en changer
+ * une revenait à laisser l'autre en place, sans que rien ne le signale.
+ *
+ * @param {boolean} [recreer=true] - Si faux, se contente de supprimer.
+ */
+function reinstallerDeclencheurs_(recreer = true) {
     const declencheurs = ScriptApp.getProjectTriggers();
     for (const declencheur of declencheurs) {
         const handler = declencheur.getHandlerFunction();
@@ -53,22 +60,41 @@ function configurer() {
             ScriptApp.deleteTrigger(declencheur);
         }
     }
+    if (!recreer) return;
 
-    // Déclencheur d'analyse (toutes les 10 minutes)
+    // Déclencheur d'analyse
     ScriptApp.newTrigger('analyserBoiteReception')
         .timeBased()
-        .everyMinutes(10)
+        .everyMinutes(INTERVALLE_ANALYSE_MINUTES)
         .create();
 
     // Déclencheur de rapport hebdomadaire (Point 9)
     ScriptApp.newTrigger('envoyerRapportHebdomadaire_')
         .timeBased()
         .everyWeeks(1)
-        .onWeekDay(ScriptApp.WeekDay.MONDAY)
-        .atHour(9)
+        .onWeekDay(JOUR_RAPPORT_HEBDO())
+        .atHour(HEURE_RAPPORT_HEBDO)
         .create();
+}
 
-    Logger.log('Configuration terminée. Unspoofer est actif (fenêtre : ' + getFenetreAnalyse_() + ' jours).');
+/**
+ * Crée l'étiquette ALERTE-USURPATION (idempotent) et configure les déclencheurs.
+ */
+function configurer() {
+    try {
+        const { recreee } = obtenirOuCreerEtiquette_();
+        Logger.log(recreee ? 'Étiquette créée : ' + NOM_ETIQUETTE
+                           : 'L\'étiquette existe déjà : ' + NOM_ETIQUETTE);
+
+        reinstallerDeclencheurs_(true);
+
+        Logger.log('Configuration terminée. Unspoofer est actif (fenêtre : ' + getFenetreAnalyse_() + ' jours).');
+    } catch (e) {
+        // Autorisation révoquée ou quota de déclencheurs atteint : journaliser
+        // le motif plutôt que de laisser remonter une trace d'exécution brute.
+        Logger.log('ÉCHEC de configurer() : ' + e.message);
+        throw new Error('La configuration a échoué : ' + e.message);
+    }
 }
 
 /**
@@ -435,15 +461,20 @@ function envoyerRapportHebdomadaire_() {
  * Supprime tous les déclencheurs et vide le cache des messages traités.
  */
 function desinstaller() {
-    const declencheurs = ScriptApp.getProjectTriggers();
-    for (const declencheur of declencheurs) {
-        ScriptApp.deleteTrigger(declencheur);
-    }
-    Logger.log('Tous les déclencheurs ont été supprimés');
+    try {
+        const declencheurs = ScriptApp.getProjectTriggers();
+        for (const declencheur of declencheurs) {
+            ScriptApp.deleteTrigger(declencheur);
+        }
+        Logger.log('Tous les déclencheurs ont été supprimés');
 
-    effacerCacheTraite();
-    Logger.log('Cache des messages traités vidé');
-    Logger.log('Désinstallation terminée. L\'étiquette ALERTE-USURPATION est conservée pour examen.');
+        effacerCacheTraite();
+        Logger.log('Cache des messages traités vidé');
+        Logger.log('Désinstallation terminée. L\'étiquette ALERTE-USURPATION est conservée pour examen.');
+    } catch (e) {
+        Logger.log('ÉCHEC de desinstaller() : ' + e.message);
+        throw new Error('La désinstallation a échoué : ' + e.message);
+    }
 }
 
 /**
@@ -487,6 +518,13 @@ function ajouterALaListeBlanche(domaineOuEmail) {
  *   Le rapport de test si retournerResultats vaut vrai, rien sinon.
  */
 function testerDetection(retournerResultats = false) {
+    // Chaque appel depuis le tableau de bord ouvre un runtime neuf, où ces
+    // compteurs repartent de zéro. Enchaîner un scan puis les tests depuis
+    // l'éditeur reste dans le même runtime : sans cette remise à zéro, les
+    // tests s'exécuteraient en analyse partielle sur un quota déjà consommé.
+    _appelsRawContent = 0;
+    _appelsPlainBody = 0;
+
     const casTests = [
         { nom: 'Usurpation Wix en cyrillique', de: '"W\u0456x.c\u043Em" <info@bistro-pub.de>', usurpationAttendue: true },
         { nom: 'Usurpation PayPal en cyrillique', de: '"P\u0430yP\u0430l Security" <alerts@some-random.com>', usurpationAttendue: true },
@@ -673,7 +711,8 @@ function diagnostiquerAlertes() {
         rapport.filsEtiquetes += lot.length;
         for (const fil of lot) {
             if (rapport.exemples.length < 10) {
-                const dernier = fil.getMessages()[fil.getMessages().length - 1];
+                const messagesDuFil = fil.getMessages();
+                const dernier = messagesDuFil[messagesDuFil.length - 1];
                 rapport.exemples.push({
                     objet: dernier.getSubject(),
                     de: dernier.getFrom(),

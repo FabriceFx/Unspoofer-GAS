@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Utilitaires généraux côté serveur (helpers d'inclusion HTML, formatage, etc.).
- *  Version     : 2.5.1
+ *  Version     : 2.5.2
  * ============================================================================
  */
 
@@ -184,7 +184,12 @@ function echapHtml_(str) {
   return (str || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    // Les appelants actuels n'insèrent que du contenu textuel, où le guillemet
+    // est inoffensif. La fonction porte un nom générique : le jour où l'un
+    // d'eux écrira dans un attribut, l'omission ouvrirait une injection.
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**

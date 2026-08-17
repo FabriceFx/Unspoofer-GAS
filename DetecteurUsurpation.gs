@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Moteur principal d'analyse heuristique des e-mails suspects et de détection de phishing.
- *  Version     : 2.5.1
+ *  Version     : 2.5.2
  * ============================================================================
  */
 

@@ -2,10 +2,14 @@
 
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-## [Non publié]
+## [2.5.1] — 2026-08-17
 
 Un rapport d'alerte réel a signalé cinq messages, dont deux en « critique ».
 Les cinq étaient des faux positifs. Cette version corrige les quatre causes.
+
+Aucune détection n'est perdue au passage : le corpus de test passe de 63 à
+68 cas et le moteur y relève 33 fraudes sur 33, sans signaler un seul des
+35 messages légitimes.
 
 ### Corrigé
 

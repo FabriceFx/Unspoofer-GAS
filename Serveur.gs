@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Contrôleur Web App et points d'accès RPC pour le Dashboard interactif.
- *  Version     : 2.5.0
+ *  Version     : 2.5.1
  * ============================================================================
  */
 

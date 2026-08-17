@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Utilitaires généraux côté serveur (helpers d'inclusion HTML, formatage, etc.).
- *  Version     : 2.5.0
+ *  Version     : 2.5.1
  * ============================================================================
  */
 

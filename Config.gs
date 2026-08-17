@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Centralisation des constantes globales, des variables d'environnement et de configuration.
- *  Version     : 2.5.0
+ *  Version     : 2.5.1
  * ============================================================================
  */
 
@@ -15,7 +15,7 @@
 
 const CONFIG = {
   PROJECT_NAME: "Unspoofer",
-  VERSION: "2.5.0",
+  VERSION: "2.5.1",
   /* Langue : 'auto' suit le compte Google de l'utilisateur ; 'fr' ou 'en'
      imposent une langue. Une préférence choisie depuis le tableau de bord
      l'emporte sur cette valeur. Voir getLangueUtilisateur_() dans Utils.gs. */

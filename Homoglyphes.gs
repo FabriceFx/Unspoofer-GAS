@@ -6,7 +6,7 @@
  *  Projet      : Détecteur Phishing
  *  Rôle        : Normalisation des caractères trompeurs — homoglyphes Unicode, accents,
  *                forme compacte — pour permettre la comparaison à un nom de domaine.
- *  Version     : 2.5.0
+ *  Version     : 2.5.1
  * ============================================================================
  */
 

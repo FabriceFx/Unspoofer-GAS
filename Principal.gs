@@ -5,7 +5,7 @@
  *  Auteur      : Fabrice Faucheux (https://faucheux.bzh)
  *  Projet      : Détecteur Phishing
  *  Rôle        : Contrôleur et orchestrateur d'exécution des tâches d'analyse en arrière-plan.
- *  Version     : 2.5.0
+ *  Version     : 2.5.1
  * ============================================================================
  */
 

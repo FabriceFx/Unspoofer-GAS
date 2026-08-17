@@ -6,7 +6,7 @@
  *  Projet      : Détecteur Phishing
  *  Rôle        : Base des marques surveillées (domaines, groupes liés, alias, libellés
  *                ambigus), correspondance de marque et détection de typosquatting.
- *  Version     : 2.5.0
+ *  Version     : 2.5.1
  * ============================================================================
  */
 
